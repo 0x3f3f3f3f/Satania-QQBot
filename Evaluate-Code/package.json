@@ -1,0 +1,11 @@
+{
+  "name": "evaluate-code",
+  "version": "1.0.0",
+  "description": "执行C#代码",
+  "main": "web_api.js",
+  "author": "CH",
+  "dependencies": {
+    "express": "^4.17.1",
+    "lodash": "^4.17.15"
+  }
+}

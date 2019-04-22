@@ -1,0 +1,24 @@
+{
+  "name": "coolq-bot",
+  "version": "1.0.0",
+  "description": "QQ bot",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0x3f3f3f3f/coolq-bot.git"
+  },
+  "author": "CH",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/0x3f3f3f3f/coolq-bot/issues"
+  },
+  "homepage": "https://github.com/0x3f3f3f3f/coolq-bot#readme",
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "request": "^2.88.0",
+    "ws": "^6.2.1"
+  }
+}

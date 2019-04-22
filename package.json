@@ -1,0 +1,37 @@
+{
+  "name": "satania-qqbot",
+  "version": "1.0.0",
+  "description": "QQ机器人",
+  "main": "app.js",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "express": "^4.17.1",
+    "gif-frames": "^1.0.1",
+    "knex": "^0.20.2",
+    "lodash": "^4.17.15",
+    "moment": "^2.24.0",
+    "mysql2": "^2.0.0",
+    "nzh": "^1.0.4",
+    "pixiv-app-api": "^1.0.2",
+    "pixiv-img": "^1.0.0",
+    "puppeteer": "^2.0.0",
+    "request": "^2.88.0",
+    "sharp": "^0.23.3",
+    "uuid": "^3.3.3",
+    "ws": "^7.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0x3f3f3f3f/Satania-QQBot.git"
+  },
+  "author": "Freezer.CH",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/0x3f3f3f3f/Satania-QQBot/issues"
+  },
+  "homepage": "https://github.com/0x3f3f3f3f/Satania-QQBot#readme"
+}

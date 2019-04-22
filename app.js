@@ -6,7 +6,7 @@ const fs = require('fs');
 // 账号密码
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
-const client = new WebSocket(`ws://${secret.coolqHost}}:${secret.coolqPort}}/?access_token=%${secret.coolqAccessToken}}`);
+const client = new WebSocket(`ws://${secret.coolqHost}:${secret.coolqPort}/?access_token=${secret.coolqAccessToken}`);
 
 client.on('open', () => {
     console.log('opend!');
@@ -40,7 +40,7 @@ client.on('message', data => {
 
     let atMe = false;
     if ((new RegExp('CQ:at')).test(receiveObj.message) &&
-        (new RegExp(`qq=${secret.targetQQ}}`)).test(receiveObj.message)) {
+        (new RegExp(`qq=${secret.targetQQ}`)).test(receiveObj.message)) {
         atMe = true;
     }
 

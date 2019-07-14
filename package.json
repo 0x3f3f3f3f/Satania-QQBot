@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/0x3f3f3f3f/coolq-bot#readme",
   "dependencies": {
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.13",
     "request": "^2.88.0",
     "ws": "^6.2.1"
   }

@@ -24,7 +24,7 @@ module.exports = function (recvObj, client) {
     } else if (/手.*册/g.test(recvObj.params.content)) {
         type = DocType.manual;
     }
-    if (type) {
+    if (type != null) {
         UnityDoc(type, recvObj, client);
         return true
     }

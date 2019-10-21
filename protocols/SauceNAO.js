@@ -34,7 +34,7 @@ async function SauceNAO(url, recvObj, client) {
             type: recvObj.params.type,
             group: recvObj.params.group || '',
             qq: recvObj.params.qq || '',
-            content: '搜索中(๑•̀ㅂ•́)و✧'
+            content: '搜索中~'
         }
     });
     let saucenaoObj;

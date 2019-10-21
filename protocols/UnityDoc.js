@@ -52,14 +52,14 @@ async function UnityDoc(type, recvObj, client) {
             type: recvObj.params.type,
             group: recvObj.params.group || '',
             qq: recvObj.params.qq || '',
-            content: '搜索中(๑•̀ㅂ•́)و✧'
+            content: '搜索中~'
         }
     });
 
     const page = await browser.newPage();
 
     const watchDogResults = page.waitForSelector('.search-results .result');
-    const watchDogNotResult = page.waitForFunction('/did not result/ig.test(document.querySelector(".search-results").textContent)');
+    const watchDogNotResult = page.waitForFunction('document.querySelector(".search-results")&&/did not result/ig.test(document.querySelector(".search-results").textContent)');
 
     const searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
     console.log('Unity Documentation search:', searchText);
@@ -109,7 +109,7 @@ async function UnityDoc(type, recvObj, client) {
     if (results) {
         const resultText = '';
         for (const result of results) {
-            resultText += `${result.title} ${result.url}\r\n${result.info}\r\n`
+            resultText += `${result.title} ${DocUrl[type]+result.url}\r\n${result.info}\r\n`
         }
 
         client.sendObj({

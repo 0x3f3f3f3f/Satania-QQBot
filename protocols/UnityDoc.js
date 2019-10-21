@@ -96,6 +96,7 @@ async function UnityDoc(type, recvObj, client) {
         for (let i = 0; i < 5; i++) {
             const result = resultElements[i];
             retArr.push({
+                title: result.querySelector('.title').textContent,
                 url: result.querySelector('.title').getAttribute('href'),
                 info: result.querySelector('p').textContent
             });
@@ -108,8 +109,8 @@ async function UnityDoc(type, recvObj, client) {
     if (results) {
         let resultText = '';
         for (const result of results) {
-            resultText += (resultText == '' ? '' : '\r\n') + '————————\r\n' +
-                `${DocUrl[type]+result.url}\r\n${result.info}`
+            resultText += (resultText == '' ? '' : '\r\n') +
+                `${DocUrl[type]+result.url}\r\n${result.title} ${result.info}`
         }
 
         client.sendObj({

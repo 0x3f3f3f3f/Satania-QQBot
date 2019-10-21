@@ -110,7 +110,7 @@ async function UnityDoc(type, recvObj, client) {
         let resultText = '';
         for (const result of results) {
             resultText += (resultText == '' ? '' : '\r\n') + '\r\n' +
-                `${DocUrl[type]+result.url}\r\n${result.title} ${result.info}`
+                `${DocUrl[type]+result.url}\r\n${result.title}: ${result.info}`
         }
 
         client.sendObj({

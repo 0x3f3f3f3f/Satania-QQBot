@@ -1,3 +1,5 @@
+const uuid = require('uuid/v1');
+
 module.exports = function (recvObj, client) {
     if (!repeaterMode &&
         repeaterDic[recvObj.params.group] == recvObj.params.content) {

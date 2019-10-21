@@ -1,3 +1,9 @@
+const request = require('request');
+const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
+const uuid = require('uuid/v1');
+
 module.exports = function (recvObj, client) {
     if ((/搜.*图/).test(recvObj.params.content)) {
         const imgURL = getFirstImageURL(recvObj.params.content);

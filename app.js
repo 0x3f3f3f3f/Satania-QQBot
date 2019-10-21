@@ -1,5 +1,4 @@
 const WebSocket = require('ws');
-const request = require('request');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +22,7 @@ const heartBeat = setInterval(() => {
 // 载入所有协议
 global.protocols = {};
 for (const protocolName of fs.readdirSync('./protocols')) {
-    if (fs.statSync(protocolName).isFile && /\.js$/.test(protocolName)) {
+    if (fs.statSync(`./protocols/${protocolName}`).isFile && /\.js$/.test(protocolName)) {
         protocols[path.basename(protocolName, path.extname(protocolName))] = require(`./protocols/${protocolName}`);
     }
 }

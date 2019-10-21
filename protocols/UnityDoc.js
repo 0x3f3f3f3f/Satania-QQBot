@@ -107,7 +107,7 @@ async function UnityDoc(type, recvObj, client) {
     await page.close();
 
     if (results) {
-        const resultText = '';
+        let resultText = '';
         for (const result of results) {
             resultText += `${result.title} ${DocUrl[type]+result.url}\r\n${result.info}\r\n`
         }

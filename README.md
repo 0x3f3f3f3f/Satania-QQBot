@@ -1,2 +1,2 @@
-# coolq-bot
-QQ搜图机器人
+# 萨塔尼亚Project
+QQ机器人

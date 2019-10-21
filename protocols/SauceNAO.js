@@ -5,10 +5,10 @@ const path = require('path');
 const uuid = require('uuid/v1');
 
 module.exports = function (recvObj, client) {
-    if ((/搜.*图/).test(recvObj.params.content)) {
+    if (/搜.*图/g.test(recvObj.params.content)) {
         const imgURL = getFirstImageURL(recvObj.params.content);
         if (!imgURL) {
-            client.send(JSON.stringify({
+            client.sendObj({
                 id: uuid(),
                 method: "sendMessage",
                 params: {
@@ -17,7 +17,7 @@ module.exports = function (recvObj, client) {
                     qq: recvObj.params.qq || '',
                     content: '欧尼酱搜图的话请至少要一张图哦~'
                 }
-            }));
+            });
         } else {
             SauceNAO(imgURL, recvObj, client);
         }
@@ -27,6 +27,16 @@ module.exports = function (recvObj, client) {
 }
 
 async function SauceNAO(url, recvObj, client) {
+    client.sendObj({
+        id: uuid(),
+        method: "sendMessage",
+        params: {
+            type: recvObj.params.type,
+            group: recvObj.params.group || '',
+            qq: recvObj.params.qq || '',
+            content: '搜索中(๑•̀ㅂ•́)و✧'
+        }
+    });
     let saucenaoObj;
     try {
         saucenaoObj = await new Promise((resolve, reject) => {
@@ -49,7 +59,7 @@ async function SauceNAO(url, recvObj, client) {
                 });
         });
     } catch {
-        client.send(JSON.stringify({
+        client.sendObj({
             id: uuid(),
             method: "sendMessage",
             params: {
@@ -58,11 +68,11 @@ async function SauceNAO(url, recvObj, client) {
                 qq: recvObj.params.qq || '',
                 content: '欧尼酱搜索出错了~喵'
             }
-        }));
+        });
         return;
     }
     if (!saucenaoObj.results) {
-        client.send(JSON.stringify({
+        client.sendObj({
             id: uuid(),
             method: "sendMessage",
             params: {
@@ -71,11 +81,11 @@ async function SauceNAO(url, recvObj, client) {
                 qq: recvObj.params.qq || '',
                 content: '欧尼酱对不起，没有找到你要的~'
             }
-        }));
+        });
         return;
     }
 
-    client.send(JSON.stringify({
+    client.sendObj({
         id: uuid(),
         method: "sendMessage",
         params: {
@@ -100,7 +110,7 @@ async function SauceNAO(url, recvObj, client) {
                 `[QQ:pic=${saucenaoObj.results[0].header.thumbnail}]` +
                 (saucenaoObj.results[0].data.ext_urls ? ('\r\n' + saucenaoObj.results[0].data.ext_urls[0]) : '')
         }
-    }));
+    });
 }
 
 function getFirstImageURL(content) {

@@ -7,6 +7,11 @@ const uuid = require('uuid/v1');
 // 账号密码
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
+// 扩展一下ws的send方法
+WebSocket.prototype.sendObj = function (obj) {
+    this.send(JSON.stringify(obj));
+}
+
 const client = new WebSocket(`ws://${secret.wsHost}:${secret.wsPort}/`);
 
 client.on('open', () => {
@@ -22,7 +27,7 @@ const heartBeat = setInterval(() => {
 // 载入所有协议
 global.protocols = {};
 for (const protocolName of fs.readdirSync('./protocols')) {
-    if (fs.statSync(`./protocols/${protocolName}`).isFile && /\.js$/.test(protocolName)) {
+    if (fs.statSync(`./protocols/${protocolName}`).isFile && protocolName.endsWith('.js')) {
         protocols[path.basename(protocolName, path.extname(protocolName))] = require(`./protocols/${protocolName}`);
     }
 }
@@ -50,8 +55,9 @@ client.on('message', data => {
     // 被at了
     if (protocols.atme(recvObj)) {
         // 非搜图功能
-        if (!protocols.SauceNAO(recvObj, client)) {
-            client.send(JSON.stringify({
+        if (!protocols.SauceNAO(recvObj, client) &&
+            !protocols.UnityDoc(recvObj, client)) {
+            client.sendObj({
                 id: uuid(),
                 method: "sendMessage",
                 params: {
@@ -60,7 +66,7 @@ client.on('message', data => {
                     qq: recvObj.params.qq || '',
                     content: '欧尼酱~想我了吗？'
                 }
-            }));
+            });
         }
     }
 

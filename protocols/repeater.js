@@ -5,7 +5,7 @@ module.exports = function (recvObj, client) {
         repeaterDic[recvObj.params.group] == recvObj.params.content) {
         repeaterMode = true;
 
-        client.send(JSON.stringify({
+        client.sendObj({
             id: uuid(),
             method: "sendMessage",
             params: {
@@ -14,7 +14,7 @@ module.exports = function (recvObj, client) {
                 qq: recvObj.params.qq || '',
                 content: recvObj.params.content
             }
-        }));
+        });
     } else if (repeaterMode &&
         repeaterDic[recvObj.params.group] != recvObj.params.content) {
         repeaterMode = false;

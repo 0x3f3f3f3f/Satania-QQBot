@@ -25,9 +25,9 @@ async function AIQQBot(inputText, recvObj, client) {
     const params = {
         app_id: secret.AI_QQ_APPID,
         time_stamp: parseInt(Date.now() / 1000),
-        nonce_str: uuid().replace('-', ''),
+        nonce_str: uuid().replace(/-/g, ''),
         sign: '',
-        session: uuid().replace('-', ''),
+        session: recvObj.params.qq,
         question: inputText
     }
 
@@ -63,7 +63,7 @@ async function AIQQBot(inputText, recvObj, client) {
                 }
                 if (result.ret == 0) {
                     console.log('AI Bot:', result.data.answer);
-                    resolve(body);
+                    resolve(result);
                 } else {
                     resolve(null);
                 }

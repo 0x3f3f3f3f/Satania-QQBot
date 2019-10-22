@@ -45,16 +45,9 @@ async function TunlingBot(inputText, recvObj, client) {
                     reject();
                     return;
                 }
-                let result;
-                try {
-                    result = JSON.parse(body);
-                } catch {
-                    reject();
-                    return;
-                }
-                if (result.results)
-                    console.log('Tunling Bot:', result.results[0].values.text);
-                resolve(result);
+                if (body.results)
+                    console.log('Tunling Bot:', body.results[0].values.text);
+                resolve(body);
             });
         });
     } catch {

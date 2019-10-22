@@ -4,7 +4,7 @@ const uuid = require('uuid/v1');
 
 module.exports = function (recvObj, client) {
     inputText = recvObj.params.content.replace(/\[.*?\]/g, '').trim();
-    if (_.isEmpty) {
+    if (_.isEmpty(inputText)) {
         client.sendObj({
             id: uuid(),
             method: "sendMessage",

@@ -45,6 +45,21 @@ async function UnityDoc(type, recvObj, client) {
         });
         return;
     }
+    let searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
+    if (_.isEmpty(searchText)) {
+        client.sendObj({
+            id: uuid(),
+            method: "sendMessage",
+            params: {
+                type: recvObj.params.type,
+                group: recvObj.params.group || '',
+                qq: recvObj.params.qq || '',
+                content: '你居然没写关键词？'
+            }
+        });
+        return;
+    }
+
     client.sendObj({
         id: uuid(),
         method: "sendMessage",
@@ -56,7 +71,6 @@ async function UnityDoc(type, recvObj, client) {
         }
     });
 
-    let searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
     const translate = await browser.newPage();
     try {
         const watchDogTranslate = translate.waitForSelector('.tlid-translation.translation');

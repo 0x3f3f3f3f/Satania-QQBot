@@ -67,7 +67,7 @@ async function UnityDoc(type, recvObj, client) {
     const searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
     try {
         await translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
-        searchText = translate.evaluate(() => {
+        searchText = await translate.evaluate(() => {
             return document.querySelector('.tlid-translation.translation').textContent;
         });
     } catch {}

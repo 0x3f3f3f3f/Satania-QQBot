@@ -54,19 +54,10 @@ client.on('message', data => {
 
     // 被at了
     if (protocols.atme(recvObj)) {
-        // 非搜图功能
+        // 协议入口
         if (!protocols.SauceNAO(recvObj, client) &&
             !protocols.UnityDoc(recvObj, client)) {
-            client.sendObj({
-                id: uuid(),
-                method: "sendMessage",
-                params: {
-                    type: recvObj.params.type,
-                    group: recvObj.params.group || '',
-                    qq: recvObj.params.qq || '',
-                    content: '欧尼酱~想我了吗？'
-                }
-            });
+            protocols.TunlingBot(recvObj, client);
         }
     }
 

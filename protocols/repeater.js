@@ -1,9 +1,9 @@
 const uuid = require('uuid/v1');
 
 module.exports = function (recvObj, client) {
-    if (!repeaterMode &&
+    if (!repeaterMode[recvObj.params.group] &&
         repeaterDic[recvObj.params.group] == recvObj.params.content) {
-        repeaterMode = true;
+        repeaterMode[recvObj.params.group] = true;
 
         client.sendObj({
             id: uuid(),
@@ -15,15 +15,15 @@ module.exports = function (recvObj, client) {
                 content: recvObj.params.content
             }
         });
-    } else if (repeaterMode &&
+    } else if (repeaterMode[recvObj.params.group] &&
         repeaterDic[recvObj.params.group] != recvObj.params.content) {
-        repeaterMode = false;
+        repeaterMode[recvObj.params.group] = false;
     }
 
     // 记录最后一条聊天信息
     repeaterDic[recvObj.params.group] = recvObj.params.content;
 }
 
-let repeaterMode = false;
+const repeaterMode = {};
 // 复读机字典
 const repeaterDic = {};

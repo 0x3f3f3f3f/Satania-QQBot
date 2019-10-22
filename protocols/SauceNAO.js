@@ -54,7 +54,7 @@ async function SauceNAO(url, recvObj, client) {
                         return;
                     }
                     if (result.results)
-                        console.log('SauceNAO API:', JSON.stringify(result.results, null, 2));
+                        console.log('SauceNAO API:', result.results[0].header.index_name);
                     resolve(result);
                 });
         });

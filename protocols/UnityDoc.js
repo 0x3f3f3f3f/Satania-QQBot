@@ -121,7 +121,8 @@ async function UnityDoc(type, recvObj, client) {
         const resultElements = document.querySelectorAll('.search-results .result');
 
         const retArr = [];
-        for (let i = 0; i < 5; i++) {
+        const count = Math.min(resultElements.length, 5);
+        for (let i = 0; i < count; i++) {
             const result = resultElements[i];
             retArr.push({
                 title: result.querySelector('.title').textContent,

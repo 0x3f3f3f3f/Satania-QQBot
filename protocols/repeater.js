@@ -1,4 +1,4 @@
-const uuid = require('uuid/v1');
+const uuid = require('uuid/v4');
 
 module.exports = function (recvObj, client) {
     if (!repeaterMode[recvObj.params.group] &&

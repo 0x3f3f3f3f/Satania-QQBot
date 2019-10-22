@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
 const _ = require('lodash');
-const uuid = require('uuid/v1');
+const uuid = require('uuid/v4');
 
 const DocType = {
     api: 0,

@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const uuid = require('uuid/v1');
+const uuid = require('uuid/v4');
 
 // 账号密码
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
@@ -57,7 +57,7 @@ client.on('message', data => {
         // 协议入口
         if (!protocols.SauceNAO(recvObj, client) &&
             !protocols.UnityDoc(recvObj, client)) {
-            protocols.TunlingBot(recvObj, client);
+            protocols.AIQQBot(recvObj, client);
         }
     }
 

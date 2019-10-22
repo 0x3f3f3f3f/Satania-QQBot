@@ -1,6 +1,7 @@
 const request = require('request');
 const _ = require('lodash');
-const uuid = require('uuid/v1');
+const uuid = require('uuid/v4');
+const crypto = require('crypto');
 
 module.exports = function (recvObj, client) {
     inputText = recvObj.params.content.replace(/\[.*?\]/g, '').trim();
@@ -17,37 +18,55 @@ module.exports = function (recvObj, client) {
         });
         return;
     }
-    TunlingBot(inputText, recvObj, client);
+    AIQQBot(inputText, recvObj, client);
 }
 
-async function TunlingBot(inputText, recvObj, client) {
+async function AIQQBot(inputText, recvObj, client) {
+    const params = {
+        app_id: secret.AI_QQ_APPID,
+        time_stamp: parseInt(Date.now() / 1000),
+        nonce_str: uuid().replace('-', ''),
+        sign: '',
+        session: uuid().replace('-', ''),
+        question: inputText
+    }
+
+    const paramKeys = Object.keys(params);
+    paramKeys.sort();
+
+    let str = '';
+    for (const key of paramKeys) {
+        if (key != 'sign') {
+            str += (str != '' ? '&' : '') + `${key}=${key=='question'?encodeURI(params[key]):params[key]}`
+        }
+    }
+    str += `&app_key=${secret.AI_QQ_APPKEY}`;
+    params.sign = crypto.createHash('md5').update(str).digest('hex').toUpperCase();
+
     let botObj;
     try {
         botObj = await new Promise((resolve, reject) => {
             request.post({
-                url: 'http://openapi.tuling123.com/openapi/api/v2',
-                json: true,
-                headers: {
-                    "content-type": "application/json",
-                },
-                body: JSON.stringify({
-                    reqType: 0,
-                    perception: {
-                        inputText
-                    },
-                    userInfo: {
-                        apiKey: secret.Tunling_API_KEY,
-                        userId: recvObj.params.qq || uuid()
-                    }
-                })
+                url: 'https://api.ai.qq.com/fcgi-bin/nlp/nlp_textchat',
+                form: params
             }, (err, res, body) => {
                 if (err) {
                     reject();
                     return;
                 }
-                if (body.results)
-                    console.log('Tunling Bot:', body.results[0].values.text);
-                resolve(body);
+                let result;
+                try {
+                    result = JSON.parse(body);
+                } catch {
+                    reject();
+                    return;
+                }
+                if (result.ret == 0) {
+                    console.log('AI Bot:', result.data.answer);
+                    resolve(body);
+                } else {
+                    resolve(null);
+                }
             });
         });
     } catch {
@@ -64,7 +83,7 @@ async function TunlingBot(inputText, recvObj, client) {
         return;
     }
 
-    if (!botObj.results) {
+    if (!botObj) {
         client.sendObj({
             id: uuid(),
             method: "sendMessage",
@@ -85,7 +104,7 @@ async function TunlingBot(inputText, recvObj, client) {
             type: recvObj.params.type,
             group: recvObj.params.group || '',
             qq: recvObj.params.qq || '',
-            content: botObj.results[0].values.text
+            content: botObj.data.answer
         }
     });
 }

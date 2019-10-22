@@ -2,7 +2,7 @@ const request = require('request');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const uuid = require('uuid/v1');
+const uuid = require('uuid/v4');
 
 module.exports = function (recvObj, client) {
     if (/搜.*图/g.test(recvObj.params.content)) {

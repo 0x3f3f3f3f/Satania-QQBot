@@ -12,9 +12,12 @@ const DocUrl = {
 }
 
 let browser;
+let translate;
 // 启动浏览器
 (async function () {
     browser = await puppeteer.launch();
+    translate = await browser.newPage();
+    await translate.goto(encodeURI('https://translate.google.com/'));
 })();
 
 module.exports = function (recvObj, client) {
@@ -62,9 +65,15 @@ async function UnityDoc(type, recvObj, client) {
     const watchDogNotResult = page.waitForFunction('document.querySelector(".search-results")&&/did not result/ig.test(document.querySelector(".search-results").textContent)');
 
     const searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
+    try {
+        await translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
+        searchText = translate.evaluate(() => {
+            return document.querySelector('.tlid-translation.translation').textContent;
+        });
+    } catch {}
     console.log('Unity Documentation search:', searchText);
 
-    let pageWait = page.goto(`${DocUrl[type]}30_search.html?q=${searchText}`, {
+    let pageWait = page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`), {
         waitUntil: 'networkidle2'
     });
 

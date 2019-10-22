@@ -67,7 +67,7 @@ async function UnityDoc(type, recvObj, client) {
 
     let searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
     try {
-        const watchDogTranslate = page.waitForFunction(text => $0 && $0.textContent != text, {}, lastTranslateText);
+        const watchDogTranslate = page.waitForFunction(text => document.querySelector('tlid-translation.translation') && $0.textContent != text, {}, lastTranslateText);
         translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
         await watchDogTranslate
         searchText = await translate.evaluate(() => {

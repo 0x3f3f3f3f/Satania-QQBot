@@ -85,7 +85,7 @@ async function TunlingBot(inputText, recvObj, client) {
             type: recvObj.params.type,
             group: recvObj.params.group || '',
             qq: recvObj.params.qq || '',
-            content: result.results[0].values.text
+            content: botObj.results[0].values.text
         }
     });
 }

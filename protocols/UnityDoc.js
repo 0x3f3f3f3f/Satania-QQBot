@@ -12,13 +12,9 @@ const DocUrl = {
 }
 
 let browser;
-let translate;
-let lastTranslateText = '';
 // 启动浏览器
 (async function () {
     browser = await puppeteer.launch();
-    translate = await browser.newPage();
-    await translate.goto(encodeURI('https://translate.google.com/'));
 })();
 
 module.exports = function (recvObj, client) {
@@ -60,21 +56,23 @@ async function UnityDoc(type, recvObj, client) {
         }
     });
 
-    const page = await browser.newPage();
-
-    const watchDogResults = page.waitForSelector('.search-results .result');
-    const watchDogNotResult = page.waitForFunction(() => document.querySelector(".search-results") && /did not result/ig.test(document.querySelector(".search-results").textContent));
-
     let searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
+    const translate = await browser.newPage();
     try {
-        const watchDogTranslate = page.waitForFunction(text => document.querySelector('tlid-translation.translation') && $0.textContent != text, {}, lastTranslateText);
-        translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
-        await watchDogTranslate
+        await translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
         searchText = await translate.evaluate(() => {
             return $0.textContent;
         });
     } catch {}
+    translate.close();
     console.log('Unity Documentation search:', searchText);
+
+    const page = await browser.newPage();
+
+    const watchDogResults = page.waitForSelector('.search-results .result');
+    const watchDogNotResult = page.waitForFunction(() => {
+        return document.querySelector(".search-results") && /did not result/ig.test(document.querySelector(".search-results").textContent);
+    });
 
     let pageWait = page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`), {
         waitUntil: 'networkidle2'

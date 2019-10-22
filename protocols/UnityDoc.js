@@ -59,12 +59,15 @@ async function UnityDoc(type, recvObj, client) {
     let searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
     const translate = await browser.newPage();
     try {
-        await translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
+        const watchDogTranslate = translate.waitForSelector('.tlid-translation.translation');
+        translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
+        await watchDogTranslate;
         searchText = await translate.evaluate(() => {
-            return $0.textContent;
+            window.stop();
+            return document.querySelector('.tlid-translation.translation').textContent;
         });
     } catch {}
-    translate.close();
+    await translate.close();
     console.log('Unity Documentation search:', searchText);
 
     const page = await browser.newPage();
@@ -96,6 +99,7 @@ async function UnityDoc(type, recvObj, client) {
     }
 
     const results = await page.evaluate(() => {
+        window.stop();
         if (/did not result/ig.test(document.querySelector(".search-results").textContent)) {
             return null;
         }

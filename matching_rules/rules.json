@@ -1,10 +1,9 @@
 {
-    "你.*?(叫什么|叫啥|名字)": [
+    "你.*?(叫什么|叫啥|名字|是谁|谁)": [
         "啊~~~哈哈哈~，吾乃未来的地狱支配者，胡桃泽·萨塔妮娅·麦克威尔，颤抖吧人类！",
         "[QQ:pic=https://sub1.gameoldboy.com/satania_debut.gif]"
     ],
     "表.*?演": [
-        "真的要表演那个吗？",
         "[QQ:pic=https://sub1.gameoldboy.com/satania_lol.gif]",
         "[QQ:pic=https://sub1.gameoldboy.com/satania_show1.gif]",
         "[QQ:pic=https://sub1.gameoldboy.com/satania_show2.gif]",

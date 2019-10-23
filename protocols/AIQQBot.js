@@ -37,7 +37,7 @@ module.exports = function (recvObj, client) {
                     content: rules[ruleKeys[i]][index]
                 }
             });
-            break;
+            return;
         }
     }
 

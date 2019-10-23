@@ -2,6 +2,10 @@ const request = require('request');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
 const crypto = require('crypto');
+const fs = require('fs');
+
+const rules = JSON.parse(fs.readFileSync('./matching_rules/rules.json', 'utf8'));
+const ruleKeys = Object.keys(rules);
 
 module.exports = function (recvObj, client) {
     inputText = recvObj.params.content.replace(/\[.*?\]/g, '').trim();
@@ -13,11 +17,30 @@ module.exports = function (recvObj, client) {
                 type: recvObj.params.type,
                 group: recvObj.params.group || '',
                 qq: recvObj.params.qq || '',
-                content: (Math.random() > 0.5) ? '[QQ:pic=https://sub1.gameoldboy.com/satania.gif]' : '欧尼酱~想我了吗？'
+                content: (Math.random() > 0.5) ? '[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]' : '欧尼酱~想我了吗？'
             }
         });
         return;
     }
+
+    // 拦截规则
+    for (let i = ruleKeys.length - 1; i >= 0; i--) {
+        if (new RegExp(ruleKeys[i], 'im').test(inputText)) {
+            const index = parseInt(Math.random() * rules[ruleKeys[i]].length);
+            client.sendObj({
+                id: uuid(),
+                method: "sendMessage",
+                params: {
+                    type: recvObj.params.type,
+                    group: recvObj.params.group || '',
+                    qq: recvObj.params.qq || '',
+                    content: rules[ruleKeys[i]][index]
+                }
+            });
+            break;
+        }
+    }
+
     AIQQBot(inputText, recvObj, client);
 }
 
@@ -91,7 +114,7 @@ async function AIQQBot(inputText, recvObj, client) {
                 type: recvObj.params.type,
                 group: recvObj.params.group || '',
                 qq: recvObj.params.qq || '',
-                content: `[QQ:pic=https://sub1.gameoldboy.com/satania.gif]`
+                content: `[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]`
             }
         });
         return;

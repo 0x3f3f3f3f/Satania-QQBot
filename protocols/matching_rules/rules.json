@@ -1,0 +1,31 @@
+{
+    "你.*?(叫什么|叫啥|名字)": [
+        "啊~~~哈哈哈~，吾乃未来的地狱支配者，胡桃泽·萨塔妮娅·麦克威尔，颤抖吧人类！",
+        "[QQ:pic=https://sub1.gameoldboy.com/satania_debut.gif]"
+    ],
+    "表.*?演": [
+        "真的要表演那个吗？",
+        "[QQ:pic=https://sub1.gameoldboy.com/satania_lol.gif]",
+        "[QQ:pic=https://sub1.gameoldboy.com/satania_show1.gif]",
+        "[QQ:pic=https://sub1.gameoldboy.com/satania_show2.gif]",
+        "[QQ:pic=https://sub1.gameoldboy.com/satania_show3.gif]"
+    ],
+    "胖.*?次|内.*?裤|小.*?裤": [
+        "变...变态！",
+        "今天穿的是蓝白~",
+        "[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]",
+        "萨塔尼亚~会害羞啦~"
+    ],
+    "你.*?朋.*?友": [
+        "我和水之女神阿库娅认识了很久了呢！",
+        "最近认识了位可爱的子孙，她叫夏美子",
+        "想和治愈女神莉丝妲交朋友呢~"
+    ],
+    "你(喜欢|热爱|喜爱|爱|中意).*?(东西|什么)": [
+        "萨塔尼亚想吃菠萝包",
+        "哼~，本饿魔是不会告诉你我喜欢菠萝包的（睁一只眼确认）"
+    ],
+    "你(讨厌|不喜欢|害怕).*?(东西|什么)": [
+        "当然是天使的走狗！"
+    ]
+}

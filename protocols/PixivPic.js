@@ -78,7 +78,7 @@ async function pullRanking() {
             return false;
         });
     } catch {
-        page.close();
+        await page.close();
         return;
     }
 
@@ -104,7 +104,7 @@ async function pullRanking() {
         }
         return null;
     });
-    page.close();
+    await page.close();
 
     if (results) {
         setuPool = results;
@@ -117,14 +117,14 @@ async function pullRanking() {
 const setuLink = [];
 
 async function setuPush() {
+    if (setuPool.length == 0) return;
+
     const page = await browser.newPage();
 
     const responses = [];
     page.on('response', res => {
         responses.push(res);
     });
-
-    if (setuPool.length == 0) return;
 
     const setuIndex = parseInt(Math.random() * setuPool.length);
 
@@ -134,7 +134,7 @@ async function setuPush() {
         });
     } catch {
         // 发生错误啥都不做
-        page.close();
+        await page.close();
         return;
     }
 
@@ -147,7 +147,7 @@ async function setuPush() {
             }
         }
     }, setuPool[setuIndex].title);
-    page.close();
+    await page.close();
 
     for (const res of responses) {
         if (res.url() == setuUrl) {

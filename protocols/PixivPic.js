@@ -48,7 +48,7 @@ let setuPool = [];
 async function pullRanking() {
     const page = await browser.newPage();
 
-    const cookies = secret.split(';');
+    const cookies = secret.PixivCookies.split(';');
     for (let i = 0; i < cookies.length; i++) {
         const name = cookies[i].split('=')[0].trim();
         const value = cookies[i].split('=')[1].trim();

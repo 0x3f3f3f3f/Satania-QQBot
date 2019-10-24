@@ -67,7 +67,7 @@ async function pullRanking() {
 
         await page.waitForFunction(() => {
             const items = document.querySelectorAll('.ranking-item');
-            if (items) {
+            if (items.length > 0) {
                 if (items.length < 500) {
                     window.scrollBy(0, document.documentElement.scrollHeight);
                     return false;

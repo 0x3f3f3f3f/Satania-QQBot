@@ -86,7 +86,7 @@ async function pullRanking() {
         window.stop();
         const items = document.querySelectorAll('.ranking-item');
         const retArr = [];
-        if (items) {
+        if (items.length > 0) {
             for (const item of items) {
                 const imageItem = item.querySelector('.ranking-image-item .work');
                 if (!/manga/i.test(imageItem.getAttribute('class'))) {

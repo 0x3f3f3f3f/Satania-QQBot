@@ -2,10 +2,19 @@ const WebSocket = require('ws');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const uuid = require('uuid/v4');
+const puppeteer = require('puppeteer');
+const EventEmitter = require('events');
 
 // 账号密码
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
+// 全局事件
+global.appEvent = new EventEmitter();
+
+// 启动浏览器
+(async function () {
+    global.browser = await puppeteer.launch();
+    appEvent.emit('browser_initialized');
+})();
 
 // 扩展一下ws的send方法
 WebSocket.prototype.sendObj = function (obj) {

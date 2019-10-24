@@ -1,4 +1,3 @@
-const puppeteer = require('puppeteer');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
 
@@ -11,11 +10,22 @@ const DocUrl = {
     [1]: 'https://docs.unity3d.com/Manual/'
 }
 
-let browser;
-// 启动浏览器
-(async function () {
-    browser = await puppeteer.launch();
-})();
+let isInitialized = false;
+
+appEvent.on('browser_initialized', async () => {
+    const apiPage = await browser.newPage();
+    const manualPage = await browser.newPage();
+
+    await Promise.all([apiPage.goto(`${DocUrl[DocType.api]}30_search.html?q=test`, {
+        waitUntil: 'networkidle2'
+    }), manualPage.goto(`${DocUrl[DocType.manual]}30_search.html?q=test`, {
+        waitUntil: 'networkidle2'
+    })]);
+
+    await Promise.all([apiPage.close(), manualPage.close()]);
+
+    isInitialized = true;
+});
 
 module.exports = function (recvObj, client) {
     let type = null;
@@ -32,7 +42,7 @@ module.exports = function (recvObj, client) {
 }
 
 async function UnityDoc(type, recvObj, client) {
-    if (!browser) {
+    if (!isInitialized) {
         client.sendObj({
             id: uuid(),
             method: "sendMessage",
@@ -73,9 +83,8 @@ async function UnityDoc(type, recvObj, client) {
 
     const translate = await browser.newPage();
     try {
-        const watchDogTranslate = translate.waitForSelector('.tlid-translation.translation');
         translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
-        await watchDogTranslate;
+        await translate.waitForSelector('.tlid-translation.translation');
         searchText = await translate.evaluate(() => {
             window.stop();
             return document.querySelector('.tlid-translation.translation').textContent;
@@ -91,7 +100,7 @@ async function UnityDoc(type, recvObj, client) {
         return document.querySelector(".search-results") && /did not result/ig.test(document.querySelector(".search-results").textContent);
     });
 
-    let pageWait = page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`), {
+    const pageWait = page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`), {
         waitUntil: 'networkidle2'
     });
 

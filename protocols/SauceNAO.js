@@ -5,7 +5,7 @@ const path = require('path');
 const uuid = require('uuid/v4');
 
 module.exports = function (recvObj, client) {
-    if (/搜.*图/g.test(recvObj.params.content)) {
+    if (/搜.*图/m.test(recvObj.params.content)) {
         const imgURL = getFirstImageURL(recvObj.params.content);
         if (!imgURL) {
             client.sendObj({

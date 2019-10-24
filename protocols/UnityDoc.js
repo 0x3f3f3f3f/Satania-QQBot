@@ -16,11 +16,13 @@ appEvent.on('browser_initialized', async () => {
     const apiPage = await browser.newPage();
     const manualPage = await browser.newPage();
 
-    await Promise.all([apiPage.goto(`${DocUrl[DocType.api]}30_search.html?q=test`, {
-        waitUntil: 'networkidle2'
-    }), manualPage.goto(`${DocUrl[DocType.manual]}30_search.html?q=test`, {
-        waitUntil: 'networkidle2'
-    })]);
+    try {
+        await Promise.all([apiPage.goto(`${DocUrl[DocType.api]}30_search.html?q=test`, {
+            waitUntil: 'networkidle2'
+        }), manualPage.goto(`${DocUrl[DocType.manual]}30_search.html?q=test`, {
+            waitUntil: 'networkidle2'
+        })]);
+    } catch {}
 
     await Promise.all([apiPage.close(), manualPage.close()]);
 

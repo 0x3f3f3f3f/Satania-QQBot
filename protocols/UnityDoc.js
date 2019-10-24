@@ -97,17 +97,14 @@ async function UnityDoc(type, recvObj, client) {
 
     const page = await browser.newPage();
 
-    const watchDogResults = page.waitForSelector('.search-results .result');
-    const watchDogNotResult = page.waitForFunction(() => {
-        return document.querySelector(".search-results") && /did not result/ig.test(document.querySelector(".search-results").textContent);
-    });
-
-    const pageWait = page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`), {
-        waitUntil: 'networkidle2'
-    });
-
     try {
-        await Promise.race([watchDogResults, watchDogNotResult, pageWait]);
+        page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`));
+
+        await Promise.race([page.waitForSelector('.search-results .result'),
+            page.waitForFunction(() => {
+                return document.querySelector(".search-results") && /did not result/ig.test(document.querySelector(".search-results").textContent);
+            })
+        ]);
     } catch {
         client.sendObj({
             id: uuid(),

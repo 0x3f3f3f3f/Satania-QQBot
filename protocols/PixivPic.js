@@ -131,7 +131,9 @@ async function setuPush() {
     const setuIndex = parseInt(Math.random() * setuPool.length);
 
     try {
-        await page.goto(`https://pixiv.net${setuPool[setuIndex].url}`);
+        await page.goto(`https://pixiv.net${setuPool[setuIndex].url}`, {
+            waitUntil: ['load', 'networkidle0']
+        });
     } catch {
         // 发生错误啥都不做
         await page.close();

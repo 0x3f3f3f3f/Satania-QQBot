@@ -131,9 +131,18 @@ async function setuPush() {
     const setuIndex = parseInt(Math.random() * setuPool.length);
 
     try {
-        await page.goto(`https://pixiv.net${setuPool[setuIndex].url}`, {
-            waitUntil: ['load', 'networkidle0']
-        });
+        page.goto(`https://pixiv.net${setuPool[setuIndex].url}`);
+
+        await page.waitForFunction(title => {
+            const imgs = document.querySelectorAll('img');
+            for (const img of imgs) {
+                const alt = img.getAttribute('alt');
+                if (alt && new RegExp(title).test(alt)) {
+                    return true;
+                }
+            }
+            return false;
+        }, {}, setuPool[setuIndex].title);
     } catch {
         // 发生错误啥都不做
         await page.close();
@@ -149,7 +158,6 @@ async function setuPush() {
             }
         }
     }, setuPool[setuIndex].title);
-    await page.close();
 
     for (const res of responses) {
         if (res.url() == setuUrl) {
@@ -160,6 +168,7 @@ async function setuPush() {
             break;
         }
     }
+    await page.close();
 }
 
 module.exports = function (recvObj, client) {

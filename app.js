@@ -65,7 +65,8 @@ client.on('message', data => {
     if (protocols.atme(recvObj)) {
         // 协议入口
         if (!protocols.SauceNAO(recvObj, client) &&
-            !protocols.UnityDoc(recvObj, client)) {
+            !protocols.UnityDoc(recvObj, client) &&
+            !protocols.PixivPic(recvObj, client)) {
             protocols.AIQQBot(recvObj, client);
         }
     }

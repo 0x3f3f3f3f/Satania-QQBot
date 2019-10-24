@@ -62,7 +62,7 @@ async function pullRanking() {
 
     try {
         page.goto('https://www.pixiv.net/ranking.php?mode=male', {
-            waitUntil: 'networkidle2'
+            timeout: 300000
         });
 
         await page.waitForFunction(() => {
@@ -76,6 +76,8 @@ async function pullRanking() {
                 }
             }
             return false;
+        }, {
+            timeout: 300000
         });
     } catch {
         await page.close();
@@ -129,9 +131,7 @@ async function setuPush() {
     const setuIndex = parseInt(Math.random() * setuPool.length);
 
     try {
-        await page.goto(`https://pixiv.net${setuPool[setuIndex].url}`, {
-            waitUntil: 'networkidle2'
-        });
+        await page.goto(`https://pixiv.net${setuPool[setuIndex].url}`);
     } catch {
         // 发生错误啥都不做
         await page.close();

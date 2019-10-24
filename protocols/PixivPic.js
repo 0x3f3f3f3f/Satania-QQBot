@@ -60,6 +60,14 @@ async function pullRanking() {
     }
     await page.setCookie(...cookies);
 
+    await page.setRequestInterception(true);
+    page.on('request', interceptedRequest => {
+        if (/\.jpg|\.png|\.gif/i.test(interceptedRequest.url()))
+            interceptedRequest.abort();
+        else
+            interceptedRequest.continue();
+    });
+
     try {
         page.goto('https://www.pixiv.net/ranking.php?mode=male', {
             timeout: 300000
@@ -161,7 +169,7 @@ async function setuPush() {
 
     for (const res of responses) {
         if (res.url() == setuUrl) {
-            const setuPath = path.join(secret.tempPath, 'setu', path.basename(res.url()));
+            const setuPath = path.join(secret.tempPath, 'setu', uuid() + path.extname(res.url()));
             fs.writeFileSync(setuPath, await res.buffer());
             setuLink.push(setuPath);
             setuPool.splice(setuIndex, 1);

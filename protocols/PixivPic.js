@@ -142,6 +142,15 @@ async function setuPush() {
         }, {
             timeout: 120000
         }, setuPool[setuIndex].title);
+
+        await page.waitForFunction(() => {
+            // 目前版面是第三个nav
+            const nav = document.querySelectorAll('nav')[2];
+            if (nav.lastElementChild)
+                return true;
+            else
+                return false;
+        });
     } catch {
         // 发生错误啥都不做
         await page.close();
@@ -157,7 +166,10 @@ async function setuPush() {
                 // 目前版面是第三个nav
                 const nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
                 let nextTitle;
-                if (nextUrl) nextTitle = nextUrl.querySelector('img').getAttribute('alt');
+                if (nextUrl) {
+                    const img2 = nextUrl.querySelector('img');
+                    if (img2) nextTitle = img2.getAttribute('alt');
+                }
                 return {
                     url: img.getAttribute('src'),
                     nextUrl,

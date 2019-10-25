@@ -6,6 +6,8 @@ const uuid = require('uuid/v4');
 if (!fs.existsSync(path.join(secret.tempPath, 'setu')))
     fs.mkdirSync(path.join(secret.tempPath, 'setu'));
 
+const blockList = JSON.parse(fs.readFileSync('./protocols/PixivPic_block_group.json', 'utf8'));
+
 let isInitialized = false;
 
 appEvent.on('unity_doc_initialized', async () => {
@@ -199,7 +201,14 @@ function setuClear() {
 }
 
 module.exports = function (recvObj, client) {
-    if (/(色|涩|瑟).*图|gkd|搞快点/im.test(recvObj.params.content)) {
+    // 群黑名单
+    for (const groupId of blockList) {
+        if (groupId == recvObj.params.group) {
+            return false;
+        }
+    }
+
+    if (/(涩|瑟).*图|gkd|搞快点/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);
         return true;
     }

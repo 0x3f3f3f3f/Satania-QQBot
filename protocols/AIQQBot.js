@@ -4,7 +4,7 @@ const uuid = require('uuid/v4');
 const crypto = require('crypto');
 const fs = require('fs');
 
-const rules = JSON.parse(fs.readFileSync('./matching_rules/rules.json', 'utf8'));
+const rules = JSON.parse(fs.readFileSync('./protocols/QQBot_rules.json', 'utf8'));
 const ruleKeys = Object.keys(rules);
 
 module.exports = function (recvObj, client) {

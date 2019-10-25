@@ -156,7 +156,7 @@ async function setuPush() {
                 // 查找下一张色图
                 // 目前版面是第三个nav
                 const nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
-                const nextTitle;
+                let nextTitle;
                 if (nextUrl) nextTitle = nextUrl.querySelector('img').getAttribute('alt');
                 return {
                     url: img.getAttribute('src'),

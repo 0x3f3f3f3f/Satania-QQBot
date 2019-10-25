@@ -181,7 +181,7 @@ async function setuPush() {
         }
     }, setuPool[setuIndex].title);
 
-    console.log('缓存色图:', result.url);
+    console.log('缓存色图:', result);
 
     for (const res of responses) {
         if (res.url() == result.url) {

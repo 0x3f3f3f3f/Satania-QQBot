@@ -84,8 +84,9 @@ async function setuPull() {
         const retArr = [];
         if (items.length > 0) {
             for (const item of items) {
-                const imageItem = item.querySelector('.ranking-image-item .work');
-                if (!/manga/i.test(imageItem.getAttribute('class'))) {
+                const imageItem = item.querySelector('.ranking-image-item a');
+                // 排除漫画和动图
+                if (!/manga|ugoku-illust/i.test(imageItem.getAttribute('class'))) {
                     const tags = imageItem.querySelector('img').getAttribute('data-tags');
                     // 这才是真正的色图
                     if (/着|乳|魅惑|タイツ|スト|足|尻|縛|束/i.test(tags)) {
@@ -147,24 +148,38 @@ async function setuPush() {
         return;
     }
 
-    const setuUrl = await page.evaluate(title => {
+    const result = await page.evaluate(title => {
         const imgs = document.querySelectorAll('img');
         for (const img of imgs) {
             const alt = img.getAttribute('alt');
             if (alt && new RegExp(title).test(alt)) {
-                return img.getAttribute('src');
+                // 查找下一张色图
+                // 目前版面是第三个nav
+                const nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
+                const nextTitle;
+                if (nextUrl) nextTitle = nextUrl.querySelector('img').getAttribute('alt');
+                return {
+                    url: img.getAttribute('src'),
+                    nextUrl,
+                    nextTitle
+                }
             }
         }
     }, setuPool[setuIndex].title);
 
-    console.log('缓存色图:', setuUrl);
+    console.log('缓存色图:', result.url);
 
     for (const res of responses) {
-        if (res.url() == setuUrl) {
+        if (res.url() == result.url) {
             const setuPath = path.join(secret.tempPath, 'setu', path.basename(res.url()));
             fs.writeFileSync(setuPath, await res.buffer());
             setuLink.push(setuPath);
-            setuPool.splice(setuIndex, 1);
+            if (result.nextUrl) {
+                setuPool[setuIndex].url = result.nextUrl;
+                setuPool[setuIndex].title = result.nextTitle;
+            } else {
+                setuPool.splice(setuIndex, 1);
+            }
             break;
         }
     }

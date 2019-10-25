@@ -144,8 +144,9 @@ async function setuPush() {
                 return false;
         });
     } catch {
-        // 发生错误啥都不做
         await page.close();
+        // 死亡递归！
+        await setuPush();
         return;
     }
 

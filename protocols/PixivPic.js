@@ -9,43 +9,29 @@ if (!fs.existsSync(path.join(secret.tempPath, 'setu')))
 let isInitialized = false;
 
 appEvent.on('browser_initialized', async () => {
-    await pullRanking();
+    setuClear();
 
-    const setuLinkInit = [];
+    await setuPull();
+
     for (let i = 0; i < 5; i++) {
-        setuLinkInit[i] = setuPush();
+        await setuPush();
     }
-    await Promise.all(setuLinkInit);
 
     isInitialized = true;
 });
 
 
 setInterval(() => {
-    // 清理过期色图
-    const setuDir = fs.readdirSync(path.join(secret.tempPath, 'setu'));
-    for (let i = setuDir.length - 1; i >= 0; i--) {
-        const setuPath = setuDir[i];
-        for (const link of setuLink) {
-            if (path.basename(link) == setuPath) {
-                setuDir.splice(i, 1);
-                break;
-            }
-        }
-    }
-    for (const setuPath of setuDir) {
-        fs.unlinkSync(path.join(secret.tempPath, 'setu', setuPath));
-    }
-
+    setuClear();
     // 每天6点更新排行
     if (new Date().getHours() == 6) {
-        pullRanking();
+        setuPull();
     }
 }, 3600000);
 
 let setuPool = [];
 
-async function pullRanking() {
+async function setuPull() {
     const page = await browser.newPage();
 
     const cookies = secret.PixivCookies.split(';');
@@ -139,18 +125,22 @@ async function setuPush() {
     const setuIndex = parseInt(Math.random() * setuPool.length);
 
     try {
-        page.goto(`https://pixiv.net${setuPool[setuIndex].url}`);
+        page.goto(`https://pixiv.net${setuPool[setuIndex].url}`, {
+            timeout: 120000
+        });
 
         await page.waitForFunction(title => {
             const imgs = document.querySelectorAll('img');
             for (const img of imgs) {
                 const alt = img.getAttribute('alt');
                 if (alt && new RegExp(title).test(alt)) {
-                    return true;
+                    return img.complete;
                 }
             }
             return false;
-        }, {}, setuPool[setuIndex].title);
+        }, {
+            timeout: 120000
+        }, setuPool[setuIndex].title);
     } catch {
         // 发生错误啥都不做
         await page.close();
@@ -167,9 +157,11 @@ async function setuPush() {
         }
     }, setuPool[setuIndex].title);
 
+    console.log('缓存色图:', setuUrl);
+
     for (const res of responses) {
         if (res.url() == setuUrl) {
-            const setuPath = path.join(secret.tempPath, 'setu', uuid() + path.extname(res.url()));
+            const setuPath = path.join(secret.tempPath, 'setu', path.basename(res.url()));
             fs.writeFileSync(setuPath, await res.buffer());
             setuLink.push(setuPath);
             setuPool.splice(setuIndex, 1);
@@ -177,6 +169,22 @@ async function setuPush() {
         }
     }
     await page.close();
+}
+
+function setuClear() {
+    const setuDir = fs.readdirSync(path.join(secret.tempPath, 'setu'));
+    for (let i = setuDir.length - 1; i >= 0; i--) {
+        const setuPath = setuDir[i];
+        for (const link of setuLink) {
+            if (path.basename(link) == setuPath) {
+                setuDir.splice(i, 1);
+                break;
+            }
+        }
+    }
+    for (const setuPath of setuDir) {
+        fs.unlinkSync(path.join(secret.tempPath, 'setu', setuPath));
+    }
 }
 
 module.exports = function (recvObj, client) {

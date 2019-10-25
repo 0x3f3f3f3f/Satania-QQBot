@@ -169,6 +169,7 @@ async function setuPush() {
                 if (nextUrl) {
                     const img2 = nextUrl.querySelector('img');
                     if (img2) nextTitle = img2.getAttribute('alt');
+                    nextUrl = nextUrl.getAttribute('href');
                 }
                 return {
                     url: img.getAttribute('src'),

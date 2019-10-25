@@ -135,6 +135,7 @@ async function setuPush() {
             for (const img of imgs) {
                 const alt = img.getAttribute('alt');
                 if (alt && new RegExp(title).test(alt)) {
+                    window.scrollBy(document.documentElement.scrollWidth, 0);
                     return img.complete;
                 }
             }

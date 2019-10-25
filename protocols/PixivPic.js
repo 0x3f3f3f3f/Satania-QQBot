@@ -146,7 +146,7 @@ async function setuPush() {
         await page.waitForFunction(() => {
             // 目前版面是第三个nav
             const nav = document.querySelectorAll('nav')[2];
-            if (nav.lastElementChild)
+            if (nav && nav.lastElementChild)
                 return true;
             else
                 return false;

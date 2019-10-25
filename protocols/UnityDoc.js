@@ -15,13 +15,13 @@ let isInitialized = false;
 appEvent.on('browser_initialized', async () => {
     const apiPage = await browser.newPage();
     const manualPage = await browser.newPage();
+    const translatePage = await browser.newPage();
 
     try {
-        await Promise.all([apiPage.goto(`${DocUrl[DocType.api]}30_search.html?q=test`, {
-            waitUntil: 'networkidle2'
-        }), manualPage.goto(`${DocUrl[DocType.manual]}30_search.html?q=test`, {
-            waitUntil: 'networkidle2'
-        })]);
+        await Promise.all([apiPage.goto(`${DocUrl[DocType.api]}30_search.html?q=test`),
+            manualPage.goto(`${DocUrl[DocType.manual]}30_search.html?q=test`),
+            translatePage.goto('https://translate.google.com/')
+        ]);
     } catch {}
 
     await Promise.all([apiPage.close(), manualPage.close()]);

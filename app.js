@@ -69,10 +69,10 @@ client.on('message', data => {
             !protocols.PixivPic(recvObj, client)) {
             protocols.AIQQBot(recvObj, client);
         }
+    } else {
+        // 复读机
+        protocols.repeater(recvObj, client);
     }
-
-    // 复读机
-    protocols.repeater(recvObj, client);
 });
 
 client.on('pong', () => {

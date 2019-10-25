@@ -164,7 +164,7 @@ async function setuPush() {
             if (alt && new RegExp(title).test(alt)) {
                 // 查找下一张色图
                 // 目前版面是第三个nav
-                const nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
+                let nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
                 let nextTitle;
                 if (nextUrl) {
                     const img2 = nextUrl.querySelector('img');

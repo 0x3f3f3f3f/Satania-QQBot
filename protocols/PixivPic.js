@@ -88,7 +88,7 @@ async function setuPull() {
                 if (!/manga/i.test(imageItem.getAttribute('class'))) {
                     const tags = imageItem.querySelector('img').getAttribute('data-tags');
                     // 这才是真正的色图
-                    if (/着|乳|魅惑|タイツ|スト|足|尻|縛|束|users/i.test(tags)) {
+                    if (/着|乳|魅惑|タイツ|スト|足|尻|縛|束/i.test(tags)) {
                         retArr.push({
                             title: item.getAttribute('data-title'),
                             url: imageItem.getAttribute('href')

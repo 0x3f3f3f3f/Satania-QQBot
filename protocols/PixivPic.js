@@ -62,7 +62,7 @@ async function setuPull() {
         await page.waitForFunction(() => {
             const items = document.querySelectorAll('.ranking-item');
             if (items.length > 0) {
-                if (items.length < 500) {
+                if (items.length < 490) {
                     window.scrollBy(0, document.documentElement.scrollHeight);
                     return false;
                 } else {

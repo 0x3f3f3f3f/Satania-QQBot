@@ -8,7 +8,7 @@ if (!fs.existsSync(path.join(secret.tempPath, 'setu')))
 
 let isInitialized = false;
 
-appEvent.on('browser_initialized', async () => {
+appEvent.on('unity_doc_initialized', async () => {
     setuClear();
 
     await setuPull();

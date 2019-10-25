@@ -24,7 +24,9 @@ appEvent.on('browser_initialized', async () => {
         ]);
     } catch {}
 
-    await Promise.all([apiPage.close(), manualPage.close()]);
+    await Promise.all([apiPage.close(), manualPage.close(), translatePage.close()]);
+
+    appEvent.emit('unity_doc_initialized');
 
     isInitialized = true;
 });

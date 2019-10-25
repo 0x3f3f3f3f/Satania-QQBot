@@ -90,10 +90,7 @@ async function setuPull() {
                     const tags = imageItem.querySelector('img').getAttribute('data-tags');
                     // 这才是真正的色图
                     if (/着|乳|魅惑|タイツ|スト|足|尻|縛|束/i.test(tags)) {
-                        retArr.push({
-                            title: item.getAttribute('data-title'),
-                            url: imageItem.getAttribute('href')
-                        });
+                        retArr.push(imageItem.getAttribute('href'));
                     }
                 }
             }
@@ -126,23 +123,17 @@ async function setuPush() {
     const setuIndex = parseInt(Math.random() * setuPool.length);
 
     try {
-        page.goto(`https://pixiv.net${setuPool[setuIndex].url}`, {
+        page.goto(`https://pixiv.net${setuPool[setuIndex]}`, {
             timeout: 120000
         });
 
-        await page.waitForFunction(title => {
-            const imgs = document.querySelectorAll('img');
-            for (const img of imgs) {
-                const alt = img.getAttribute('alt');
-                if (alt && new RegExp(title).test(alt)) {
-                    window.scrollBy(document.documentElement.scrollWidth, 0);
-                    return img.complete;
-                }
-            }
-            return false;
+        await page.waitForFunction(() => {
+            const img = document.querySelector('[role="presentation"] img');
+            if (img) return img.complete;
+            return false
         }, {
             timeout: 120000
-        }, setuPool[setuIndex].title);
+        });
 
         await page.waitForFunction(() => {
             // 目前版面是第三个nav
@@ -158,28 +149,19 @@ async function setuPush() {
         return;
     }
 
-    const result = await page.evaluate(title => {
-        const imgs = document.querySelectorAll('img');
-        for (const img of imgs) {
-            const alt = img.getAttribute('alt');
-            if (alt && new RegExp(title).test(alt)) {
-                // 查找下一张色图
-                // 目前版面是第三个nav
-                let nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
-                let nextTitle;
-                if (nextUrl) {
-                    const img2 = nextUrl.querySelector('img');
-                    if (img2) nextTitle = img2.getAttribute('alt');
-                    nextUrl = nextUrl.getAttribute('href');
-                }
-                return {
-                    url: img.getAttribute('src'),
-                    nextUrl,
-                    nextTitle
-                }
-            }
+    const result = await page.evaluate(() => {
+        const img = document.querySelector('[role="presentation"] img');
+        // 查找下一张色图
+        // 目前版面是第三个nav
+        let nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
+        if (nextUrl) {
+            nextUrl = nextUrl.getAttribute('href');
         }
-    }, setuPool[setuIndex].title);
+        return {
+            url: img.getAttribute('src'),
+            nextUrl
+        }
+    });
 
     console.log('缓存色图:', result);
 
@@ -189,8 +171,7 @@ async function setuPush() {
             fs.writeFileSync(setuPath, await res.buffer());
             setuLink.push(setuPath);
             if (result.nextUrl) {
-                setuPool[setuIndex].url = result.nextUrl;
-                setuPool[setuIndex].title = result.nextTitle;
+                setuPool[setuIndex] = result.nextUrl;
             } else {
                 setuPool.splice(setuIndex, 1);
             }

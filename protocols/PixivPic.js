@@ -62,7 +62,7 @@ async function setuPull() {
         await page.waitForFunction(() => {
             const items = document.querySelectorAll('.ranking-item');
             if (items.length > 0) {
-                if (items.length < 500) {
+                if (items.length < 1000) {
                     window.scrollBy(0, document.documentElement.scrollHeight);
                     return false;
                 } else {
@@ -104,7 +104,7 @@ async function setuPull() {
 
     if (results) {
         setuPool = results;
-        console.log('已拉取色图库');
+        console.log('已拉取色图库', setuPool.length);
     } else {
         console.error('色图库拉取失败');
     }

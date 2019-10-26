@@ -41,12 +41,13 @@ const timer = setInterval(() => {
         }
     }
     // 充能（区分每个群）
-    for (const change of setuCharge) {
-        if (change.count < setuMaxCharge) {
-            change.cd--;
-            if (change.cd == 0) {
-                change.cd = setuCD;
-                change.count++;
+    for (const groupId in setuCharge) {
+        const charge = setuCharge[groupId];
+        if (charge.count < setuMaxCharge) {
+            charge.cd--;
+            if (charge.cd == 0) {
+                charge.cd = setuCD;
+                charge.count++;
             }
         }
     }

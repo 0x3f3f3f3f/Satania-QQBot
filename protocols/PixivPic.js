@@ -284,7 +284,9 @@ async function PixivPic(recvObj, client) {
                 type: recvObj.params.type,
                 group: recvObj.params.group || '',
                 qq: recvObj.params.qq || '',
-                content: `技能冷却中~ 请等待${parseInt(setuCurCD/60)}分${setuCurCD%60}秒`
+                content: '搞太快了~ 请等待' +
+                    (parseInt(setuCurCD / 60) == 0 ? '' : (parseInt(setuCurCD / 60) + '分')) +
+                    setuCurCD % 60 + '秒'
             }
         });
     }

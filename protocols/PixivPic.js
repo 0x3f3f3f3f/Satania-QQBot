@@ -289,6 +289,7 @@ async function PixivPic(recvObj, client) {
                     setuCurCD % 60 + '秒'
             }
         });
+        return;
     }
 
     if (setuLink.length == 0) {

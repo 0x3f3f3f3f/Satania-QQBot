@@ -22,14 +22,34 @@ appEvent.on('unity_doc_initialized', async () => {
     isInitialized = true;
 });
 
-
-setInterval(() => {
-    setuClear();
-    // 每天6点更新排行
-    if (new Date().getHours() == 6) {
-        setuPull();
+// 计时器 每秒执行一次
+// 当前小时
+const curHours = new Date().getHours();
+// 色图技能充能
+const setuMaxCharge = 3;
+const setuCD = 200;
+let setuCharge = setuMaxCharge;
+let setuCurCD = setuCD;
+const timer = setInterval(() => {
+    const curDate = new Date();
+    // 每小时清理色图缓存
+    if (curHours != curDate.getHours()) {
+        curHours = curDate.getHours();
+        setuClear();
+        // 每天6点更新色图库
+        if (curHours == 6) {
+            setuPull();
+        }
     }
-}, 3600000);
+    // 充能
+    if (setuCharge < setuMaxCharge) {
+        setuCurCD--;
+        if (setuCurCD == 0) {
+            setuCurCD = setuCD;
+            setuCharge++;
+        }
+    }
+}, 1000);
 
 let setuPool = [];
 
@@ -117,6 +137,7 @@ async function setuPush() {
 
     const page = await browser.newPage();
 
+    // 截取所有回应对象
     const responses = [];
     page.on('response', res => {
         responses.push(res);
@@ -129,13 +150,19 @@ async function setuPush() {
             timeout: 120000
         });
 
-        await page.waitForFunction(() => {
+        await Promise.race(page.waitForFunction(() => {
+            const description = document.querySelector('meta[name="description"]');
+            if (!description) return false;
+            if (/r-18/i.test(description.getAttribute('content')))
+                return true;
+            return false;
+        }), page.waitForFunction(() => {
             const img = document.querySelector('[role="presentation"] img');
             if (img) return img.complete;
             return false
         }, {
             timeout: 120000
-        });
+        }));
 
         await page.waitForFunction(() => {
             // 目前版面是第三个nav
@@ -147,24 +174,43 @@ async function setuPush() {
         });
     } catch {
         await page.close();
-        // 死亡递归！
-        await setuPush();
-        return;
+        // 死亡递归！ 
+        return setuPush();
     }
 
     const result = await page.evaluate(() => {
-        const img = document.querySelector('[role="presentation"] img');
         // 查找下一张色图
         // 目前版面是第三个nav
         let nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
         if (nextUrl) {
             nextUrl = nextUrl.getAttribute('href');
         }
-        return {
-            url: img.getAttribute('src'),
-            nextUrl
+
+        const description = document.querySelector('meta[name="description"]');
+        if (description && /r-18/i.test(description.getAttribute('content'))) {
+            return {
+                url: 'r18',
+                nextUrl
+            }
+        } else {
+            const img = document.querySelector('[role="presentation"] img');
+            return {
+                url: img.getAttribute('src'),
+                nextUrl
+            }
         }
     });
+
+    // 如果是r18继续递归
+    if (result.url == 'r18') {
+        await page.close();
+        if (result.nextUrl) {
+            setuPool[setuIndex] = result.nextUrl;
+        } else {
+            setuPool.splice(setuIndex, 1);
+        }
+        return setuPush();
+    }
 
     console.log('缓存色图:', result);
 
@@ -230,6 +276,19 @@ async function PixivPic(recvObj, client) {
         return;
     }
 
+    if (setuCharge == 0) {
+        client.sendObj({
+            id: uuid(),
+            method: "sendMessage",
+            params: {
+                type: recvObj.params.type,
+                group: recvObj.params.group || '',
+                qq: recvObj.params.qq || '',
+                content: `技能冷却中~ 请等待${parseInt(setuCurCD/60)}分${setuCurCD%60}秒`
+            }
+        });
+    }
+
     if (setuLink.length == 0) {
         client.sendObj({
             id: uuid(),
@@ -242,6 +301,7 @@ async function PixivPic(recvObj, client) {
             }
         });
     } else {
+        setuCharge--;
         client.sendObj({
             id: uuid(),
             method: "sendMessage",

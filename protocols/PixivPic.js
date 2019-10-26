@@ -150,7 +150,7 @@ async function setuPush() {
             timeout: 120000
         });
 
-        await Promise.race(page.waitForFunction(() => {
+        await Promise.race([page.waitForFunction(() => {
             const description = document.querySelector('meta[name="description"]');
             if (!description) return false;
             if (/r-18/i.test(description.getAttribute('content')))
@@ -162,7 +162,7 @@ async function setuPush() {
             return false
         }, {
             timeout: 120000
-        }));
+        })]);
 
         await page.waitForFunction(() => {
             // 目前版面是第三个nav

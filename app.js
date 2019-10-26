@@ -59,7 +59,7 @@ client.on('message', data => {
     }
 
     // 打印消息内容
-    console.log('content:', recvObj.params.content);
+    console.log('群:', recvObj.params.group, 'qq:', recvObj.params.qq, recvObj.params.content);
 
     // 被at了
     if (protocols.atme(recvObj)) {

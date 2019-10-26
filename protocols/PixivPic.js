@@ -6,7 +6,7 @@ const uuid = require('uuid/v4');
 if (!fs.existsSync(path.join(secret.tempPath, 'setu')))
     fs.mkdirSync(path.join(secret.tempPath, 'setu'));
 
-const blockList = JSON.parse(fs.readFileSync('./protocols/PixivPic_block_group.json', 'utf8'));
+const groupList = JSON.parse(fs.readFileSync('./protocols/PixivPic_group_list.json', 'utf8'));
 
 let isInitialized = false;
 
@@ -24,7 +24,7 @@ appEvent.on('unity_doc_initialized', async () => {
 
 // 计时器 每秒执行一次
 // 当前小时
-const curHours = new Date().getHours();
+let curHours = new Date().getHours();
 // 色图技能充能
 const setuMaxCharge = 3;
 const setuCD = 200;
@@ -250,7 +250,7 @@ function setuClear() {
 
 module.exports = function (recvObj, client) {
     // 群黑名单
-    for (const groupId of blockList) {
+    for (const groupId of groupList.block) {
         if (groupId == recvObj.params.group) {
             return false;
         }
@@ -282,6 +282,12 @@ async function PixivPic(recvObj, client) {
         setuCharge[recvObj.params.group] = {
             count: setuMaxCharge,
             cd: setuCD
+        }
+    }
+    // 白名单
+    for (const groupId of groupList.white) {
+        if (groupId == recvObj.params.group) {
+            setuCharge[recvObj.params.group].count = 99;
         }
     }
 

@@ -15,9 +15,9 @@ global.appEvent = new EventEmitter();
     global.browser = await puppeteer.launch();
     appEvent.emit('browser_initialized');
     // 让最开始打开的页面始终在前面
-    browser.on('targetcreated', () => {
+    browser.on('targetcreated', async () => {
         const pages = await browser.pages();
-        await pages[1].bringToFront();
+        if (pages[1]) await pages[1].bringToFront();
     });
 })();
 

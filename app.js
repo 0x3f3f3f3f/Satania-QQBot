@@ -61,6 +61,15 @@ client.on('message', data => {
     // 打印消息内容
     console.log('群:', recvObj.params.group, 'qq:', recvObj.params.qq, recvObj.params.content);
 
+    // 分步搜图
+    for (const pending of SauceNaoPendingList) {
+        if (recvObj.params.group == pending.recvObj.params.group &&
+            recvObj.params.qq == pending.recvObj.params.qq) {
+            protocols.SauceNAO(recvObj, client, true);
+            return;
+        }
+    }
+
     // 被at了
     if (protocols.atme(recvObj)) {
         // 协议入口
@@ -82,3 +91,32 @@ client.on('pong', () => {
 client.on('close', (code, reason) => {
     console.log('closed:', code, reason);
 });
+
+// 分步搜图事件
+const SauceNaoPendingList = [];
+appEvent.on('SauceNao_pending', recvObj => {
+    SauceNaoPendingList.push({
+        recvObj,
+        time: 60
+    });
+});
+appEvent.on('SauceNao_done', recvObj => {
+    for (let i = 0; i < SauceNaoPendingList.length; i++) {
+        const pending = SauceNaoPendingList[i];
+        if (recvObj.params.group == pending.recvObj.params.group &&
+            recvObj.params.qq == pending.recvObj.params.qq) {
+            SauceNaoPendingList.splice(i, 1);
+            break;
+        }
+    }
+});
+
+const SauceNaoTimer = setInterval(() => {
+    for (let i = SauceNaoPendingList.length - 1; i >= 0; i--) {
+        const pending = SauceNaoPendingList[i];
+        pending.time--;
+        if (pending.time == 0) {
+            SauceNaoPendingList.splice(i, 1);
+        }
+    }
+}, 1000);

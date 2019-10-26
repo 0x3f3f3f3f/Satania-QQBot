@@ -4,8 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid/v4');
 
-module.exports = function (recvObj, client) {
-    if (/搜.*图/m.test(recvObj.params.content)) {
+module.exports = function (recvObj, client, isPending = false) {
+    if (isPending) {
         const imgURL = getFirstImageURL(recvObj.params.content);
         if (!imgURL) {
             client.sendObj({
@@ -18,6 +18,26 @@ module.exports = function (recvObj, client) {
                     content: '欧尼酱搜图的话请至少要一张图哦~'
                 }
             });
+        } else {
+            SauceNAO(imgURL, recvObj, client);
+        }
+        appEvent.emit('SauceNao_done', recvObj);
+        return;
+    }
+    if (/搜.*图/m.test(recvObj.params.content)) {
+        const imgURL = getFirstImageURL(recvObj.params.content);
+        if (!imgURL) {
+            client.sendObj({
+                id: uuid(),
+                method: "sendMessage",
+                params: {
+                    type: recvObj.params.type,
+                    group: recvObj.params.group || '',
+                    qq: recvObj.params.qq || '',
+                    content: '收到！接下来请单独发一张图片给我搜索~'
+                }
+            });
+            appEvent.emit('SauceNao_pending', recvObj);
         } else {
             SauceNAO(imgURL, recvObj, client);
         }

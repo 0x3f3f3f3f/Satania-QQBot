@@ -100,11 +100,17 @@ async function UnityDoc(type, recvObj, client) {
     const page = await browser.newPage();
 
     try {
-        page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`));
+        page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`), {
+            timeout: 120000
+        });
 
-        await Promise.race([page.waitForSelector('.search-results .result'),
+        await Promise.race([page.waitForSelector('.search-results .result', {
+                timeout: 120000
+            }),
             page.waitForFunction(() => {
                 return document.querySelector(".search-results") && /did not result/ig.test(document.querySelector(".search-results").textContent);
+            }, {
+                timeout: 120000
             })
         ]);
     } catch {

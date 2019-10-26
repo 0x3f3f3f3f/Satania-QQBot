@@ -28,8 +28,7 @@ const curHours = new Date().getHours();
 // 色图技能充能
 const setuMaxCharge = 3;
 const setuCD = 200;
-let setuCharge = setuMaxCharge;
-let setuCurCD = setuCD;
+const setuCharge = {};
 const timer = setInterval(() => {
     const curDate = new Date();
     // 每小时清理色图缓存
@@ -41,12 +40,14 @@ const timer = setInterval(() => {
             setuPull();
         }
     }
-    // 充能
-    if (setuCharge < setuMaxCharge) {
-        setuCurCD--;
-        if (setuCurCD == 0) {
-            setuCurCD = setuCD;
-            setuCharge++;
+    // 充能（区分每个群）
+    for (const change of setuCharge) {
+        if (change.count < setuMaxCharge) {
+            change.cd--;
+            if (change.cd == 0) {
+                change.cd = setuCD;
+                change.count++;
+            }
         }
     }
 }, 1000);
@@ -276,7 +277,14 @@ async function PixivPic(recvObj, client) {
         return;
     }
 
-    if (setuCharge == 0) {
+    if (!setuCharge[recvObj.params.group]) {
+        setuCharge[recvObj.params.group] = {
+            count: setuMaxCharge,
+            cd: setuCD
+        }
+    }
+
+    if (setuCharge[recvObj.params.group].count == 0) {
         client.sendObj({
             id: uuid(),
             method: "sendMessage",
@@ -285,8 +293,8 @@ async function PixivPic(recvObj, client) {
                 group: recvObj.params.group || '',
                 qq: recvObj.params.qq || '',
                 content: '搞太快了~ 请等待' +
-                    (parseInt(setuCurCD / 60) == 0 ? '' : (parseInt(setuCurCD / 60) + '分')) +
-                    setuCurCD % 60 + '秒'
+                    (parseInt(setuCharge[recvObj.params.group].cd / 60) == 0 ? '' : (parseInt(setuCharge[recvObj.params.group].cd / 60) + '分')) +
+                    setuCharge[recvObj.params.group].cd % 60 + '秒'
             }
         });
         return;
@@ -304,7 +312,7 @@ async function PixivPic(recvObj, client) {
             }
         });
     } else {
-        setuCharge--;
+        setuCharge[recvObj.params.group].count--;
         client.sendObj({
             id: uuid(),
             method: "sendMessage",

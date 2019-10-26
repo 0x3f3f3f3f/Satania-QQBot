@@ -14,6 +14,11 @@ global.appEvent = new EventEmitter();
 (async function () {
     global.browser = await puppeteer.launch();
     appEvent.emit('browser_initialized');
+    // 让最开始打开的页面始终在前面
+    browser.on('targetcreated', () => {
+        const pages = await browser.pages();
+        await pages[1].bringToFront();
+    });
 })();
 
 // 扩展一下ws的send方法

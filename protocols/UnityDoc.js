@@ -85,7 +85,7 @@ async function UnityDoc(type, recvObj, client) {
         }
     });
 
-    const translate = await browser.newPage();
+    let translate = await browser.newPage();
     try {
         translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${encodeURIComponent(searchText)}`);
         await translate.waitForSelector('.tlid-translation.translation');
@@ -94,6 +94,7 @@ async function UnityDoc(type, recvObj, client) {
             return document.querySelector('.tlid-translation.translation').textContent;
         });
     } catch {}
+    await translate.close();
 
     console.log('Unity Documentation search:', searchText);
 
@@ -157,10 +158,11 @@ async function UnityDoc(type, recvObj, client) {
         infoText += (infoText == '' ? '' : '\n') + result.info;
     }
 
+    translate = await browser.newPage();
     try {
         translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=${encodeURIComponent(infoText)}`);
         await translate.waitForFunction(() => {
-            return document.querySelectorAll('.tlid-translation.translation span').length > 1;
+            return document.querySelectorAll('.tlid-translation.translation span').length > 0;
         });
         infoText = await translate.evaluate(() => {
             window.stop();

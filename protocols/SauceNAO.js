@@ -61,7 +61,7 @@ async function SauceNAO(url, recvObj, client) {
     try {
         saucenaoObj = await new Promise((resolve, reject) => {
             request.get('https://saucenao.com/search.php', {
-                form: {
+                qs: {
                     db: 999,
                     output_type: 2,
                     numres: 1,

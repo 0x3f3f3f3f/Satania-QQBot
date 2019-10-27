@@ -181,6 +181,7 @@ async function setuPush() {
     }
 
     const result = await page.evaluate(() => {
+        window.stop();
         // 查找下一张色图
         // 目前版面是第三个nav
         let nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');

@@ -13,7 +13,9 @@ global.appEvent = new EventEmitter();
 // 启动浏览器
 (async function () {
     if (!fs.existsSync('./chromium/userData'))
-        fs.mkdirSync('./chromium/userData');
+        fs.mkdirSync('./chromium/userData', {
+            recursive: true
+        });
     global.browser = await puppeteer.launch({
         userDataDir: './chromium/userData'
     });

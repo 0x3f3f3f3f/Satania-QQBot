@@ -1,11 +1,11 @@
 const request = require('request');
 const uuid = require('uuid/v4');
-const getFirstImageURL = require('../lib/getFirstImageURL');
+const getFirstImageInfo = require('../lib/getFirstImageInfo');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {
-        const imgURL = getFirstImageURL(recvObj.params.content);
-        if (!imgURL) {
+        const imgInfo = getFirstImageInfo(recvObj.params.content);
+        if (!imgInfo) {
             client.sendObj({
                 id: uuid(),
                 method: "sendMessage",
@@ -17,14 +17,14 @@ module.exports = function (recvObj, client, isPending = false) {
                 }
             });
         } else {
-            SauceNAO(imgURL.url, recvObj, client);
+            SauceNAO(imgInfo.url, recvObj, client);
         }
         appEvent.emit('SauceNao_done', recvObj);
         return;
     }
     if (/(搜.*?图)|(图.*?搜)/m.test(recvObj.params.content)) {
-        const imgURL = getFirstImageURL(recvObj.params.content);
-        if (!imgURL) {
+        const imgInfo = getFirstImageInfo(recvObj.params.content);
+        if (!imgInfo) {
             client.sendObj({
                 id: uuid(),
                 method: "sendMessage",
@@ -37,7 +37,7 @@ module.exports = function (recvObj, client, isPending = false) {
             });
             appEvent.emit('SauceNao_pending', recvObj);
         } else {
-            SauceNAO(imgURL.url, recvObj, client);
+            SauceNAO(imgInfo.url, recvObj, client);
         }
         return true;
     }

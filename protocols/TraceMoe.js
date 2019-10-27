@@ -3,12 +3,12 @@ const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid/v4');
-const getFirstImageURL = require('../lib/getFirstImageURL');
+const getFirstImageInfo = require('../lib/getFirstImageInfo');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {
-        const imgURL = getFirstImageURL(recvObj.params.content);
-        if (!imgURL) {
+        const imgInfo = getFirstImageInfo(recvObj.params.content);
+        if (!imgInfo) {
             client.sendObj({
                 id: uuid(),
                 method: "sendMessage",
@@ -20,14 +20,14 @@ module.exports = function (recvObj, client, isPending = false) {
                 }
             });
         } else {
-            TraceMoe(imgURL, recvObj, client);
+            TraceMoe(imgInfo, recvObj, client);
         }
         appEvent.emit('TraceMoe_done', recvObj);
         return;
     }
     if (/(搜|找).*?番|番.*?(搜|找)/m.test(recvObj.params.content)) {
-        const imgURL = getFirstImageURL(recvObj.params.content);
-        if (!imgURL) {
+        const imgInfo = getFirstImageInfo(recvObj.params.content);
+        if (!imgInfo) {
             client.sendObj({
                 id: uuid(),
                 method: "sendMessage",
@@ -40,15 +40,15 @@ module.exports = function (recvObj, client, isPending = false) {
             });
             appEvent.emit('TraceMoe_pending', recvObj);
         } else {
-            TraceMoe(imgURL, recvObj, client);
+            TraceMoe(imgInfo, recvObj, client);
         }
         return true;
     }
     return false;
 }
 
-async function TraceMoe(url, recvObj, client) {
-    if (/gif/i.test(url.ext)) {
+async function TraceMoe(imgInfo, recvObj, client) {
+    if (imgInfo.width / imgInfo.height < 1.2) {
         client.sendObj({
             id: uuid(),
             method: "sendMessage",
@@ -56,7 +56,7 @@ async function TraceMoe(url, recvObj, client) {
                 type: recvObj.params.type,
                 group: recvObj.params.group || '',
                 qq: recvObj.params.qq || '',
-                content: '欧尼酱对不起，暂不支持GIF动图搜索~'
+                content: '欧尼酱~你是不是又在拿表情包逗我？'
             }
         });
         return;
@@ -75,10 +75,24 @@ async function TraceMoe(url, recvObj, client) {
 
     let tracemoeObj;
     try {
+        const imgPath = await new Promise((resolve, reject) => {
+            request.get(imgInfo.url, {
+                encoding: null
+            }, (err, res, body) => {
+                if (err && !_.isBuffer(body)) {
+                    reject();
+                    return;
+                }
+                const imgPath = path.join(secret.tempPath, 'image', 'tracemoe_' + uuid() + imgInfo.ext);
+                fs.writeFileSync(imgPath, body);
+                resolve(imgPath);
+            });
+        });
+
         tracemoeObj = await new Promise((resolve, reject) => {
-            request.get('https://trace.moe/api/search', {
-                qs: {
-                    url: url.url
+            request.post('https://trace.moe/api/search', {
+                formData: {
+                    image: fs.createReadStream(imgPath)
                 },
                 json: true
             }, (err, res, body) => {

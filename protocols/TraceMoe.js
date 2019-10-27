@@ -1,4 +1,7 @@
 const request = require('request');
+const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
 const uuid = require('uuid/v4');
 const getFirstImageURL = require('../lib/getFirstImageURL');
 
@@ -102,6 +105,25 @@ async function TraceMoe(url, recvObj, client) {
         return;
     }
 
+    const imagePath = await new Promise(resolve => {
+        request.get('https://trace.moe/thumbnail.php', {
+            qs: {
+                anilist_id: tracemoeObj.docs[0].anilist_id,
+                file: tracemoeObj.docs[0].filename,
+                t: tracemoeObj.docs[0].at,
+                token: tracemoeObj.docs[0].tokenthumb
+            },
+            encoding: null
+        }, (err, res, body) => {
+            let imagePath = null;
+            if (!err && _.isBuffer(body)) {
+                imagePath = path.join(secret.tempPath, 'image', 'tracemoe_' + uuid() + '.jpg');
+                fs.writeFileSync(imagePath, body);
+            }
+            resolve(imagePath);
+        });
+    });
+
     client.sendObj({
         id: uuid(),
         method: "sendMessage",
@@ -120,8 +142,8 @@ async function TraceMoe(url, recvObj, client) {
                 (parseInt(tracemoeObj.docs[0].at % 3600 / 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 3600 / 60) + '分')) +
                 (parseInt(tracemoeObj.docs[0].at % 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 60) + '秒')) +
                 '\r\n' +
-                `相似度：${(tracemoeObj.docs[0].similarity * 100).toFixed(2)}%\r\n` +
-                `[QQ:pic=https://trace.moe/thumbnail.php?anilist_id=${tracemoeObj.docs[0].anilist_id}&file=${encodeURIComponent(tracemoeObj.docs[0].filename)}&t=${tracemoeObj.docs[0].at}&token=${tracemoeObj.docs[0].tokenthumb}]`
+                `相似度：${(tracemoeObj.docs[0].similarity * 100).toFixed(2)}%` +
+                (imagePath ? `\r\n[QQ:pic=${imagePath}]` : '')
         }
     });
 }

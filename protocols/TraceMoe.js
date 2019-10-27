@@ -88,7 +88,7 @@ async function TraceMoe(url, recvObj, client) {
         return;
     }
 
-    if (!tracemoeObj.results) {
+    if (!tracemoeObj.docs) {
         client.sendObj({
             id: uuid(),
             method: "sendMessage",

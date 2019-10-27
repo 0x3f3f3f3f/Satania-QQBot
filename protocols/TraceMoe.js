@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid/v4');
 const getFirstImageInfo = require('../lib/getFirstImageInfo');
+const gifFrames = require('gif-frames');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {
@@ -75,36 +76,50 @@ async function TraceMoe(imgInfo, recvObj, client) {
 
     let tracemoeObj;
     try {
-        const imgPath = await new Promise((resolve, reject) => {
-            request.get(imgInfo.url, {
-                encoding: null
-            }, (err, res, body) => {
-                if (err && !_.isBuffer(body)) {
-                    reject();
-                    return;
-                }
-                const imgPath = path.join(secret.tempPath, 'image', 'tracemoe_' + uuid() + imgInfo.ext);
-                fs.writeFileSync(imgPath, body);
-                resolve(imgPath);
+        // gif的情况需要使用gif-frames模块拿到第一帧
+        if (/gif/i.test(imgInfo.ext)) {
+            const frameData = await gifFrames({
+                url: imgInfo.url,
+                frames: 0,
+                outputType: 'canvas'
             });
-        });
-
-        tracemoeObj = await new Promise((resolve, reject) => {
-            request.post('https://trace.moe/api/search', {
-                formData: {
-                    image: fs.createReadStream(imgPath)
-                },
-                json: true
-            }, (err, res, body) => {
-                if (err) {
-                    reject();
-                    return;
-                }
-                if (body.docs)
-                    console.log('TraceMoe API:', body.docs[0].title);
-                resolve(body);
+            tracemoeObj = await new Promise((resolve, reject) => {
+                request.post('https://trace.moe/api/search', {
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: {
+                        image: frameData[0].getImage().toDataURL("image/jpeg", 0.8)
+                    },
+                    json: true
+                }, (err, res, body) => {
+                    if (err) {
+                        reject();
+                        return;
+                    }
+                    if (body.docs)
+                        console.log('TraceMoe API:', body.docs[0].title);
+                    resolve(body);
+                });
             });
-        });
+        } else {
+            tracemoeObj = await new Promise((resolve, reject) => {
+                request.get('https://trace.moe/api/search', {
+                    qs: {
+                        url: imgInfo.url
+                    },
+                    json: true
+                }, (err, res, body) => {
+                    if (err) {
+                        reject();
+                        return;
+                    }
+                    if (body.docs)
+                        console.log('TraceMoe API:', body.docs[0].title);
+                    resolve(body);
+                });
+            });
+        }
     } catch {
         client.sendObj({
             id: uuid(),

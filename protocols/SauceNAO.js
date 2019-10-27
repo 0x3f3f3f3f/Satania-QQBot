@@ -4,7 +4,7 @@ const getFirstImageURL = require('../lib/getFirstImageURL');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {
-        const imgURL = getFirstImageURL(recvObj.params.content).url;
+        const imgURL = getFirstImageURL(recvObj.params.content);
         if (!imgURL) {
             client.sendObj({
                 id: uuid(),
@@ -17,13 +17,13 @@ module.exports = function (recvObj, client, isPending = false) {
                 }
             });
         } else {
-            SauceNAO(imgURL, recvObj, client);
+            SauceNAO(imgURL.url, recvObj, client);
         }
         appEvent.emit('SauceNao_done', recvObj);
         return;
     }
     if (/(搜.*?图)|(图.*?搜)/m.test(recvObj.params.content)) {
-        const imgURL = getFirstImageURL(recvObj.params.content).url;
+        const imgURL = getFirstImageURL(recvObj.params.content);
         if (!imgURL) {
             client.sendObj({
                 id: uuid(),
@@ -37,7 +37,7 @@ module.exports = function (recvObj, client, isPending = false) {
             });
             appEvent.emit('SauceNao_pending', recvObj);
         } else {
-            SauceNAO(imgURL, recvObj, client);
+            SauceNAO(imgURL.url, recvObj, client);
         }
         return true;
     }

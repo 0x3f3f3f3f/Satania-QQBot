@@ -136,13 +136,11 @@ async function TraceMoe(url, recvObj, client) {
                 (tracemoeObj.docs[0].title_native ? `原名：${tracemoeObj.docs[0].title_native }\r\n` : '') +
                 (tracemoeObj.docs[0].title_chinese ? `中文名：${tracemoeObj.docs[0].title_chinese }\r\n` : '') +
                 (tracemoeObj.docs[0].title_english ? `英文名：${tracemoeObj.docs[0].title_english }\r\n` : '') +
-                '\r\n' +
-                `匹配${tracemoeObj.docs[0].episode||'?'}话` +
+                `相似度：${(tracemoeObj.docs[0].similarity * 100).toFixed(2)}%\r\n` +
+                `匹配${tracemoeObj.docs[0].episode||'?'}话 ` +
                 (parseInt(tracemoeObj.docs[0].at / 3600) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at / 3600) + '时')) +
                 (parseInt(tracemoeObj.docs[0].at % 3600 / 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 3600 / 60) + '分')) +
                 (parseInt(tracemoeObj.docs[0].at % 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 60) + '秒')) +
-                '\r\n' +
-                `相似度：${(tracemoeObj.docs[0].similarity * 100).toFixed(2)}%` +
                 (imagePath ? `\r\n[QQ:pic=${imagePath}]` : '')
         }
     });

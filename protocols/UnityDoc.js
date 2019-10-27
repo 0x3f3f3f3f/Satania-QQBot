@@ -154,8 +154,10 @@ async function UnityDoc(type, recvObj, client) {
     await page.close();
 
     let infoText = '';
-    for (const result of results) {
-        infoText += (infoText == '' ? '' : '\n') + result.info;
+    if (results) {
+        for (const result of results) {
+            infoText += (infoText == '' ? '' : '\n') + result.info;
+        }
     }
 
     translate = await browser.newPage();

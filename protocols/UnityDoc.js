@@ -94,7 +94,7 @@ async function UnityDoc(type, recvObj, client) {
             return document.querySelector('.tlid-translation.translation').textContent;
         });
     } catch {}
-    await translate.close();
+
     console.log('Unity Documentation search:', searchText);
 
     const page = await browser.newPage();
@@ -124,6 +124,7 @@ async function UnityDoc(type, recvObj, client) {
                 content: '欧尼酱搜索出错了~喵'
             }
         });
+        await translate.close();
         await page.close();
         return;
     }
@@ -151,11 +152,34 @@ async function UnityDoc(type, recvObj, client) {
     });
     await page.close();
 
+    let infoText = '';
+    for (const result of results) {
+        infoText += (infoText == '' ? '' : '\n') + result.info;
+    }
+
+    try {
+        translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=${infoText}`));
+        await translate.waitForFunction(searchText => {
+            return document.querySelector('.tlid-translation.translation').textContent != searchText;
+        }, {}, searchText);
+        infoText = await translate.evaluate(() => {
+            window.stop();
+            let infoText = '';
+            for (const span of document.querySelectorAll('.tlid-translation.translation span')) {
+                infoText += (infoText == '' ? '' : '\n') + span.textContent;
+            }
+            return infoText;
+        });
+    } catch {}
+    await translate.close();
+
     if (results) {
+        infoText = infoText.split('\n');
         let resultText = '';
-        for (const result of results) {
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
             resultText += (resultText == '' ? '' : '\r\n') + '\r\n' +
-                `${DocUrl[type]+result.url}\r\n${result.title}: ${result.info}`
+                `${DocUrl[type]+result.url}\r\n${result.title}: ${infoText[i]}`
         }
 
         client.sendObj({

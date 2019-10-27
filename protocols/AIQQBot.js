@@ -60,7 +60,7 @@ async function AIQQBot(inputText, recvObj, client) {
     let str = '';
     for (const key of paramKeys) {
         if (key != 'sign') {
-            str += (str != '' ? '&' : '') + `${key}=${key=='question'?encodeURI(params[key]):params[key]}`
+            str += (str == '' ? '' : '&') + `${key}=${key=='question'?encodeURI(params[key]):params[key]}`
         }
     }
     str += `&app_key=${secret.AI_QQ_APPKEY}`;

@@ -4,7 +4,7 @@ const getFirstImageURL = require('../lib/getFirstImageURL');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {
-        const imgURL = getFirstImageURL(recvObj.params.content);
+        const imgURL = getFirstImageURL(recvObj.params.content).url;
         if (!imgURL) {
             client.sendObj({
                 id: uuid(),
@@ -23,7 +23,7 @@ module.exports = function (recvObj, client, isPending = false) {
         return;
     }
     if (/(搜.*?图)|(图.*?搜)/m.test(recvObj.params.content)) {
-        const imgURL = getFirstImageURL(recvObj.params.content);
+        const imgURL = getFirstImageURL(recvObj.params.content).url;
         if (!imgURL) {
             client.sendObj({
                 id: uuid(),

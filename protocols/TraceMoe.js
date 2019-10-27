@@ -48,6 +48,20 @@ module.exports = function (recvObj, client, isPending = false) {
 }
 
 async function TraceMoe(url, recvObj, client) {
+    if (/gif/i.test(url.ext)) {
+        client.sendObj({
+            id: uuid(),
+            method: "sendMessage",
+            params: {
+                type: recvObj.params.type,
+                group: recvObj.params.group || '',
+                qq: recvObj.params.qq || '',
+                content: '欧尼酱对不起，暂不支持GIF动图搜索~'
+            }
+        });
+        return;
+    }
+
     client.sendObj({
         id: uuid(),
         method: "sendMessage",
@@ -64,7 +78,7 @@ async function TraceMoe(url, recvObj, client) {
         tracemoeObj = await new Promise((resolve, reject) => {
             request.get('https://trace.moe/api/search', {
                 qs: {
-                    url
+                    url: url.url
                 },
                 json: true
             }, (err, res, body) => {

@@ -160,7 +160,9 @@ async function UnityDoc(type, recvObj, client) {
     try {
         translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=${infoText}`));
         await translate.waitForFunction(searchText => {
-            return document.querySelector('.tlid-translation.translation').textContent != searchText;
+            const translation = document.querySelector('.tlid-translation.translation')
+            return translation.textContent != '' &&
+                translation.textContent != searchText;
         }, {}, searchText);
         infoText = await translate.evaluate(() => {
             window.stop();

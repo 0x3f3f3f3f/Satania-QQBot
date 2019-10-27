@@ -61,7 +61,7 @@ async function TraceMoe(url, recvObj, client) {
         tracemoeObj = await new Promise((resolve, reject) => {
             request.get('https://trace.moe/api/search', {
                 qs: {
-                    url: 'http://gchat.qpic.cn/gchatpic_new/0/0-0-E77DDD3F81B68776F10C972D0798B4E7/0?'
+                    url
                 },
                 json: true
             }, (err, res, body) => {

@@ -87,7 +87,7 @@ async function UnityDoc(type, recvObj, client) {
 
     const translate = await browser.newPage();
     try {
-        translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${searchText}`));
+        translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${encodeURIComponent(searchText)}`);
         await translate.waitForSelector('.tlid-translation.translation');
         searchText = await translate.evaluate(() => {
             window.stop();
@@ -100,7 +100,7 @@ async function UnityDoc(type, recvObj, client) {
     const page = await browser.newPage();
 
     try {
-        page.goto(encodeURI(`${DocUrl[type]}30_search.html?q=${searchText}`), {
+        page.goto(`${DocUrl[type]}30_search.html?q=${encodeURIComponent(searchText)}`, {
             timeout: 120000
         });
 
@@ -158,7 +158,7 @@ async function UnityDoc(type, recvObj, client) {
     }
 
     try {
-        translate.goto(encodeURI(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=${infoText}`));
+        translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=${encodeURIComponent(infoText)}`);
         await translate.waitForFunction(() => {
             return document.querySelectorAll('.tlid-translation.translation span').length > 1;
         });

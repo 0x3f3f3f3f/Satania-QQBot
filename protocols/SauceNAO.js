@@ -60,23 +60,24 @@ async function SauceNAO(url, recvObj, client) {
     let saucenaoObj;
     try {
         saucenaoObj = await new Promise((resolve, reject) => {
-            request.get(encodeURI(`https://saucenao.com/search.php?db=999&output_type=2&numres=1&api_key=${secret.SauceNAO_API_KEY}&url=${url}`),
-                (err, res, body) => {
-                    if (err) {
-                        reject();
-                        return;
-                    }
-                    let result;
-                    try {
-                        result = JSON.parse(body);
-                    } catch {
-                        reject();
-                        return;
-                    }
-                    if (result.results)
-                        console.log('SauceNAO API:', result.results[0].header.index_name);
-                    resolve(result);
-                });
+            request.get('https://saucenao.com/search.php', {
+                form: {
+                    db: 999,
+                    output_type: 2,
+                    numres: 1,
+                    api_key: secret.SauceNAO_API_KEY,
+                    url
+                },
+                json: true
+            }, (err, res, body) => {
+                if (err) {
+                    reject();
+                    return;
+                }
+                if (body.results)
+                    console.log('SauceNAO API:', body.results[0].header.index_name);
+                resolve(body);
+            });
         });
     } catch {
         client.sendObj({

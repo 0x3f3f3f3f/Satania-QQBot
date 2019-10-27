@@ -12,12 +12,12 @@ global.appEvent = new EventEmitter();
 
 // 启动浏览器
 (async function () {
-    if (!fs.existsSync('./chromium/userData'))
-        fs.mkdirSync('./chromium/userData', {
+    if (!fs.existsSync(secret.chromiumUserData))
+        fs.mkdirSync(secret.chromiumUserData, {
             recursive: true
         });
     global.browser = await puppeteer.launch({
-        userDataDir: './chromium/userData'
+        userDataDir: secret.chromiumUserData
     });
     appEvent.emit('browser_initialized');
     // 让最开始打开的页面始终在前面

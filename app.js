@@ -85,6 +85,13 @@ client.on('message', data => {
             return;
         }
     }
+    for (const pending of TraceMoePendingList) {
+        if (recvObj.params.group == pending.recvObj.params.group &&
+            recvObj.params.qq == pending.recvObj.params.qq) {
+            protocols.TraceMoe(recvObj, client, true);
+            return;
+        }
+    }
 
     // 被at了
     if (protocols.atme(recvObj)) {
@@ -108,10 +115,17 @@ client.on('close', (code, reason) => {
     console.log('closed:', code, reason);
 });
 
-// 分步搜图事件
+// 分步事件
 const SauceNaoPendingList = [];
+const TraceMoePendingList = [];
 appEvent.on('SauceNao_pending', recvObj => {
     SauceNaoPendingList.push({
+        recvObj,
+        time: 60
+    });
+});
+appEvent.on('TraceMoe_pending', recvObj => {
+    TraceMoePendingList.push({
         recvObj,
         time: 60
     });
@@ -126,13 +140,30 @@ appEvent.on('SauceNao_done', recvObj => {
         }
     }
 });
+appEvent.on('TraceMoe_done', recvObj => {
+    for (let i = 0; i < TraceMoePendingList.length; i++) {
+        const pending = TraceMoePendingList[i];
+        if (recvObj.params.group == pending.recvObj.params.group &&
+            recvObj.params.qq == pending.recvObj.params.qq) {
+            TraceMoePendingList.splice(i, 1);
+            break;
+        }
+    }
+});
 
-const SauceNaoTimer = setInterval(() => {
+const pendingTimer = setInterval(() => {
     for (let i = SauceNaoPendingList.length - 1; i >= 0; i--) {
         const pending = SauceNaoPendingList[i];
         pending.time--;
         if (pending.time == 0) {
             SauceNaoPendingList.splice(i, 1);
+        }
+    }
+    for (let i = TraceMoePendingList.length - 1; i >= 0; i--) {
+        const pending = TraceMoePendingList[i];
+        pending.time--;
+        if (pending.time == 0) {
+            TraceMoePendingList.splice(i, 1);
         }
     }
 }, 1000);

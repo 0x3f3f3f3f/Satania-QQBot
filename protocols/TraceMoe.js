@@ -17,12 +17,12 @@ module.exports = function (recvObj, client, isPending = false) {
                 }
             });
         } else {
-            SauceNAO(imgURL, recvObj, client);
+            TraceMoe(imgURL, recvObj, client);
         }
-        appEvent.emit('SauceNao_done', recvObj);
+        appEvent.emit('TraceMoe_done', recvObj);
         return;
     }
-    if (/(搜.*?图)|(图.*?搜)/m.test(recvObj.params.content)) {
+    if (/(搜|找).*?番|番.*?(搜|找)/m.test(recvObj.params.content)) {
         const imgURL = getFirstImageURL(recvObj.params.content);
         if (!imgURL) {
             client.sendObj({
@@ -35,16 +35,16 @@ module.exports = function (recvObj, client, isPending = false) {
                     content: '收到！接下来请单独发一张图片给我搜索~'
                 }
             });
-            appEvent.emit('SauceNao_pending', recvObj);
+            appEvent.emit('TraceMoe_pending', recvObj);
         } else {
-            SauceNAO(imgURL, recvObj, client);
+            TraceMoe(imgURL, recvObj, client);
         }
         return true;
     }
     return false;
 }
 
-async function SauceNAO(url, recvObj, client) {
+async function TraceMoe(url, recvObj, client) {
     client.sendObj({
         id: uuid(),
         method: "sendMessage",
@@ -56,16 +56,12 @@ async function SauceNAO(url, recvObj, client) {
         }
     });
 
-    let saucenaoObj;
+    let tracemoeObj;
     try {
-        saucenaoObj = await new Promise((resolve, reject) => {
-            request.get('https://saucenao.com/search.php', {
+        tracemoeObj = await new Promise((resolve, reject) => {
+            request.get('https://trace.moe/api/search', {
                 qs: {
-                    db: 999,
-                    output_type: 2,
-                    numres: 1,
-                    api_key: secret.SauceNAO_API_KEY,
-                    url
+                    url: 'http://gchat.qpic.cn/gchatpic_new/0/0-0-E77DDD3F81B68776F10C972D0798B4E7/0?'
                 },
                 json: true
             }, (err, res, body) => {
@@ -73,8 +69,8 @@ async function SauceNAO(url, recvObj, client) {
                     reject();
                     return;
                 }
-                if (body.results)
-                    console.log('SauceNAO API:', body.results[0].header.index_name);
+                if (body.docs)
+                    console.log('TraceMoe API:', body.docs[0].title);
                 resolve(body);
             });
         });
@@ -92,7 +88,7 @@ async function SauceNAO(url, recvObj, client) {
         return;
     }
 
-    if (!saucenaoObj.results) {
+    if (!tracemoeObj.results) {
         client.sendObj({
             id: uuid(),
             method: "sendMessage",
@@ -115,21 +111,17 @@ async function SauceNAO(url, recvObj, client) {
             qq: recvObj.params.qq || '',
             content: `[QQ:at=${recvObj.params.qq}]` +
                 ' 欧尼酱是不是你想要的内个~\r\n' +
-                `相似度：${saucenaoObj.results[0].header.similarity}%\r\n` +
-                ((saucenaoObj.results[0].data.title ||
-                    saucenaoObj.results[0].data.jp_name ||
-                    saucenaoObj.results[0].data.eng_name) ? `标题：${
-                    saucenaoObj.results[0].data.title||
-                    saucenaoObj.results[0].data.jp_name||
-                    saucenaoObj.results[0].data.eng_name}\r\n` : '') +
-                ((saucenaoObj.results[0].data.member_name ||
-                    saucenaoObj.results[0].data.author_name ||
-                    saucenaoObj.results[0].data.creator) ? `作者：${
-                    saucenaoObj.results[0].data.member_name||
-                    saucenaoObj.results[0].data.author_name||
-                    saucenaoObj.results[0].data.creator}\r\n` : '') +
-                `[QQ:pic=${saucenaoObj.results[0].header.thumbnail}]` +
-                (saucenaoObj.results[0].data.ext_urls ? ('\r\n' + saucenaoObj.results[0].data.ext_urls[0]) : '')
+                (tracemoeObj.docs[0].title_native ? `原名：${tracemoeObj.docs[0].title_native }\r\n` : '') +
+                (tracemoeObj.docs[0].title_chinese ? `中文名：${tracemoeObj.docs[0].title_chinese }\r\n` : '') +
+                (tracemoeObj.docs[0].title_english ? `英文名：${tracemoeObj.docs[0].title_english }\r\n` : '') +
+                '\r\n' +
+                `匹配${tracemoeObj.docs[0].episode||'?'}话` +
+                (parseInt(tracemoeObj.docs[0].at / 3600) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at / 3600) + '时')) +
+                (parseInt(tracemoeObj.docs[0].at % 3600 / 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 3600 / 60) + '分')) +
+                (parseInt(tracemoeObj.docs[0].at % 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 60) + '秒')) +
+                '\r\n' +
+                `相似度：${(tracemoeObj.docs[0].similarity * 100).toFixed(2)}%\r\n` +
+                `[QQ:pic=https://trace.moe/thumbnail.php?anilist_id=${tracemoeObj.docs[0].anilist_id}&file=${encodeURIComponent(tracemoeObj.docs[0].filename)}&t=${tracemoeObj.docs[0].at}&token=${tracemoeObj.docs[0].tokenthumb}]`
         }
     });
 }

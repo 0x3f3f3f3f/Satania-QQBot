@@ -256,7 +256,7 @@ module.exports = function (recvObj, client) {
         }
     }
 
-    if (/(色|涩|瑟).*图|gkd|搞快点|开车/im.test(recvObj.params.content)) {
+    if (/(色|涩|瑟).*?图|gkd|搞快点|开车/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);
         return true;
     }

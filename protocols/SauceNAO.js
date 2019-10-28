@@ -22,7 +22,7 @@ module.exports = function (recvObj, client, isPending = false) {
         appEvent.emit('SauceNao_done', recvObj);
         return;
     }
-    if (/(搜.*?图)|(图.*?搜)/m.test(recvObj.params.content)) {
+    if (/((搜|查|找).*?图)|(图.*?(搜|查|找))/m.test(recvObj.params.content)) {
         const imgInfo = getFirstImageInfo(recvObj.params.content);
         if (!imgInfo) {
             client.sendObj({

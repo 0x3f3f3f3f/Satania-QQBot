@@ -35,7 +35,7 @@ module.exports = function (recvObj, client) {
     let type = null;
     if (/api/ig.test(recvObj.params.content)) {
         type = DocType.api;
-    } else if (/手.*册/g.test(recvObj.params.content)) {
+    } else if (/手.*?册/g.test(recvObj.params.content)) {
         type = DocType.manual;
     }
     if (type != null) {

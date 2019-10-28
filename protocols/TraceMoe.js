@@ -26,7 +26,7 @@ module.exports = function (recvObj, client, isPending = false) {
         appEvent.emit('TraceMoe_done', recvObj);
         return;
     }
-    if (/(搜|找).*?番|番.*?(搜|找)/m.test(recvObj.params.content)) {
+    if (/(搜|查|找).*?(番|动画|动漫)|(番|动画|动漫).*?(搜|查|找)/m.test(recvObj.params.content)) {
         const imgInfo = getFirstImageInfo(recvObj.params.content);
         if (!imgInfo) {
             client.sendObj({

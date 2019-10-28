@@ -75,41 +75,42 @@ async function TraceMoe(imgInfo, recvObj, client) {
     });
 
     let tracemoeObj;
+
     try {
         // gif的情况需要使用gif-frames模块拿到第一帧
-        if (/gif/i.test(imgInfo.ext)) {
-            const imgStream = (await gifFrames({
-                url: imgInfo.url,
-                frames: 0
-            }))[0].getImage();
+        const gifStream = (await gifFrames({
+            url: imgInfo.url,
+            frames: 0
+        }))[0].getImage();
 
-            const imgBase64 = await new Promise((resolve, reject) => {
-                let buffer = [];
-                imgStream.on('error', reject);
-                imgStream.on('data', data => buffer.push(data))
-                imgStream.on('end', () => resolve(Buffer.concat(buffer).toString('base64')));
-            });
+        const imgBase64 = await new Promise((resolve, reject) => {
+            let buffer = [];
+            gifStream.on('error', reject);
+            gifStream.on('data', data => buffer.push(data))
+            gifStream.on('end', () => resolve(Buffer.concat(buffer).toString('base64')));
+        });
 
-            tracemoeObj = await new Promise((resolve, reject) => {
-                request.post('https://trace.moe/api/search', {
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: {
-                        image: 'data:image/jpeg;base64,' + imgBase64
-                    },
-                    json: true
-                }, (err, res, body) => {
-                    if (err) {
-                        reject();
-                        return;
-                    }
-                    if (body.docs)
-                        console.log('TraceMoe API:', body.docs[0].title);
-                    resolve(body);
-                });
+        tracemoeObj = await new Promise((resolve, reject) => {
+            request.post('https://trace.moe/api/search', {
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: {
+                    image: 'data:image/jpeg;base64,' + imgBase64
+                },
+                json: true
+            }, (err, res, body) => {
+                if (err) {
+                    reject();
+                    return;
+                }
+                if (body.docs)
+                    console.log('TraceMoe API:', body.docs[0].title);
+                resolve(body);
             });
-        } else {
+        });
+    } catch {
+        try {
             tracemoeObj = await new Promise((resolve, reject) => {
                 request.get('https://trace.moe/api/search', {
                     qs: {
@@ -126,19 +127,19 @@ async function TraceMoe(imgInfo, recvObj, client) {
                     resolve(body);
                 });
             });
+        } catch {
+            client.sendObj({
+                id: uuid(),
+                method: "sendMessage",
+                params: {
+                    type: recvObj.params.type,
+                    group: recvObj.params.group || '',
+                    qq: recvObj.params.qq || '',
+                    content: '欧尼酱搜索出错了~喵'
+                }
+            });
+            return;
         }
-    } catch {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '欧尼酱搜索出错了~喵'
-            }
-        });
-        return;
     }
 
     if (!tracemoeObj.docs) {

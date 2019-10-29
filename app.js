@@ -103,7 +103,7 @@ client.on('message', data => {
         }
     }
 
-    if (recvObj.params.group == '') {
+    if (recvObj.params.type == 1 || recvObj.params.type == 6) {
         protocolEntry(recvObj, client);
     }
     // 在群里需要先被at了

@@ -57,6 +57,16 @@ for (const protocolName of fs.readdirSync('./protocols')) {
     }
 }
 
+// 协议入口
+function protocolEntry(recvObj, client) {
+    if (!protocols.SauceNAO(recvObj, client) &&
+        !protocols.TraceMoe(recvObj, client) &&
+        !protocols.UnityDoc(recvObj, client) &&
+        !protocols.PixivPic(recvObj, client)) {
+        protocols.AIQQBot(recvObj, client);
+    }
+}
+
 // ws消息送达
 client.on('message', data => {
     if (!_.isString(data)) return;
@@ -93,15 +103,12 @@ client.on('message', data => {
         }
     }
 
-    // 被at了
-    if (protocols.atme(recvObj)) {
-        // 协议入口
-        if (!protocols.SauceNAO(recvObj, client) &&
-            !protocols.TraceMoe(recvObj, client) &&
-            !protocols.UnityDoc(recvObj, client) &&
-            !protocols.PixivPic(recvObj, client)) {
-            protocols.AIQQBot(recvObj, client);
-        }
+    if (recvObj.params.group == '') {
+        protocolEntry(recvObj, client);
+    }
+    // 在群里需要先被at了
+    else if (protocols.atme(recvObj)) {
+        protocolEntry();
     } else {
         // 复读机
         protocols.repeater(recvObj, client);

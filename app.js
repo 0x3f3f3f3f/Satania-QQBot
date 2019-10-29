@@ -111,7 +111,7 @@ client.on('message', data => {
     }
     // 在群里需要先被at了
     else if (protocols.atme(recvObj)) {
-        protocolEntry();
+        protocolEntry(recvObj, client);
     } else {
         // 复读机
         protocols.repeater(recvObj, client);

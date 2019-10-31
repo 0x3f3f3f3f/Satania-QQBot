@@ -154,7 +154,7 @@ async function setuPush() {
         await Promise.race([page.waitForFunction(() => {
             const description = document.querySelector('meta[name="description"]');
             if (!description) return false;
-            if (/r-18/i.test(description.getAttribute('content')))
+            if (/r-18|漫画/i.test(description.getAttribute('content')))
                 return true;
             return false;
         }), page.waitForFunction(() => {
@@ -189,9 +189,9 @@ async function setuPush() {
         }
 
         const description = document.querySelector('meta[name="description"]');
-        if (description && /r-18/i.test(description.getAttribute('content'))) {
+        if (description && /r-18|漫画/i.test(description.getAttribute('content'))) {
             return {
-                url: 'r18',
+                url: 'r18manga',
                 nextUrl
             }
         } else {
@@ -203,8 +203,8 @@ async function setuPush() {
         }
     });
 
-    // 如果是r18继续递归
-    if (result.url == 'r18') {
+    // 如果是r18或者漫画继续递归
+    if (result.url == 'r18manga') {
         await page.close();
         if (result.nextUrl) {
             setuPool[setuIndex] = result.nextUrl;

@@ -37,11 +37,24 @@ WebSocket.prototype.sendObj = function (obj) {
     this.send(JSON.stringify(obj));
 }
 
-const client = new WebSocket(`ws://${secret.wsHost}:${secret.wsPort}/`);
+function connet(host, port) {
+    if (client) {
+        client.off('open', onOpen);
+        client.off('message', onMessage);
+        client.off('pong', onPong);
+        client.off('close', onClose);
+        client.off('error', onError);
+    }
+    client = new WebSocket(`ws://${secret.wsHost}:${secret.wsPort}/`);
+    client.on('open', onOpen);
+    client.on('message', onMessage);
+    client.on('pong', onPong);
+    client.on('close', onClose);
+    client.on('error', onError);
+}
 
-client.on('open', () => {
-    console.log('opend!');
-});
+let client;
+connet();
 
 // 心跳
 const heartBeat = setInterval(() => {
@@ -67,8 +80,12 @@ function protocolEntry(recvObj, client) {
     }
 }
 
+function onOpen() {
+    console.log('opend!');
+}
+
 // ws消息送达
-client.on('message', data => {
+function onMessage(data) {
     if (!_.isString(data)) return;
     // console.log('=>', data);
 
@@ -116,15 +133,19 @@ client.on('message', data => {
         // 复读机
         protocols.repeater(recvObj, client);
     }
-});
+}
 
-client.on('pong', () => {
+function onPong() {
     // console.log('pong!');
-});
+}
 
-client.on('close', (code, reason) => {
+function onClose(code, reason) {
     console.log('closed:', code, reason);
-});
+}
+
+function onError(error) {
+    console.error('error:', error);
+}
 
 // 分步事件
 const SauceNaoPendingList = [];
@@ -176,5 +197,13 @@ const pendingTimer = setInterval(() => {
         if (pending.time == 0) {
             TraceMoePendingList.splice(i, 1);
         }
+    }
+}, 1000);
+
+const reconnectTimer = setInterval(() => {
+    // 断线重连
+    if (client.readyState == WebSocket.CLOSED) {
+        console.log('reconnect...');
+        connet();
     }
 }, 1000);

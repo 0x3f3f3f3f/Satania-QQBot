@@ -1,6 +1,8 @@
 const request = require('request');
 const uuid = require('uuid/v4');
 const getFirstImageInfo = require('../lib/getFirstImageInfo');
+const path = require('path');
+const images = require('images');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {
@@ -106,6 +108,25 @@ async function SauceNAO(url, recvObj, client) {
         return;
     }
 
+    const imagePath = await new Promise(resolve => {
+        request.get(saucenaoObj.results[0].header.thumbnail, {
+            encoding: null
+        }, (err, res, body) => {
+            let imagePath = null;
+            if (!err && _.isBuffer(body)) {
+                imagePath = path.join(secret.tempPath, 'image', 'saucenao_' + uuid() + path.extname(saucenaoObj.results[0].header.thumbnail));
+                fs.writeFileSync(imagePath, body);
+                const sourceImg = images(imagePath);
+                const waterMarkImg = images('watermark.png');
+                sourceImg.draw(waterMarkImg,
+                    sourceImg.width - waterMarkImg.width - (parseInt(Math.random() * 5) + 6),
+                    sourceImg.height - waterMarkImg.height - (parseInt(Math.random() * 5) + 6)
+                ).save(imagePath);
+            }
+            resolve(imagePath);
+        });
+    });
+
     client.sendObj({
         id: uuid(),
         method: "sendMessage",
@@ -128,7 +149,7 @@ async function SauceNAO(url, recvObj, client) {
                     saucenaoObj.results[0].data.member_name||
                     saucenaoObj.results[0].data.author_name||
                     saucenaoObj.results[0].data.creator}\r\n` : '') +
-                `[QQ:pic=${saucenaoObj.results[0].header.thumbnail}]` +
+                (imagePath ? `[QQ:pic=${imagePath}]` : '') +
                 (saucenaoObj.results[0].data.ext_urls ? ('\r\n' + saucenaoObj.results[0].data.ext_urls[0]) : '')
         }
     });

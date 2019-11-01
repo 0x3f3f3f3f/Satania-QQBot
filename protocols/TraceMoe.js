@@ -5,6 +5,7 @@ const path = require('path');
 const uuid = require('uuid/v4');
 const getFirstImageInfo = require('../lib/getFirstImageInfo');
 const gifFrames = require('gif-frames');
+const images = require('images');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {
@@ -170,6 +171,12 @@ async function TraceMoe(imgInfo, recvObj, client) {
             if (!err && _.isBuffer(body)) {
                 imagePath = path.join(secret.tempPath, 'image', 'tracemoe_' + uuid() + '.jpg');
                 fs.writeFileSync(imagePath, body);
+                const sourceImg = images(imagePath);
+                const waterMarkImg = images('watermark.png');
+                sourceImg.draw(waterMarkImg,
+                    sourceImg.width - waterMarkImg.width - (parseInt(Math.random() * 5) + 6),
+                    sourceImg.height - waterMarkImg.height - (parseInt(Math.random() * 5) + 6)
+                ).save(imagePath);
             }
             resolve(imagePath);
         });

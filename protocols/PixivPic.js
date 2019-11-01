@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid/v4');
+const images = require('images');
 
 if (!fs.existsSync(path.join(secret.tempPath, 'setu')))
     fs.mkdirSync(path.join(secret.tempPath, 'setu'));
@@ -220,6 +221,12 @@ async function setuPush() {
         if (res.url() == result.url) {
             const setuPath = path.join(secret.tempPath, 'setu', path.basename(res.url()));
             fs.writeFileSync(setuPath, await res.buffer());
+            const sourceImg = images(setuPath);
+            const waterMarkImg = images('watermark.png');
+            sourceImg.draw(waterMarkImg,
+                sourceImg.width - waterMarkImg.width - (parseInt(Math.random() * 5) + 6),
+                sourceImg.height - waterMarkImg.height - (parseInt(Math.random() * 5) + 6)
+            ).save(setuPath);
             setuLink.push(setuPath);
             if (result.nextUrl) {
                 setuPool[setuIndex] = result.nextUrl;
@@ -256,7 +263,7 @@ module.exports = function (recvObj, client) {
         }
     }
 
-    if (/(色|涩|瑟).*?图|gkd|搞快点|开车/im.test(recvObj.params.content)) {
+    if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够色/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);
         return true;
     }

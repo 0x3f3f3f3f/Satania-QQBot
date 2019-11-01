@@ -3,6 +3,7 @@ const uuid = require('uuid/v4');
 const getFirstImageInfo = require('../lib/getFirstImageInfo');
 const path = require('path');
 const images = require('images');
+const _ = require('lodash');
 
 module.exports = function (recvObj, client, isPending = false) {
     if (isPending) {

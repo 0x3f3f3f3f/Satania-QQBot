@@ -224,8 +224,8 @@ async function setuPush() {
             const sourceImg = images(setuPath);
             const waterMarkImg = images('watermark.png');
             sourceImg.draw(waterMarkImg,
-                sourceImg.width - waterMarkImg.width - (parseInt(Math.random() * 5) + 6),
-                sourceImg.height - waterMarkImg.height - (parseInt(Math.random() * 5) + 6)
+                sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6),
+                sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6)
             ).save(setuPath);
             setuLink.push(setuPath);
             if (result.nextUrl) {

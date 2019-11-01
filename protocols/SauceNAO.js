@@ -116,7 +116,7 @@ async function SauceNAO(url, recvObj, client) {
         }, (err, res, body) => {
             let imagePath = null;
             if (!err && _.isBuffer(body)) {
-                imagePath = path.join(secret.tempPath, 'image', 'saucenao_' + uuid() + path.extname(saucenaoObj.results[0].header.thumbnail));
+                imagePath = path.join(secret.tempPath, 'image', 'saucenao_' + uuid() + '.jpg');
                 fs.writeFileSync(imagePath, body);
                 const sourceImg = images(imagePath);
                 const waterMarkImg = images('watermark.png');

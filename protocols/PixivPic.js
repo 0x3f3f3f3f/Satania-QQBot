@@ -193,7 +193,7 @@ for (let setuID of fs.readFileSync('setuShown.txt', 'utf8').split('\n')) {
 }
 
 function isShown(id) {
-    if (setuShown.indexOf(id) != -1) return true;
+    if (setuShown.indexOf(id.toString()) != -1) return true;
     return false;
 }
 

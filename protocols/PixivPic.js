@@ -158,7 +158,7 @@ async function setuDownload(regExp = null) {
             const url = Illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/');
             const setuPath = path.join(secret.tempPath, 'setu', path.basename(url));
             await pixivImg(url, setuPath);
-            setuShown.push(Illust.id);
+            setuShown.push(Illust.id.toString());
             fs.appendFileSync('setuShown.txt', Illust.id + '\n');
             const sourceImg = images(setuPath);
             const waterMarkImg = images('watermark.png');

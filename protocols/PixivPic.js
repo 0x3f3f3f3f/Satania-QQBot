@@ -75,7 +75,7 @@ async function setuPull() {
     }
 
     const results = [];
-    for (let i = 0; i < Math.min(200, illusts.length); i++) {
+    for (let i = 0; i < illusts.length; i++) {
         const Illust = illusts[i];
         if (testIllust(Illust)) {
             results.push(Illust);
@@ -203,7 +203,7 @@ module.exports = function (recvObj, client) {
     }
     // 其他丝袜
     else if (/袜/m.test(recvObj.params.content)) {
-        PixivPic(recvObj, client, new RegExp('スト|タイツ', 'm'));
+        PixivPic(recvObj, client, new RegExp('ストッキング|タイツ', 'm'));
         return true;
     }
     // 足
@@ -218,7 +218,7 @@ module.exports = function (recvObj, client) {
     }
     // 拘束
     else if (/拘|束|捆|绑|缚/m.test(recvObj.params.content)) {
-        PixivPic(recvObj, client, new RegExp('縛|束', 'm'));
+        PixivPic(recvObj, client, new RegExp('拘束|緊縛', 'm'));
         return true;
     } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);

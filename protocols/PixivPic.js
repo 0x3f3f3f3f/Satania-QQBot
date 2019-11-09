@@ -153,8 +153,9 @@ async function setuDownload(regExp = null) {
             }
             return setuDownload(regExp);
         } else {
-            const setuPath = path.join(secret.tempPath, 'setu', path.basename(Illust.imageUrls.large));
-            await pixivImg(Illust.imageUrls.large, setuPath);
+            const url = Illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/');
+            const setuPath = path.join(secret.tempPath, 'setu', path.basename(url));
+            await pixivImg(url, setuPath);
             setuShown.push(Illust.id);
             fs.appendFileSync('setuShown.txt', Illust.id + '\n');
             const sourceImg = images(setuPath);

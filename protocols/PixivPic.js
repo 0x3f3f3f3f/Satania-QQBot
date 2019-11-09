@@ -224,7 +224,7 @@ module.exports = function (recvObj, client) {
         return true;
     }
     // 足
-    else if (/足|jio/im.test(recvObj.params.content)) {
+    else if (/足|脚|jio/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client, new RegExp('足', 'm'));
         return true;
     }

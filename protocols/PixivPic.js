@@ -104,7 +104,7 @@ function testIllust(Illust) {
 async function setuDownload(regExp = null) {
     if (setuPool.length == 0) return null;
 
-    let setuIndex = parseInt(Math.random() * setuPool.length);
+    let setuIndex = parseInt(Math.random() * Math.min(50, setuPool.length));
 
     if (regExp) {
         let isHit = false;

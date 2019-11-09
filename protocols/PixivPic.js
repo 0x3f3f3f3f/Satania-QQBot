@@ -148,6 +148,7 @@ async function setuDownload(regExp = null) {
         const setuPath = path.join(secret.tempPath, 'setu', path.basename(Illust.imageUrls.large));
         await pixivImg(Illust.imageUrls.large, setuPath);
         setuShown.push(Illust.id);
+        fs.appendFileSync('setuShown.txt', Illust.id + '\n');
         const sourceImg = images(setuPath);
         const waterMarkImg = images('watermark.png');
         sourceImg.draw(waterMarkImg,
@@ -167,6 +168,7 @@ async function setuDownload(regExp = null) {
 
 function setuClear() {
     setuShown = [];
+    fs.writeFileSync('setuShown.txt', '');
     const setuDir = fs.readdirSync(path.join(secret.tempPath, 'setu'));
     for (const setuPath of setuDir) {
         fs.unlinkSync(path.join(secret.tempPath, 'setu', setuPath));
@@ -174,6 +176,11 @@ function setuClear() {
 }
 
 let setuShown = [];
+for (let setuID of fs.readFileSync('setuShown.txt', 'utf8').split('\n')) {
+    setuID = setuID.trim();
+    if (setuID != '')
+        setuShown.push(setuID);
+}
 
 function isShown(id) {
     if (setuShown.indexOf(id) != -1) return true;

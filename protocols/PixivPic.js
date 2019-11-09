@@ -145,22 +145,31 @@ async function setuDownload(regExp = null) {
     }
 
     try {
-        const setuPath = path.join(secret.tempPath, 'setu', path.basename(Illust.imageUrls.large));
-        await pixivImg(Illust.imageUrls.large, setuPath);
-        setuShown.push(Illust.id);
-        fs.appendFileSync('setuShown.txt', Illust.id + '\n');
-        const sourceImg = images(setuPath);
-        const waterMarkImg = images('watermark.png');
-        sourceImg.draw(waterMarkImg,
-            sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6),
-            sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6)
-        ).save(setuPath);
-        if (nextIllust) {
-            setuPool[setuIndex] = nextIllust;
+        if (isShown(Illust.id)) {
+            if (nextIllust) {
+                setuPool[setuIndex] = nextIllust;
+            } else {
+                setuPool.splice(setuIndex, 1);
+            }
+            return setuDownload(regExp);
         } else {
-            setuPool.splice(setuIndex, 1);
+            const setuPath = path.join(secret.tempPath, 'setu', path.basename(Illust.imageUrls.large));
+            await pixivImg(Illust.imageUrls.large, setuPath);
+            setuShown.push(Illust.id);
+            fs.appendFileSync('setuShown.txt', Illust.id + '\n');
+            const sourceImg = images(setuPath);
+            const waterMarkImg = images('watermark.png');
+            sourceImg.draw(waterMarkImg,
+                sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6),
+                sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6)
+            ).save(setuPath);
+            if (nextIllust) {
+                setuPool[setuIndex] = nextIllust;
+            } else {
+                setuPool.splice(setuIndex, 1);
+            }
+            return setuPath;
         }
-        return setuPath;
     } catch {
         return setuDownload(regExp);
     }

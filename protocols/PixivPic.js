@@ -99,7 +99,7 @@ function testIllust(Illust) {
         tags += tags ? (' ' + tag.name) : tag.name;
     }
     if (/r-18/i.test(tags)) return false;
-    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|縛|束/.test(tags)) return true;
+    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|縛|束|ロリ|幼女/.test(tags)) return true;
     return false;
 }
 
@@ -236,6 +236,11 @@ module.exports = function (recvObj, client) {
     // 拘束
     else if (/拘|束|捆|绑|缚/m.test(recvObj.params.content)) {
         PixivPic(recvObj, client, new RegExp('拘束|緊縛', 'm'));
+        return true;
+    }
+    // 萝莉
+    else if (/萝莉|幼女|炼铜/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('ロリ|幼女', 'm'));
         return true;
     } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);

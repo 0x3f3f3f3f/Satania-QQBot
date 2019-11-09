@@ -1,7 +1,14 @@
+const PixivAppApi = require('pixiv-app-api');
+const pixivImg = require("pixiv-img");
 const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid/v4');
 const images = require('images');
+
+// 初始化pixiv-app-api
+const pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
+    camelcaseKeys: true
+});
 
 if (!fs.existsSync(path.join(secret.tempPath, 'setu')))
     fs.mkdirSync(path.join(secret.tempPath, 'setu'));
@@ -10,14 +17,13 @@ const groupList = JSON.parse(fs.readFileSync('./protocols/PixivPic_group_list.js
 
 let isInitialized = false;
 
-appEvent.on('unity_doc_initialized', async () => {
+process.nextTick(async () => {
     setuClear();
+    // 登录pixiv
+    await pixiv.login();
+    console.log('pixiv logged');
 
     await setuPull();
-
-    for (let i = 0; i < 5; i++) {
-        await setuPush();
-    }
 
     isInitialized = true;
 });
@@ -31,12 +37,11 @@ const setuCD = 200;
 const setuCharge = {};
 const timer = setInterval(() => {
     const curDate = new Date();
-    // 每小时清理色图缓存
     if (curHours != curDate.getHours()) {
         curHours = curDate.getHours();
-        setuClear();
-        // 每天6点更新色图库
+        // 每天6点清理色图缓存、更新色图库
         if (curHours == 6) {
+            setuClear();
             setuPull();
         }
     }
@@ -56,73 +61,26 @@ const timer = setInterval(() => {
 let setuPool = [];
 
 async function setuPull() {
-    const page = await browser.newPage();
-
-    const cookies = secret.PixivCookies.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-        const name = cookies[i].split('=')[0].trim();
-        const value = cookies[i].split('=')[1].trim();
-        cookies[i] = {
-            name,
-            value,
-            domain: '.pixiv.net'
-        }
-    }
-    await page.setCookie(...cookies);
-
-    await page.setRequestInterception(true);
-    page.on('request', interceptedRequest => {
-        if (/\.jpg|\.png|\.gif/i.test(interceptedRequest.url()))
-            interceptedRequest.abort();
-        else
-            interceptedRequest.continue();
-    });
+    const illusts = [];
 
     try {
-        page.goto('https://www.pixiv.net/ranking.php?mode=male', {
-            timeout: 300000
-        });
-
-        await page.waitForFunction(() => {
-            const items = document.querySelectorAll('.ranking-item');
-            if (items.length > 0) {
-                if (items.length < 200) {
-                    window.scrollBy(0, document.documentElement.scrollHeight);
-                    return false;
-                } else {
-                    return true
-                }
-            }
-            return false;
-        }, {
-            timeout: 300000
-        });
+        illusts.push(...(await pixiv.illustRanking({
+            mode: 'day_male'
+        })).illusts);
+        while (pixiv.hasNext()) {
+            illusts.push(...(await pixiv.next()).illusts);
+        }
     } catch {
-        await page.close();
         return;
     }
 
-    const results = await page.evaluate(() => {
-        window.stop();
-        const items = document.querySelectorAll('.ranking-item');
-        const retArr = [];
-        if (items.length > 0) {
-            for (const item of items) {
-                const imageItem = item.querySelector('.ranking-image-item a');
-                // 排除漫画和动图
-                if (!/manga|ugoku-illust/i.test(imageItem.getAttribute('class'))) {
-                    const tags = imageItem.querySelector('img').getAttribute('data-tags');
-                    // 这才是真正的色图
-                    if (/着|乳|魅惑|タイツ|スト|足|尻|縛|束/i.test(tags)) {
-                        retArr.push(imageItem.getAttribute('href'));
-                    }
-                }
-            }
-            return retArr;
+    const results = [];
+    for (let i = 0; i < Math.min(200, illusts.length); i++) {
+        const Illust = illusts[i];
+        if (testIllust(Illust)) {
+            results.push(Illust);
         }
-        return null;
-    });
-    await page.close();
+    }
 
     if (results) {
         setuPool = results;
@@ -132,145 +90,144 @@ async function setuPull() {
     }
 }
 
-const setuLink = [];
-
-async function setuPush() {
-    if (setuPool.length == 0) return;
-
-    const page = await browser.newPage();
-
-    // 截取所有回应对象
-    const responses = [];
-    page.on('response', res => {
-        responses.push(res);
-    });
-
-    const setuIndex = parseInt(Math.random() * setuPool.length);
-
-    try {
-        page.goto(`https://pixiv.net${setuPool[setuIndex]}`, {
-            timeout: 120000
-        });
-
-        await Promise.race([page.waitForFunction(() => {
-            const description = document.querySelector('meta[name="description"]');
-            if (!description) return false;
-            if (/r-18|漫画/i.test(description.getAttribute('content')))
-                return true;
-            return false;
-        }), page.waitForFunction(() => {
-            const img = document.querySelector('[role="presentation"] img');
-            if (img) return img.complete;
-            return false
-        }, {
-            timeout: 120000
-        })]);
-
-        await page.waitForFunction(() => {
-            // 目前版面是第三个nav
-            const nav = document.querySelectorAll('nav')[2];
-            if (nav && nav.lastElementChild)
-                return true;
-            else
-                return false;
-        });
-    } catch {
-        await page.close();
-        // 死亡递归！ 
-        return setuPush();
+function testIllust(Illust) {
+    if (Illust.type != 'illust') return false;
+    let tags = ''
+    for (const tag of Illust.tags) {
+        tags += tags ? (' ' + tag.name) : tag.name;
     }
-
-    const result = await page.evaluate(() => {
-        window.stop();
-        // 查找下一张色图
-        // 目前版面是第三个nav
-        let nextUrl = document.querySelectorAll('nav')[2].lastElementChild.querySelector('a');
-        if (nextUrl) {
-            nextUrl = nextUrl.getAttribute('href');
-        }
-
-        const description = document.querySelector('meta[name="description"]');
-        if (description && /r-18|漫画/i.test(description.getAttribute('content'))) {
-            return {
-                url: 'r18manga',
-                nextUrl
-            }
-        } else {
-            const img = document.querySelector('[role="presentation"] img');
-            return {
-                url: img.getAttribute('src'),
-                nextUrl
-            }
-        }
-    });
-
-    // 如果是r18或者漫画继续递归
-    if (result.url == 'r18manga') {
-        await page.close();
-        if (result.nextUrl) {
-            setuPool[setuIndex] = result.nextUrl;
-        } else {
-            setuPool.splice(setuIndex, 1);
-        }
-        return setuPush();
-    }
-
-    console.log('缓存色图:', result);
-
-    for (const res of responses) {
-        if (res.url() == result.url) {
-            const setuPath = path.join(secret.tempPath, 'setu', path.basename(res.url()));
-            fs.writeFileSync(setuPath, await res.buffer());
-            const sourceImg = images(setuPath);
-            const waterMarkImg = images('watermark.png');
-            sourceImg.draw(waterMarkImg,
-                sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6),
-                sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6)
-            ).save(setuPath);
-            setuLink.push(setuPath);
-            if (result.nextUrl) {
-                setuPool[setuIndex] = result.nextUrl;
-            } else {
-                setuPool.splice(setuIndex, 1);
-            }
-            break;
-        }
-    }
-    await page.close();
+    if (/r-18/i.test(tags)) return false;
+    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|縛|束/.test(tags)) return true;
+    return false;
 }
 
-function setuClear() {
-    const setuDir = fs.readdirSync(path.join(secret.tempPath, 'setu'));
-    for (let i = setuDir.length - 1; i >= 0; i--) {
-        const setuPath = setuDir[i];
-        for (const link of setuLink) {
-            if (path.basename(link) == setuPath) {
-                setuDir.splice(i, 1);
+async function setuDownload(regExp = null) {
+    if (setuPool.length == 0) return null;
+
+    let setuIndex = parseInt(Math.random() * setuPool.length);
+
+    if (regExp) {
+        let isHit = false;
+        for (let i = 0; i < setuPool.length; i++) {
+            const Illust = setuPool[i];
+            let tags = ''
+            for (const tag of Illust.tags) {
+                tags += tags ? (' ' + tag.name) : tag.name;
+            }
+            if (regExp.test(tags)) {
+                setuIndex = i;
+                isHit = true;
                 break;
             }
         }
+        if (!isHit) return null;
     }
+
+    const Illust = setuPool[setuIndex];
+
+    let nextIllust;
+
+    try {
+        let illusts = [];
+        illusts = (await pixiv.illustRelated(Illust.id)).illusts;
+        while (!nextIllust) {
+            for (const Illust2 of illusts) {
+                if (testIllust(Illust2) && !isShown(Illust2.id)) {
+                    nextIllust = Illust2;
+                    break;
+                }
+            }
+            if (nextIllust || !pixiv.hasNext()) break;
+            illusts = (await pixiv.next()).illusts;
+        }
+    } catch {
+        return setuDownload(regExp);
+    }
+
+    try {
+        const setuPath = path.join(secret.tempPath, 'setu', path.basename(Illust.imageUrls.large));
+        await pixivImg(Illust.imageUrls.large, setuPath);
+        setuShown.push(Illust.id);
+        const sourceImg = images(setuPath);
+        const waterMarkImg = images('watermark.png');
+        sourceImg.draw(waterMarkImg,
+            sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6),
+            sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6)
+        ).save(setuPath);
+        if (nextIllust) {
+            setuPool[setuIndex] = nextIllust;
+        } else {
+            setuPool.splice(setuIndex, 1);
+        }
+        return setuPath;
+    } catch {
+        return setuDownload(regExp);
+    }
+}
+
+function setuClear() {
+    setuShown = [];
+    const setuDir = fs.readdirSync(path.join(secret.tempPath, 'setu'));
     for (const setuPath of setuDir) {
         fs.unlinkSync(path.join(secret.tempPath, 'setu', setuPath));
     }
 }
 
+let setuShown = [];
+
+function isShown(id) {
+    if (setuShown.indexOf(id) != -1) return true;
+    return false;
+}
+
 module.exports = function (recvObj, client) {
     // 群黑名单
-    for (const groupId of groupList.block) {
-        if (groupId == recvObj.params.group) {
-            return false;
-        }
+    if (groupList.block.indexOf(recvObj.params.group) != -1) {
+        return false;
     }
 
-    if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够色/im.test(recvObj.params.content)) {
+    // 胸
+    if (/奶|乳|胸|欧派/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('乳|おっぱい|魅惑の谷間', 'm'));
+        return true;
+    }
+    // 黑丝
+    else if (/黑丝/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('黒スト|黒タイツ', 'm'));
+        return true;
+    }
+    // 白丝
+    else if (/白丝/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('白スト|白タイツ', 'm'));
+        return true;
+    }
+    // 其他丝袜
+    else if (/袜/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('スト|タイツ', 'm'));
+        return true;
+    }
+    // 足
+    else if (/足|jio/im.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('足', 'm'));
+        return true;
+    }
+    // 胖次
+    else if (/胖次|内裤|小裤裤/im.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('ぱんつ|パンツ', 'm'));
+        return true;
+    }
+    // 拘束
+    else if (/拘|束|捆|绑|缚/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('縛|束', 'm'));
+        return true;
+    } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);
         return true;
     }
     return false;
 }
 
-async function PixivPic(recvObj, client) {
+async function PixivPic(recvObj, client, regExp = null) {
     if (!isInitialized) {
         client.sendObj({
             id: uuid(),
@@ -292,10 +249,8 @@ async function PixivPic(recvObj, client) {
         }
     }
     // 白名单
-    for (const groupId of groupList.white) {
-        if (groupId == recvObj.params.group) {
-            setuCharge[recvObj.params.group].count = 99;
-        }
+    if (groupList.white.indexOf(recvObj.params.group) != -1) {
+        setuCharge[recvObj.params.group].count = 99;
     }
 
     if (setuCharge[recvObj.params.group].count == 0) {
@@ -314,18 +269,12 @@ async function PixivPic(recvObj, client) {
         return;
     }
 
-    if (setuLink.length == 0) {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: `[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]`
-            }
-        });
-    } else {
+    let setuPath;
+    try {
+        setuPath = await setuDownload(regExp);
+    } catch {}
+
+    if (setuPath) {
         setuCharge[recvObj.params.group].count--;
         client.sendObj({
             id: uuid(),
@@ -334,9 +283,19 @@ async function PixivPic(recvObj, client) {
                 type: recvObj.params.type,
                 group: recvObj.params.group || '',
                 qq: recvObj.params.qq || '',
-                content: `[QQ:pic=${setuLink.shift()}]`
+                content: `[QQ:pic=${setuPath}]`
             }
         });
-        setuPush();
+    } else {
+        client.sendObj({
+            id: uuid(),
+            method: "sendMessage",
+            params: {
+                type: recvObj.params.type,
+                group: recvObj.params.group || '',
+                qq: recvObj.params.qq || '',
+                content: '[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]'
+            }
+        });
     }
 }

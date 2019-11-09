@@ -26,8 +26,6 @@ appEvent.on('browser_initialized', async () => {
 
     await Promise.all([apiPage.close(), manualPage.close(), translatePage.close()]);
 
-    appEvent.emit('unity_doc_initialized');
-
     isInitialized = true;
 });
 

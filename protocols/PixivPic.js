@@ -41,6 +41,8 @@ const timer = setInterval(() => {
         curHours = curDate.getHours();
         // 每天6点清理色图缓存、更新色图库
         if (curHours == 6) {
+            setuShown = [];
+            fs.writeFileSync('setuShown.txt', '');
             setuClear();
             setuPull();
         }
@@ -177,8 +179,6 @@ async function setuDownload(regExp = null) {
 }
 
 function setuClear() {
-    setuShown = [];
-    fs.writeFileSync('setuShown.txt', '');
     const setuDir = fs.readdirSync(path.join(secret.tempPath, 'setu'));
     for (const setuPath of setuDir) {
         fs.unlinkSync(path.join(secret.tempPath, 'setu', setuPath));

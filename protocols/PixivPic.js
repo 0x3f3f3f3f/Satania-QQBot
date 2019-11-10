@@ -78,10 +78,9 @@ async function setuPull() {
     }
 
     const results = [];
-    for (let i = 0; i < illusts.length; i++) {
-        const Illust = illusts[i];
-        if (testIllust(Illust)) {
-            results.push(Illust);
+    for (const illust of illusts) {
+        if (testIllust(illust)) {
+            results.push(illust);
         }
     }
 
@@ -93,10 +92,10 @@ async function setuPull() {
     }
 }
 
-function testIllust(Illust) {
-    if (Illust.type != 'illust') return false;
+function testIllust(illust) {
+    if (illust.type != 'illust') return false;
     let tags = ''
-    for (const tag of Illust.tags) {
+    for (const tag of illust.tags) {
         tags += tags ? (' ' + tag.name) : tag.name;
     }
     if (/r-18/i.test(tags)) return false;
@@ -112,9 +111,9 @@ async function setuDownload(regExp = null) {
     if (regExp) {
         let isHit = false;
         for (let i = 0; i < setuPool.length; i++) {
-            const Illust = setuPool[i];
+            const illust = setuPool[i];
             let tags = ''
-            for (const tag of Illust.tags) {
+            for (const tag of illust.tags) {
                 tags += tags ? (' ' + tag.name) : tag.name;
             }
             if (regExp.test(tags)) {
@@ -126,13 +125,13 @@ async function setuDownload(regExp = null) {
         if (!isHit) return null;
     }
 
-    const Illust = setuPool[setuIndex];
+    const illust = setuPool[setuIndex];
 
     let nextIllust;
 
     try {
         let illusts = [];
-        illusts = (await pixiv.illustRelated(Illust.id)).illusts;
+        illusts = (await pixiv.illustRelated(illust.id)).illusts;
         while (!nextIllust) {
             for (const Illust2 of illusts) {
                 if (testIllust(Illust2) && !isShown(Illust2.id)) {
@@ -148,7 +147,7 @@ async function setuDownload(regExp = null) {
     }
 
     try {
-        if (isShown(Illust.id)) {
+        if (isShown(illust.id)) {
             if (nextIllust) {
                 setuPool[setuIndex] = nextIllust;
             } else {
@@ -156,11 +155,11 @@ async function setuDownload(regExp = null) {
             }
             return setuDownload(regExp);
         } else {
-            const url = Illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/');
+            const url = illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/');
             const setuPath = path.join(secret.tempPath, 'setu', path.basename(url));
             await pixivImg(url, setuPath);
-            setuShown.push(Illust.id.toString());
-            fs.appendFileSync('setuShown.txt', Illust.id + '\n');
+            setuShown.push(illust.id.toString());
+            fs.appendFileSync('setuShown.txt', illust.id + '\n');
             const sourceImg = images(setuPath);
             const waterMarkImg = images('watermark.png');
             sourceImg.draw(waterMarkImg,

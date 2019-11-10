@@ -40,8 +40,8 @@ const timer = setInterval(() => {
     if (curHours != curDate.getHours()) {
         curHours = curDate.getHours();
         pixiv.login();
-        // 每天6点清理色图缓存、更新色图库
-        if (curHours == 6) {
+        // 每天12点清理色图缓存、更新色图库
+        if (curHours == 12) {
             setuShown = [];
             fs.writeFileSync('setuShown.txt', '');
             setuClear();
@@ -78,7 +78,9 @@ async function setuPull() {
     }
 
     const results = [];
-    for (const illust of illusts) {
+    for (let i = 0; i < illusts.length; i++) {
+        const illust = illusts[i];
+        if (i < 10) console.log(illust.title);
         if (testIllust(illust)) {
             results.push(illust);
         }

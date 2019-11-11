@@ -94,6 +94,27 @@ async function setuPull() {
     }
 }
 
+const sexualityRegExp = new RegExp([
+    '着',
+    '乳',
+    'おっぱい',
+    '魅惑',
+    'タイツ',
+    'スト',
+    '足',
+    '尻',
+    'ぱんつ',
+    'パンツ',
+    'パンチラ',
+    '縛',
+    '束',
+    'ロリ',
+    '幼女',
+    '獣耳',
+    '男の娘',
+    'ちんちんの付いた美少女'
+].join('|'));
+
 function testIllust(illust) {
     if (illust.type != 'illust') return false;
     let tags = ''
@@ -101,7 +122,7 @@ function testIllust(illust) {
         tags += tags ? (' ' + tag.name) : tag.name;
     }
     if (/r-18/i.test(tags)) return false;
-    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|パンチラ|縛|束|ロリ|幼女|獣耳/.test(tags)) return true;
+    if (sexualityRegExp.test(tags)) return true;
     return false;
 }
 
@@ -258,6 +279,11 @@ module.exports = function (recvObj, client) {
     // 兽耳
     else if (/兽耳/m.test(recvObj.params.content)) {
         PixivPic(recvObj, client, new RegExp('獣耳', 'm'));
+        return true;
+    }
+    // 伪娘
+    else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('男の娘|ちんちんの付いた美少女', 'm'));
         return true;
     } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);

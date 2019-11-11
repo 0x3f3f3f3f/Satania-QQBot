@@ -101,7 +101,7 @@ function testIllust(illust) {
         tags += tags ? (' ' + tag.name) : tag.name;
     }
     if (/r-18/i.test(tags)) return false;
-    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|パンチラ|縛|束|ロリ|幼女/.test(tags)) return true;
+    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|パンチラ|縛|束|ロリ|幼女|獣耳/.test(tags)) return true;
     return false;
 }
 
@@ -231,7 +231,7 @@ module.exports = function (recvObj, client) {
         return true;
     }
     // 臀
-    else if (/屁股|臀/m.test(recvObj.params.content)) {
+    else if (/屁股|臀|屁屁/m.test(recvObj.params.content)) {
         PixivPic(recvObj, client, new RegExp('尻', 'm'));
         return true;
     }
@@ -253,6 +253,11 @@ module.exports = function (recvObj, client) {
     // 萝莉
     else if (/萝莉|幼女|炼铜/m.test(recvObj.params.content)) {
         PixivPic(recvObj, client, new RegExp('ロリ|幼女', 'm'));
+        return true;
+    }
+    // 兽耳
+    else if (/兽耳/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('獣耳', 'm'));
         return true;
     } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client);

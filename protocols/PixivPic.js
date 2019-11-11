@@ -101,7 +101,7 @@ function testIllust(illust) {
         tags += tags ? (' ' + tag.name) : tag.name;
     }
     if (/r-18/i.test(tags)) return false;
-    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|縛|束|ロリ|幼女/.test(tags)) return true;
+    if (/着|乳|おっぱい|魅惑|タイツ|スト|足|尻|ぱんつ|パンツ|パンチラ|縛|束|ロリ|幼女/.test(tags)) return true;
     return false;
 }
 
@@ -111,7 +111,7 @@ async function setuDownload(regExp = null) {
     let setuIndex = parseInt(Math.random() * Math.min(25, setuPool.length));
 
     if (regExp) {
-        let isHit = false;
+        const indexes = [];
         for (let i = 0; i < setuPool.length; i++) {
             const illust = setuPool[i];
             let tags = ''
@@ -119,12 +119,12 @@ async function setuDownload(regExp = null) {
                 tags += tags ? (' ' + tag.name) : tag.name;
             }
             if (regExp.test(tags)) {
-                setuIndex = i;
-                isHit = true;
-                break;
+                indexes.push(i);
             }
         }
-        if (!isHit) return null;
+        if (indexes.length > 0) {
+            setuIndex = indexes[parseInt(Math.random() * indexes.length)];
+        } else return null;
     }
 
     const illust = setuPool[setuIndex];
@@ -225,6 +225,11 @@ module.exports = function (recvObj, client) {
         PixivPic(recvObj, client, new RegExp('ストッキング|タイツ', 'm'));
         return true;
     }
+    // 大腿
+    else if (/腿/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('魅惑のふともも', 'm'));
+        return true;
+    }
     // 足
     else if (/足|脚|jio/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client, new RegExp('足', 'm'));
@@ -232,7 +237,7 @@ module.exports = function (recvObj, client) {
     }
     // 胖次
     else if (/胖次|内裤|小裤裤/im.test(recvObj.params.content)) {
-        PixivPic(recvObj, client, new RegExp('ぱんつ|パンツ', 'm'));
+        PixivPic(recvObj, client, new RegExp('ぱんつ|パンツ|パンチラ', 'm'));
         return true;
     }
     // 拘束

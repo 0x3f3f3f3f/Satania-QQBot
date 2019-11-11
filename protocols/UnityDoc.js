@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const uuid = require('uuid/v4');
 
 const DocType = {
     api: 0,
@@ -31,9 +30,9 @@ appEvent.on('browser_initialized', async () => {
 
 module.exports = function (recvObj, client) {
     let type = null;
-    if (/api/ig.test(recvObj.params.content)) {
+    if (/api/ig.test(recvObj.content)) {
         type = DocType.api;
-    } else if (/手.*?册/g.test(recvObj.params.content)) {
+    } else if (/手.*?册/g.test(recvObj.content)) {
         type = DocType.manual;
     }
     if (type != null) {
@@ -45,43 +44,16 @@ module.exports = function (recvObj, client) {
 
 async function UnityDoc(type, recvObj, client) {
     if (!isInitialized) {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '萨塔尼亚还没准备好~'
-            }
-        });
+        client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
         return;
     }
-    let searchText = recvObj.params.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
+    let searchText = recvObj.content.replace(/\[.*?\]|api|手.*册/g, '').trim();
     if (_.isEmpty(searchText)) {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '你居然没写关键词？'
-            }
-        });
+        client.sendMsg(recvObj, '你居然没写关键词？');
         return;
     }
 
-    client.sendObj({
-        id: uuid(),
-        method: "sendMessage",
-        params: {
-            type: recvObj.params.type,
-            group: recvObj.params.group || '',
-            qq: recvObj.params.qq || '',
-            content: '搜索中~'
-        }
-    });
+    client.sendMsg(recvObj, '搜索中~');
 
     let translate = await browser.newPage();
     try {
@@ -113,16 +85,7 @@ async function UnityDoc(type, recvObj, client) {
             })
         ]);
     } catch {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '欧尼酱搜索出错了~喵'
-            }
-        });
+        client.sendMsg(recvObj, '欧尼酱搜索出错了~喵');
         await translate.close();
         await page.close();
         return;
@@ -184,26 +147,8 @@ async function UnityDoc(type, recvObj, client) {
                 `${DocUrl[type]+result.url}\r\n${result.title}: ${infoText[i]}`
         }
 
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: `[QQ:at=${recvObj.params.qq}]\r\n` + resultText
-            }
-        });
+        client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]\r\n` + resultText);
     } else {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '欧尼酱对不起，没有找到你要的~'
-            }
-        });
+        client.sendMsg(recvObj, '欧尼酱对不起，没有找到你要的~');
     }
 }

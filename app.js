@@ -33,11 +33,20 @@ global.appEvent = new EventEmitter();
 })();
 
 // 扩展一下ws的send方法
-WebSocket.prototype.sendObj = function (obj) {
-    this.send(JSON.stringify(obj));
+WebSocket.prototype.sendMsg = function (recvObj, message) {
+    this.send(JSON.stringify({
+        action: 'send_msg',
+        params: {
+            message_type: recvObj.type,
+            user_id: recvObj.qq,
+            group_id: recvObj.group,
+            discuss_id: recvObj.discuss,
+            message
+        }
+    }));
 }
 
-function connet(host, port) {
+function connet() {
     if (client) {
         client.off('open', onOpen);
         client.off('message', onMessage);
@@ -81,7 +90,7 @@ function protocolEntry(recvObj, client) {
 }
 
 function onOpen() {
-    console.log('opend!');
+    console.log('opened!');
 }
 
 // ws消息送达
@@ -96,34 +105,40 @@ function onMessage(data) {
     if (_.isEmpty(recvObj)) return;
 
     // 判断是否为qq消息
-    if (recvObj.event != 'message') {
+    if (_.isNumber(recvObj.retcode)) {
         console.log('=>', recvObj);
         return;
     }
 
+    // 重新定义为通用消息对象
+    recvObj = {
+        type: recvObj.message_type || '',
+        qq: recvObj.user_id || '',
+        group: recvObj.group_id || '',
+        discuss: recvObj.discuss_id || '',
+        content: recvObj.message || ''
+    }
+
     // 打印消息内容
-    console.log('群:', recvObj.params.group, 'qq:', recvObj.params.qq, recvObj.params.content);
+    console.log('群:', recvObj.group, 'qq:', recvObj.qq, recvObj.content);
 
     // 分步搜图
     for (const pending of SauceNaoPendingList) {
-        if (recvObj.params.group == pending.recvObj.params.group &&
-            recvObj.params.qq == pending.recvObj.params.qq) {
+        if (recvObj.group == pending.recvObj.group &&
+            recvObj.qq == pending.recvObj.qq) {
             protocols.SauceNAO(recvObj, client, true);
             return;
         }
     }
     for (const pending of TraceMoePendingList) {
-        if (recvObj.params.group == pending.recvObj.params.group &&
-            recvObj.params.qq == pending.recvObj.params.qq) {
+        if (recvObj.group == pending.recvObj.group &&
+            recvObj.qq == pending.recvObj.qq) {
             protocols.TraceMoe(recvObj, client, true);
             return;
         }
     }
 
-    if (recvObj.params.type == 1 ||
-        recvObj.params.type == 3 ||
-        recvObj.params.type == 5 ||
-        recvObj.params.type == 6) {
+    if (recvObj.type == 'private') {
         protocolEntry(recvObj, client);
     }
     // 在群里需要先被at了
@@ -165,8 +180,8 @@ appEvent.on('TraceMoe_pending', recvObj => {
 appEvent.on('SauceNao_done', recvObj => {
     for (let i = 0; i < SauceNaoPendingList.length; i++) {
         const pending = SauceNaoPendingList[i];
-        if (recvObj.params.group == pending.recvObj.params.group &&
-            recvObj.params.qq == pending.recvObj.params.qq) {
+        if (recvObj.group == pending.recvObj.group &&
+            recvObj.qq == pending.recvObj.qq) {
             SauceNaoPendingList.splice(i, 1);
             break;
         }
@@ -175,8 +190,8 @@ appEvent.on('SauceNao_done', recvObj => {
 appEvent.on('TraceMoe_done', recvObj => {
     for (let i = 0; i < TraceMoePendingList.length; i++) {
         const pending = TraceMoePendingList[i];
-        if (recvObj.params.group == pending.recvObj.params.group &&
-            recvObj.params.qq == pending.recvObj.params.qq) {
+        if (recvObj.group == pending.recvObj.group &&
+            recvObj.qq == pending.recvObj.qq) {
             TraceMoePendingList.splice(i, 1);
             break;
         }

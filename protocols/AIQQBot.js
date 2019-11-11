@@ -8,18 +8,9 @@ const rules = JSON.parse(fs.readFileSync('./protocols/QQBot_rules.json', 'utf8')
 const ruleKeys = Object.keys(rules);
 
 module.exports = function (recvObj, client) {
-    inputText = recvObj.params.content.replace(/\[.*?\]/g, '').trim();
+    inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
     if (_.isEmpty(inputText)) {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: (Math.random() > 0.5) ? '[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]' : '欧尼酱~想我了吗？'
-            }
-        });
+        client.sendMsg(recvObj, (Math.random() > 0.5) ? '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]' : '欧尼酱~想我了吗？');
         return;
     }
 
@@ -27,16 +18,7 @@ module.exports = function (recvObj, client) {
     for (let i = ruleKeys.length - 1; i >= 0; i--) {
         if (new RegExp(ruleKeys[i], 'im').test(inputText)) {
             const index = parseInt(Math.random() * rules[ruleKeys[i]].length);
-            client.sendObj({
-                id: uuid(),
-                method: "sendMessage",
-                params: {
-                    type: recvObj.params.type,
-                    group: recvObj.params.group || '',
-                    qq: recvObj.params.qq || '',
-                    content: rules[ruleKeys[i]][index]
-                }
-            });
+            client.sendMsg(recvObj, rules[ruleKeys[i]][index]);
             return;
         }
     }
@@ -50,7 +32,7 @@ async function AIQQBot(inputText, recvObj, client) {
         time_stamp: parseInt(Date.now() / 1000),
         nonce_str: uuid().replace(/-/g, ''),
         sign: '',
-        session: recvObj.params.qq,
+        session: recvObj.qq,
         question: inputText
     }
 
@@ -93,41 +75,14 @@ async function AIQQBot(inputText, recvObj, client) {
             });
         });
     } catch {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '电波出了点问题~喵'
-            }
-        });
+        client.sendMsg(recvObj, '电波出了点问题~喵');
         return;
     }
 
     if (!botObj) {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: `[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]`
-            }
-        });
+        client.sendMsg(recvObj, '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]');
         return;
     }
 
-    client.sendObj({
-        id: uuid(),
-        method: "sendMessage",
-        params: {
-            type: recvObj.params.type,
-            group: recvObj.params.group || '',
-            qq: recvObj.params.qq || '',
-            content: botObj.data.answer
-        }
-    });
+    client.sendMsg(recvObj, botObj.data.answer);
 }

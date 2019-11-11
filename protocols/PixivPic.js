@@ -2,7 +2,6 @@ const PixivAppApi = require('pixiv-app-api');
 const pixivImg = require("pixiv-img");
 const fs = require('fs');
 const path = require('path');
-const uuid = require('uuid/v4');
 const images = require('images');
 
 // 初始化pixiv-app-api
@@ -32,8 +31,8 @@ process.nextTick(async () => {
 // 当前小时
 let curHours = new Date().getHours();
 // 色图技能充能
-const setuMaxCharge = 3;
-const setuCD = 200;
+const setuMaxCharge = 5;
+const setuCD = 120;
 const setuCharge = {};
 const timer = setInterval(() => {
     const curDate = new Date();
@@ -222,70 +221,70 @@ function isShown(id) {
 
 module.exports = function (recvObj, client) {
     // 群黑名单
-    if (groupList.block.indexOf(recvObj.params.group) != -1) {
+    if (groupList.block.indexOf(recvObj.group) != -1) {
         return false;
     }
 
     // 胸
-    if (/奶|乳|胸|欧派/m.test(recvObj.params.content)) {
+    if (/奶|乳|胸|欧派/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('乳|おっぱい|魅惑の谷間', 'm'));
         return true;
     }
     // 黑丝
-    else if (/黑丝/m.test(recvObj.params.content)) {
+    else if (/黑丝/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('黒スト|黒タイツ', 'm'));
         return true;
     }
     // 白丝
-    else if (/白丝/m.test(recvObj.params.content)) {
+    else if (/白丝/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('白スト|白タイツ', 'm'));
         return true;
     }
     // 其他丝袜
-    else if (/袜/m.test(recvObj.params.content)) {
+    else if (/袜/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('ストッキング|タイツ', 'm'));
         return true;
     }
     // 大腿
-    else if (/腿/m.test(recvObj.params.content)) {
+    else if (/腿/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('魅惑のふともも', 'm'));
         return true;
     }
     // 臀
-    else if (/屁股|臀|屁屁/m.test(recvObj.params.content)) {
+    else if (/屁股|臀|屁屁/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('尻', 'm'));
         return true;
     }
     // 足
-    else if (/足|脚|jio/im.test(recvObj.params.content)) {
+    else if (/足|脚|jio/im.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('足', 'm'));
         return true;
     }
     // 胖次
-    else if (/胖次|内裤|小裤裤/im.test(recvObj.params.content)) {
+    else if (/胖次|内裤|小裤裤/im.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('ぱんつ|パンツ|パンチラ', 'm'));
         return true;
     }
     // 拘束
-    else if (/拘|束|捆|绑|缚/m.test(recvObj.params.content)) {
+    else if (/拘|束|捆|绑|缚/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('拘束|緊縛', 'm'));
         return true;
     }
     // 萝莉
-    else if (/萝莉|幼女|炼铜/m.test(recvObj.params.content)) {
+    else if (/萝莉|幼女|炼铜/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('ロリ|幼女', 'm'));
         return true;
     }
     // 兽耳
-    else if (/兽耳/m.test(recvObj.params.content)) {
+    else if (/兽耳/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('獣耳', 'm'));
         return true;
     }
     // 伪娘
-    else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.params.content)) {
+    else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('男の娘|ちんちんの付いた美少女', 'm'));
         return true;
-    } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.params.content)) {
+    } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
         PixivPic(recvObj, client);
         return true;
     }
@@ -294,43 +293,26 @@ module.exports = function (recvObj, client) {
 
 async function PixivPic(recvObj, client, regExp = null) {
     if (!isInitialized) {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '萨塔尼亚还没准备好~'
-            }
-        });
+        client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
         return;
     }
 
-    if (!setuCharge[recvObj.params.group]) {
-        setuCharge[recvObj.params.group] = {
+    if (!setuCharge[recvObj.group]) {
+        setuCharge[recvObj.group] = {
             count: setuMaxCharge,
             cd: setuCD
         }
     }
     // 白名单
-    if (groupList.white.indexOf(recvObj.params.group) != -1) {
-        setuCharge[recvObj.params.group].count = 99;
+    if (groupList.white.indexOf(recvObj.group) != -1) {
+        setuCharge[recvObj.group].count = 99;
     }
 
-    if (setuCharge[recvObj.params.group].count == 0) {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '搞太快了~ 请等待' +
-                    (parseInt(setuCharge[recvObj.params.group].cd / 60) == 0 ? '' : (parseInt(setuCharge[recvObj.params.group].cd / 60) + '分')) +
-                    setuCharge[recvObj.params.group].cd % 60 + '秒'
-            }
-        });
+    if (setuCharge[recvObj.group].count == 0) {
+        client.sendMsg(recvObj, '搞太快了~ 请等待' +
+            (parseInt(setuCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(setuCharge[recvObj.group].cd / 60) + '分')) +
+            setuCharge[recvObj.group].cd % 60 + '秒'
+        );
         return;
     }
 
@@ -340,27 +322,9 @@ async function PixivPic(recvObj, client, regExp = null) {
     } catch {}
 
     if (setuPath) {
-        setuCharge[recvObj.params.group].count--;
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: `[QQ:pic=${setuPath}]`
-            }
-        });
+        setuCharge[recvObj.group].count--;
+        client.sendMsg(recvObj, `[CQ:image,file=file:///${setuPath}]`);
     } else {
-        client.sendObj({
-            id: uuid(),
-            method: "sendMessage",
-            params: {
-                type: recvObj.params.type,
-                group: recvObj.params.group || '',
-                qq: recvObj.params.qq || '',
-                content: '[QQ:pic=https://sub1.gameoldboy.com/satania_cry.gif]'
-            }
-        });
+        client.sendMsg(recvObj, '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]');
     }
 }

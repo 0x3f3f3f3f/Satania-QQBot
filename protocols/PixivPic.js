@@ -230,6 +230,11 @@ module.exports = function (recvObj, client) {
         PixivPic(recvObj, client, new RegExp('魅惑のふともも', 'm'));
         return true;
     }
+    // 臀
+    else if (/屁股|臀/m.test(recvObj.params.content)) {
+        PixivPic(recvObj, client, new RegExp('尻', 'm'));
+        return true;
+    }
     // 足
     else if (/足|脚|jio/im.test(recvObj.params.content)) {
         PixivPic(recvObj, client, new RegExp('足', 'm'));

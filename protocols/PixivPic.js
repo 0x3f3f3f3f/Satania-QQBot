@@ -9,9 +9,6 @@ const pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
     camelcaseKeys: true
 });
 
-if (!fs.existsSync(path.join(secret.tempPath, 'setu')))
-    fs.mkdirSync(path.join(secret.tempPath, 'setu'));
-
 const groupList = JSON.parse(fs.readFileSync('./protocols/PixivPic_group_list.json', 'utf8'));
 
 let isInitialized = false;
@@ -178,7 +175,7 @@ async function setuDownload(regExp = null) {
             return setuDownload(regExp);
         } else {
             const url = illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/');
-            const setuPath = path.join(secret.tempPath, 'setu', path.basename(url));
+            const setuPath = path.join(secret.tempPath, 'image', 'setu_' + path.basename(url));
             await pixivImg(url, setuPath);
             setuShown.push(illust.id.toString());
             fs.appendFileSync('setuShown.txt', illust.id + '\n');
@@ -201,9 +198,9 @@ async function setuDownload(regExp = null) {
 }
 
 function setuClear() {
-    const setuDir = fs.readdirSync(path.join(secret.tempPath, 'setu'));
+    const setuDir = fs.readdirSync(path.join(secret.tempPath, 'image'));
     for (const setuPath of setuDir) {
-        fs.unlinkSync(path.join(secret.tempPath, 'setu', setuPath));
+        fs.unlinkSync(path.join(secret.tempPath, 'image', setuPath));
     }
 }
 
@@ -323,7 +320,7 @@ async function PixivPic(recvObj, client, regExp = null) {
 
     if (setuPath) {
         setuCharge[recvObj.group].count--;
-        client.sendMsg(recvObj, `[CQ:image,file=https://sub1.gameoldboy.com/temp/setu/${path.basename(setuPath)}]`);
+        client.sendMsg(recvObj, `[CQ:image,file=${path.basename(setuPath)}]`);
     } else {
         client.sendMsg(recvObj, '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]');
     }

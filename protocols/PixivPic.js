@@ -100,7 +100,7 @@ const sexualityRegExp = new RegExp([
     '足',
     '尻',
     'ぱんつ',
-    'パンツ',
+    '(^|\s)パンツ($|\s)',
     'パンチラ',
     '縛',
     '束',
@@ -125,7 +125,8 @@ function testIllust(illust) {
 async function setuDownload(regExp = null) {
     if (setuPool.length == 0) return null;
 
-    let setuIndex = parseInt(Math.random() * Math.min(25, setuPool.length));
+    let setuIndex = parseInt(Math.random() * setuPool.length);
+    if (setuPool[setuIndex].totalBookmarks < 1000) return setuDownload(regExp);
 
     if (regExp) {
         const indexes = [];

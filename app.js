@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const EventEmitter = require('events');
+const uuid = require('uuid/v4');
 
 // 账号密码
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
@@ -35,13 +36,13 @@ global.appEvent = new EventEmitter();
 // 扩展一下ws的send方法
 WebSocket.prototype.sendMsg = function (recvObj, message) {
     this.send(JSON.stringify({
-        action: 'send_msg',
+        id: uuid(),
+        method: 'sendMessage',
         params: {
-            message_type: recvObj.type,
-            user_id: recvObj.qq,
-            group_id: recvObj.group,
-            discuss_id: recvObj.discuss,
-            message
+            type: recvObj.type,
+            group: recvObj.group,
+            qq: recvObj.qq,
+            content: message
         }
     }));
 }
@@ -105,22 +106,24 @@ function onMessage(data) {
     if (_.isEmpty(recvObj)) return;
 
     // 判断是否为qq消息
-    if (_.isNumber(recvObj.retcode)) {
+    if (recvObj.event != 'message') {
         console.log('=>', recvObj);
         return;
     }
 
     // 重新定义为通用消息对象
     recvObj = {
-        type: recvObj.message_type || '',
-        qq: recvObj.user_id || '',
-        group: recvObj.group_id || '',
-        discuss: recvObj.discuss_id || '',
-        content: recvObj.message || ''
+        type: recvObj.params.type || 0,
+        qq: recvObj.params.qq || '',
+        group: recvObj.params.group || '',
+        content: recvObj.params.content || ''
     }
 
     // 打印消息内容
     console.log('群:', recvObj.group, 'qq:', recvObj.qq, recvObj.content);
+
+    // 系统消息
+    if (recvObj.qq == '10000') return;
 
     // 分步搜图
     for (const pending of SauceNaoPendingList) {
@@ -138,7 +141,10 @@ function onMessage(data) {
         }
     }
 
-    if (recvObj.type == 'private') {
+    if (recvObj.type == 1 ||
+        recvObj.type == 3 ||
+        recvObj.type == 5 ||
+        recvObj.type == 6) {
         protocolEntry(recvObj, client);
     }
     // 在群里需要先被at了

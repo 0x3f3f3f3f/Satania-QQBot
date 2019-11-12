@@ -147,7 +147,7 @@ async function UnityDoc(type, recvObj, client) {
                 `${DocUrl[type]+result.url}\r\n${result.title}: ${infoText[i]}`
         }
 
-        client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]\r\n` + resultText);
+        client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]\r\n` + resultText);
     } else {
         client.sendMsg(recvObj, '欧尼酱对不起，没有找到你要的~');
     }

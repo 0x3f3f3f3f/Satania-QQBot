@@ -320,8 +320,8 @@ async function PixivPic(recvObj, client, regExp = null) {
 
     if (setuPath) {
         setuCharge[recvObj.group].count--;
-        client.sendMsg(recvObj, `[CQ:image,file=${path.basename(setuPath)}]`);
+        client.sendMsg(recvObj, `[QQ:pic=${setuPath}]`);
     } else {
-        client.sendMsg(recvObj, '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]');
+        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);
     }
 }

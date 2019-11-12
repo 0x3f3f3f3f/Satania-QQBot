@@ -10,7 +10,7 @@ const ruleKeys = Object.keys(rules);
 module.exports = function (recvObj, client) {
     inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
     if (_.isEmpty(inputText)) {
-        client.sendMsg(recvObj, (Math.random() > 0.5) ? '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]' : '欧尼酱~想我了吗？');
+        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]` : '欧尼酱~想我了吗？');
         return;
     }
 
@@ -18,7 +18,9 @@ module.exports = function (recvObj, client) {
     for (let i = ruleKeys.length - 1; i >= 0; i--) {
         if (new RegExp(ruleKeys[i], 'im').test(inputText)) {
             const index = parseInt(Math.random() * rules[ruleKeys[i]].length);
-            client.sendMsg(recvObj, rules[ruleKeys[i]][index]);
+            const msg = rules[ruleKeys[i]][index];
+            msg = msg.replace('emoticons', secret.emoticonsPath);
+            client.sendMsg(recvObj, msg);
             return;
         }
     }
@@ -80,7 +82,7 @@ async function AIQQBot(inputText, recvObj, client) {
     }
 
     if (!botObj) {
-        client.sendMsg(recvObj, '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]');
+        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);
         return;
     }
 

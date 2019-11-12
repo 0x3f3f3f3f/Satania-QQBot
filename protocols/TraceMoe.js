@@ -128,7 +128,7 @@ async function TraceMoe(imgInfo, recvObj, client) {
         });
     });
 
-    client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]` +
+    client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]` +
         ' 欧尼酱是不是你想要的内个~\r\n' +
         (tracemoeObj.docs[0].title_native ? `原名：${tracemoeObj.docs[0].title_native }\r\n` : '') +
         (tracemoeObj.docs[0].title_chinese ? `中文名：${tracemoeObj.docs[0].title_chinese }\r\n` : '') +
@@ -138,6 +138,6 @@ async function TraceMoe(imgInfo, recvObj, client) {
         (parseInt(tracemoeObj.docs[0].at / 3600) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at / 3600) + '时')) +
         (parseInt(tracemoeObj.docs[0].at % 3600 / 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 3600 / 60) + '分')) +
         (parseInt(tracemoeObj.docs[0].at % 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 60) + '秒')) +
-        (imagePath ? `\r\n[CQ:image,file=${path.basename(imagePath)}]` : '')
+        (imagePath ? `\r\n[QQ:pic=${imagePath}]` : '')
     );
 }

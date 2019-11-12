@@ -84,7 +84,7 @@ async function SauceNAO(url, recvObj, client) {
         });
     });
 
-    client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]` +
+    client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]` +
         ' 欧尼酱是不是你想要的内个~\r\n' +
         `相似度：${saucenaoObj.results[0].header.similarity}%\r\n` +
         ((saucenaoObj.results[0].data.title ||
@@ -99,7 +99,7 @@ async function SauceNAO(url, recvObj, client) {
                     saucenaoObj.results[0].data.member_name||
                     saucenaoObj.results[0].data.author_name||
                     saucenaoObj.results[0].data.creator}\r\n` : '') +
-        (imagePath ? `[CQ:image,file=${path.basename(imagePath)}]` : '') +
+        (imagePath ? `[QQ:pic=${imagePath}]` : '') +
         (saucenaoObj.results[0].data.ext_urls ? ('\r\n' + saucenaoObj.results[0].data.ext_urls[0]) : '')
     );
 }

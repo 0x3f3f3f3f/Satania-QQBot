@@ -218,7 +218,7 @@ function isShown(id) {
 
 module.exports = function (recvObj, client) {
     // 群黑名单
-    if (groupList.block.indexOf(recvObj.group) != -1) {
+    if (groupList.block.indexOf(recvObj.group.toString()) != -1) {
         return false;
     }
 
@@ -301,7 +301,7 @@ async function PixivPic(recvObj, client, regExp = null) {
         }
     }
     // 白名单
-    if (groupList.white.indexOf(recvObj.group) != -1) {
+    if (groupList.white.indexOf(recvObj.group.toString()) != -1) {
         setuCharge[recvObj.group].count = 99;
     }
 

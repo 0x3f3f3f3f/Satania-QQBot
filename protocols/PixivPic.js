@@ -276,7 +276,7 @@ module.exports = function (recvObj, client) {
         return true;
     }
     // 兽耳
-    else if (/兽耳/m.test(recvObj.content)) {
+    else if (/兽耳|兽娘/m.test(recvObj.content)) {
         PixivPic(recvObj, client, new RegExp('獣耳', 'm'));
         return true;
     }

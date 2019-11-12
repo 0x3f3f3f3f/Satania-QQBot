@@ -323,7 +323,7 @@ async function PixivPic(recvObj, client, regExp = null) {
 
     if (setuPath) {
         setuCharge[recvObj.group].count--;
-        client.sendMsg(recvObj, `[CQ:image,file=base64://${fs.readFileSync(setuPath,'base64')}]`);
+        client.sendMsg(recvObj, `[CQ:image,file=https://sub1.gameoldboy.com/temp/setu/${path.basename(setuPath)}]`);
     } else {
         client.sendMsg(recvObj, '[CQ:image,file=https://sub1.gameoldboy.com/satania_cry.gif]');
     }

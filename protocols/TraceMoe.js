@@ -138,6 +138,6 @@ async function TraceMoe(imgInfo, recvObj, client) {
         (parseInt(tracemoeObj.docs[0].at / 3600) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at / 3600) + '时')) +
         (parseInt(tracemoeObj.docs[0].at % 3600 / 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 3600 / 60) + '分')) +
         (parseInt(tracemoeObj.docs[0].at % 60) == 0 ? '' : (parseInt(tracemoeObj.docs[0].at % 60) + '秒')) +
-        (imagePath ? `\r\n[CQ:image,file=base64://${fs.readFileSync(imagePath,'base64')}]` : '')
+        (imagePath ? `\r\n[CQ:image,file=https://sub1.gameoldboy.com/temp/image/${path.basename(imagePath)}]` : '')
     );
 }

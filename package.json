@@ -10,6 +10,7 @@
     "pixiv-app-api": "^1.0.2",
     "pixiv-img": "^1.0.0",
     "puppeteer": "^1.20.0",
+    "redis": "^2.8.0",
     "request": "^2.88.0",
     "uuid": "^3.3.3",
     "ws": "^7.2.0"

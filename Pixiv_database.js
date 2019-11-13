@@ -123,6 +123,7 @@ async function initDatabase() {
     let d = curDate.getDate();
 
     for (const tag of tagList) {
+        console.log('Start pull tag:', tag);
         for (; y >= 2010; y--) {
             for (; m > 0; m--) {
                 if (d == 0) {

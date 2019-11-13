@@ -1,6 +1,11 @@
 const fs = require('fs');
+const PixivAppApi = require('pixiv-app-api');
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
+
+const pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
+    camelcaseKeys: true
+});
 
 const knex = require('knex')({
     client: 'mysql2',
@@ -24,9 +29,9 @@ async function initDatabase() {
             table.string('title');
         });
     }
-    if (!(await knex.schema.hasColumn('illusts', 'imageUrls'))) {
+    if (!(await knex.schema.hasColumn('illusts', 'image_url'))) {
         await knex.schema.table('illusts', table => {
-            table.string('imageUrls', 2048);
+            table.string('image_url', 2048);
         });
     }
     if (!(await knex.schema.hasColumn('illusts', 'user_id'))) {
@@ -39,9 +44,9 @@ async function initDatabase() {
             table.string('tags');
         });
     }
-    if (!(await knex.schema.hasColumn('illusts', 'createDate'))) {
+    if (!(await knex.schema.hasColumn('illusts', 'create_date'))) {
         await knex.schema.table('illusts', table => {
-            table.dateTime('createDate');
+            table.dateTime('create_date');
         });
     }
     if (!(await knex.schema.hasColumn('illusts', 'width'))) {
@@ -54,16 +59,22 @@ async function initDatabase() {
             table.integer('height').unsigned();
         });
     }
-    if (!(await knex.schema.hasColumn('illusts', 'totalView'))) {
+    if (!(await knex.schema.hasColumn('illusts', 'total_view'))) {
         await knex.schema.table('illusts', table => {
-            table.integer('totalView').unsigned();
+            table.integer('total_view').unsigned();
         });
     }
-    if (!(await knex.schema.hasColumn('illusts', 'totalBookmarks'))) {
+    if (!(await knex.schema.hasColumn('illusts', 'total_bookmarks'))) {
         await knex.schema.table('illusts', table => {
-            table.integer('totalBookmarks').unsigned();
+            table.integer('total_bookmarks').unsigned();
         });
     }
+
+    console.log('database init finished');
 }
 
-initDatabase();
+(async function () {
+    await initDatabase();
+    const pixivTrendTags = await pixiv.trendingTagsIllust();
+    console.log(pixivTrendTags);
+})();

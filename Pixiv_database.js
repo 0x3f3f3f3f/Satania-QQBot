@@ -106,11 +106,14 @@ async function initDatabase() {
 
     await pixiv.login();
     // 长期作业
-    setInterval(async () => {
+    const pixivLoginTimer = setInterval(async () => {
         await pixiv.login();
-    }, 3600);
+    }, 3600000);
 
     let count = 0;
+    const counterTimer = setInterval(() => {
+        console.log('count:', count);
+    }, 10000);
     // 前方高能反映！循环所有标签！
     for (const tag of tagList) {
         console.log('Start tag:', tag);
@@ -129,7 +132,6 @@ async function initDatabase() {
         for (const illust of illusts) {
             testIllust(illust);
             count++;
-            console.log('count:', count);
         }
 
         while (pixiv.hasNext()) {
@@ -144,10 +146,12 @@ async function initDatabase() {
             for (const illust of illusts) {
                 testIllust(illust);
                 count++;
-                console.log('count:', count);
             }
         }
     }
+
+    clearInterval(pixivLoginTimer);
+    clearInterval(counterTimer);
 })();
 
 function testIllust(illust) {

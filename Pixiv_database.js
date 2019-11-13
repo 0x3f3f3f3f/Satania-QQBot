@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer');
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
-const pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
+let pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
     camelcaseKeys: true
 });
 
@@ -91,10 +91,12 @@ async function initDatabase() {
     page.goto('https://www.pixiv.net/tags.php', {
         timeout: 0
     });
-    await page.waitForSelector('.tag-list');
+    await page.waitForSelector('.tag-list', {
+        timeout: 0
+    });
 
     const tagList = await page.evaluate(() => {
-        window.close();
+        window.stop();
         const tagList = document.querySelectorAll('.tag-list li');
         const result = [];
         for (const tag of tagList) {
@@ -114,41 +116,72 @@ async function initDatabase() {
     const counterTimer = setInterval(() => {
         console.log('count:', count);
     }, 10000);
-    // 前方高能反映！循环所有标签！
+
+    const curDate = new Date();
+    let y = curDate.getFullYear();
+    let m = curDate.getMonth() + 1;
+    let d = curDate.getDate();
+
     for (const tag of tagList) {
-        console.log('Start tag:', tag);
+        for (; y >= 2010; y--) {
+            for (; m > 0; m--) {
+                if (d == 0) {
+                    const date = new Date(y, m, 0);
+                    d = date.getDate();
+                }
 
-        let illusts;
-        while (!illusts) {
-            try {
-                illusts = (await pixiv.searchIllust(tag, {
-                    searchTarget: 'exact_match_for_tags'
-                })).illusts;
-            } catch {
-                console.warn('Network failed.');
-                await pixiv.login();
-            }
-        }
+                for (; d > 0; d--) {
+                    console.log(`${y}-${m}-${d}`);
+                    let illusts;
+                    try {
+                        illusts = (await pixiv.searchIllust(tag, {
+                            searchTarget: 'exact_match_for_tags',
+                            startDate: `${y}-${m}-${d}`,
+                            endDate: `${y}-${m}-${d}`
+                        })).illusts;
+                    } catch {
+                        console.error('Network failed');
+                        await new Promise(resolve => setTimeout(resolve, 60000));
+                        pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
+                            camelcaseKeys: true
+                        });
+                        await pixiv.login();
+                        d++;
+                        continue;
+                    }
 
-        for (const illust of illusts) {
-            testIllust(illust);
-            count++;
-        }
+                    for (const illust of illusts) {
+                        testIllust(illust);
+                        count++;
+                    }
 
-        while (pixiv.hasNext()) {
-            illusts = null;
-            while (!illusts) {
-                try {
-                    illusts = (await pixiv.next()).illusts;
-                } catch {
-                    console.warn('Network failed.');
-                    await pixiv.login();
+                    while (pixiv.hasNext()) {
+                        illusts = null;
+
+                        try {
+                            illusts = (await pixiv.next()).illusts;
+                        } catch {
+                            console.error('Network failed');
+                            await new Promise(resolve => setTimeout(resolve, 60000));
+                            pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
+                                camelcaseKeys: true
+                            });
+                            await pixiv.login();
+                            d++;
+                            break;
+                        }
+
+                        for (const illust of illusts) {
+                            testIllust(illust);
+                            count++;
+                        }
+
+                        // 不要搞太快
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
                 }
             }
-            for (const illust of illusts) {
-                testIllust(illust);
-                count++;
-            }
+            m = 12;
         }
     }
 

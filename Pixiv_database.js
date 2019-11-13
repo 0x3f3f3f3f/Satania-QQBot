@@ -118,35 +118,15 @@ async function initDatabase() {
     for (const tag of tagList) {
         console.log('Start tag:', tag);
 
-        let illusts;
-        while (!illusts) {
-            try {
-                illusts = (await pixiv.searchIllust(tag, {
-                    searchTarget: 'exact_match_for_tags'
-                })).illusts;
-            } catch {
-                console.warn('Network failed.');
-            }
-        }
-
-        for (const illust of illusts) {
-            testIllust(illust);
-            count++;
-        }
-
-        while (pixiv.hasNext()) {
-            illusts = null;
-            while (!illusts) {
-                try {
-                    illusts = (await pixiv.next()).illusts;
-                } catch {
-                    console.warn('Network failed.');
-                }
-            }
+        const pixivIllusts = await pixiv.searchIllust(tag, {
+            searchTarget: 'exact_match_for_tags'
+        });
+        for await (const illusts of pixiv.makeIterable(pixivIllusts)) {
             for (const illust of illusts) {
                 testIllust(illust);
                 count++;
             }
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
     }
 

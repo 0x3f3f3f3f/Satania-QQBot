@@ -118,11 +118,11 @@ async function initDatabase() {
     for (const tag of tagList) {
         console.log('Start tag:', tag);
 
-        const pixivIllusts = await pixiv.searchIllust(tag, {
+        const pixivIllustSearch = await pixiv.searchIllust(tag, {
             searchTarget: 'exact_match_for_tags'
         });
-        for await (const illusts of pixiv.makeIterable(pixivIllusts)) {
-            for (const illust of illusts) {
+        for await (const asyncIterable of pixiv.makeIterable(pixivIllustSearch)) {
+            for (const illust of asyncIterable.illusts) {
                 testIllust(illust);
                 count++;
             }

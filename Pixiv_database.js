@@ -71,7 +71,7 @@ async function initDatabase() {
         });
     }
 
-    console.log('database init finished');
+    console.log('\n\nDatabase init finished');
 }
 
 (async function () {
@@ -88,9 +88,10 @@ async function initDatabase() {
 
     const page = await browser.newPage();
 
-    await page.goto('https://www.pixiv.net/tags.php', {
+    page.goto('https://www.pixiv.net/tags.php', {
         timeout: 0
     });
+    await page.waitForSelector('.tag-list');
 
     const tagList = await page.evaluate(() => {
         window.close();
@@ -104,18 +105,46 @@ async function initDatabase() {
     await browser.close();
 
     await pixiv.login();
+    // 长期作业
+    setInterval(async () => {
+        await pixiv.login();
+    }, 3600);
 
+    let count = 0;
     // 前方高能反映！循环所有标签！
     for (const tag of tagList) {
         console.log('Start tag:', tag);
-        for (const illust of (await pixiv.searchIllust(tag, {
-                searchTarget: 'exact_match_for_tags'
-            })).illusts) {
-            testIllust(illust);
+
+        let illusts;
+        while (!illusts) {
+            try {
+                illusts = (await pixiv.searchIllust(tag, {
+                    searchTarget: 'exact_match_for_tags'
+                })).illusts;
+            } catch {
+                console.warn('Network failed.');
+            }
         }
+
+        for (const illust of illusts) {
+            testIllust(illust);
+            count++;
+            console.log('count:', count);
+        }
+
         while (pixiv.hasNext()) {
-            for (const illust of (await pixiv.next()).illusts) {
+            illusts = null;
+            while (!illusts) {
+                try {
+                    illusts = (await pixiv.next()).illusts;
+                } catch {
+                    console.warn('Network failed.');
+                }
+            }
+            for (const illust of illusts) {
                 testIllust(illust);
+                count++;
+                console.log('count:', count);
             }
         }
     }

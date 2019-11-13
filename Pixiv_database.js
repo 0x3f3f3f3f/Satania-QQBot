@@ -1,5 +1,6 @@
 const fs = require('fs');
 const PixivAppApi = require('pixiv-app-api');
+const puppeteer = require('puppeteer');
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
@@ -75,6 +76,85 @@ async function initDatabase() {
 
 (async function () {
     await initDatabase();
-    const pixivTrendTags = await pixiv.trendingTagsIllust();
-    console.log(pixivTrendTags);
+
+    const browser = await puppeteer.launch({
+        headless: false,
+        userDataDir: secret.chromiumUserData,
+        args: [
+            '--proxy-server="direct://"',
+            '--proxy-bypass-list=*'
+        ]
+    });
+
+    const page = await browser.newPage();
+
+    await page.goto('https://www.pixiv.net/tags.php', {
+        timeout: 0
+    });
+
+    const tagList = await page.evaluate(() => {
+        window.close();
+        const tagList = document.querySelectorAll('.tag-list li');
+        const result = [];
+        for (const tag of tagList) {
+            result.push(tag.querySelector('.tag-value').textContent)
+        }
+        return result;
+    });
+    await browser.close();
+
+    await pixiv.login();
+
+    // 前方高能反映！循环所有标签！
+    for (const tag of tagList) {
+        console.log('Start tag:', tag);
+        for (const illust of (await pixiv.searchIllust(tag, {
+                searchTarget: 'exact_match_for_tags'
+            })).illusts) {
+            testIllust(illust);
+        }
+        while (pixiv.hasNext()) {
+            for (const illust of (await pixiv.next()).illusts) {
+                testIllust(illust);
+            }
+        }
+    }
 })();
+
+function testIllust(illust) {
+    if (illust.type != 'illust') return;
+    // 不要R-18
+    let tags = '';
+    for (const tag of illust.tags) {
+        tags += tags ? (',' + tag.name) : tag.name;
+    }
+    illust.tags = tags;
+    if (/r-18/i.test(illust.tags)) return;
+    // 不要小于1000收藏
+    if (illust.totalBookmarks < 1000) return;
+
+    setIllust(illust);
+}
+
+async function setIllust(illust) {
+    const data = {
+        title: illust.title,
+        image_url: illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
+        user_id: illust.user.id,
+        tags: illust.tags,
+        create_date: illust.createDate,
+        width: illust.width,
+        height: illust.height,
+        total_view: illust.totalView,
+        total_bookmarks: illust.totalBookmarks
+    }
+    if ((await knex('illusts').where('id', illust.id))[0]) {
+        await knex('illusts').where('id', illust.id).update(data);
+    } else {
+        await knex('illusts').insert({
+            id: illust.id,
+            ...data
+        });
+    }
+    console.log('set=>', illust.id, illust.title);
+}

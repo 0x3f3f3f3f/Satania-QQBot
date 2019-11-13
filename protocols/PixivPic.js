@@ -101,7 +101,7 @@ const sexualityRegExp = new RegExp([
     '足',
     '尻',
     'ぱんつ',
-    '(^|\s)パンツ($|\s)',
+    '(^|,)パンツ($|,)',
     'パンチラ',
     '縛',
     '束',
@@ -116,7 +116,7 @@ function testIllust(illust) {
     if (illust.type != 'illust') return false;
     let tags = ''
     for (const tag of illust.tags) {
-        tags += tags ? (' ' + tag.name) : tag.name;
+        tags += tags ? (',' + tag.name) : tag.name;
     }
     if (/r-18/i.test(tags)) return false;
     if (sexualityRegExp.test(tags)) return true;
@@ -134,7 +134,7 @@ async function setuDownload(regExp = null) {
             const illust = setuPool[i];
             let tags = ''
             for (const tag of illust.tags) {
-                tags += tags ? (' ' + tag.name) : tag.name;
+                tags += tags ? (',' + tag.name) : tag.name;
             }
             if (regExp.test(tags)) {
                 indexes.push(i);

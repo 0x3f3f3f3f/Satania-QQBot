@@ -3,6 +3,7 @@ const pixivImg = require("pixiv-img");
 const fs = require('fs');
 const path = require('path');
 const images = require('images');
+const _ = require('lodash');
 
 // 初始化pixiv-app-api
 const pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
@@ -125,8 +126,7 @@ function testIllust(illust) {
 async function setuDownload(regExp = null) {
     if (setuPool.length == 0) return null;
 
-    let setuIndex = parseInt(Math.random() * setuPool.length);
-    if (setuPool[setuIndex].totalBookmarks < 1000) return setuDownload(regExp);
+    let setuIndex;
 
     if (regExp) {
         const indexes = [];
@@ -140,7 +140,18 @@ async function setuDownload(regExp = null) {
                 indexes.push(i);
             }
         }
-        if (indexes.length > 0) {
+        if (!_.isEmpty(indexes)) {
+            setuIndex = indexes[parseInt(Math.random() * indexes.length)];
+        } else return null;
+    } else {
+        const indexes = [];
+        for (let i = 0; i < setuPool.length; i++) {
+            const illust = setuPool[i];
+            if (illust.totalBookmarks > 1000) {
+                indexes.push(i);
+            }
+        }
+        if (!_.isEmpty(indexes)) {
             setuIndex = indexes[parseInt(Math.random() * indexes.length)];
         } else return null;
     }

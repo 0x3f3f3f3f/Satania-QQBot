@@ -130,7 +130,7 @@ async function initDatabase() {
     let count = 0;
     let dayCount = 0;
     const counterTimer = setInterval(() => {
-        console.log('count:', count);
+        console.log('\ncount:', count, '\n');
     }, 10000);
 
     const curDate = new Date();
@@ -148,7 +148,7 @@ async function initDatabase() {
                 }
 
                 for (; d > 0; d--) {
-                    console.log(`${y}-${m}-${d}`, tag, 'day count:', dayCount);
+                    console.log(`\n${y}-${m}-${d}`, tag, 'day count:', dayCount, '\n');
                     dayCount = 0;
                     let illusts;
                     try {
@@ -158,10 +158,10 @@ async function initDatabase() {
                         })).illusts;
                     } catch {
                         if (dayCount > 5000) {
-                            console.error('Exceed the limit');
+                            console.error('\nExceed the limit\n');
                             continue;
                         }
-                        console.error('Network failed');
+                        console.error('\nNetwork failed\n');
                         if (pixivUserName == secret.PixivUserName) {
                             pixivUserName = secret.PixivUserName2;
                             pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword2, {
@@ -191,10 +191,10 @@ async function initDatabase() {
                             illusts = (await pixiv.next()).illusts;
                         } catch {
                             if (dayCount > 5000) {
-                                console.error('Exceed the limit');
+                                console.error('\nExceed the limit\n');
                                 break;
                             }
-                            console.error('Network failed');
+                            console.error('\nNetwork failed\n');
                             if (pixivUserName == secret.PixivUserName) {
                                 pixivUserName = secret.PixivUserName2;
                                 pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword2, {

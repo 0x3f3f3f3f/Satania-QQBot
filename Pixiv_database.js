@@ -2,6 +2,12 @@ const fs = require('fs');
 const PixivAppApi = require('pixiv-app-api');
 const puppeteer = require('puppeteer');
 
+// 获得参数
+const argName = process.argv[2] || 'all';
+const argYear = process.argv[3] || 10;
+const argMonth = process.argv[4] || 0;
+const argDate = process.argv[5] || 0;
+
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
 let pixivUserName = secret.PixivUserName2;
@@ -147,7 +153,7 @@ async function initDatabase() {
     tagList.splice(tagList.indexOf('黒タイツ'), 1);
 
     // 恢复作业
-    let recoveryWork = (await knex('recovery_work').where('name', 'all'))[0];
+    let recoveryWork = (await knex('recovery_work').where('name', argName))[0];
 
     await pixiv.login();
     // 长期作业
@@ -162,6 +168,10 @@ async function initDatabase() {
     }, 10000);
 
     const curDate = new Date();
+    const targetDate = new Date(curDate);
+    targetDate.setFullYear(targetDate.getFullYear - argYear);
+    targetDate.setMonth(targetDate.getMonth - argMonth);
+    targetDate.setDate(targetDate.getFullYear - argDate);
 
     for (const tag of tagList) {
         let year;
@@ -180,14 +190,24 @@ async function initDatabase() {
             date = curDate.getDate();
         }
 
-        for (; year >= 2010; year--) {
+        let outOfRange = false;
+        for (; year > 0; year--) {
+            if (outOfRange) break;
+
             for (; month > 0; month--) {
+                if (outOfRange) break;
+
                 if (date == 0) {
                     const specifiedDate = new Date(year, month, 0);
                     date = specifiedDate.getDate();
                 }
 
                 for (; date > 0; date--) {
+                    if (new Date(year, month - 1, date) - targetDate < 0) {
+                        outOfRange = true;
+                        break;
+                    }
+
                     dayCount = 0;
 
                     // 记录当前作业
@@ -314,11 +334,11 @@ async function recordWork(tag, year, month, date) {
         month,
         date
     }
-    if ((await knex('recovery_work').where('name', 'all'))[0]) {
+    if ((await knex('recovery_work').where('name', argName))[0]) {
         await knex('recovery_work').update(data);
     } else {
         await knex('recovery_work').insert({
-            name: 'all',
+            name: argName,
             ...data
         });
     }

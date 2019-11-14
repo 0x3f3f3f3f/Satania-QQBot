@@ -68,7 +68,7 @@ async function SauceNAO(url, recvObj, client) {
     const imagePath = await new Promise(resolve => {
         request.get(saucenaoObj.results[0].header.thumbnail, {
             encoding: null
-        }, (err, res, body) => {
+        }, async (err, res, body) => {
             let imagePath = null;
             if (!err && _.isBuffer(body)) {
                 imagePath = path.join(secret.tempPath, 'image', 'saucenao_' + uuid() + '.jpg');

@@ -112,7 +112,7 @@ async function TraceMoe(imgInfo, recvObj, client) {
                 token: tracemoeObj.docs[0].tokenthumb
             },
             encoding: null
-        }, (err, res, body) => {
+        }, async (err, res, body) => {
             let imagePath = null;
             if (!err && _.isBuffer(body)) {
                 imagePath = path.join(secret.tempPath, 'image', 'tracemoe_' + uuid() + '.jpg');

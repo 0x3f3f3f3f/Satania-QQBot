@@ -231,7 +231,7 @@ async function initDatabase() {
                         try {
                             illusts = (await pixiv.next()).illusts;
                         } catch {
-                            console.log('\nDay count:', dayCount, '\n');
+                            console.log('\nDay count:', dayCount);
                             if (dayCount > 5000) {
                                 console.error('\nExceed the limit\n');
                                 break;

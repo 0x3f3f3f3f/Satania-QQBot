@@ -3,7 +3,7 @@ const uuid = require('uuid/v4');
 const getFirstImageInfo = require('../lib/getFirstImageInfo');
 const fs = require('fs');
 const path = require('path');
-const images = require('images');
+const sharp = require('sharp');
 const _ = require('lodash');
 
 module.exports = function (recvObj, client, isPending = false) {
@@ -73,19 +73,15 @@ async function SauceNAO(url, recvObj, client) {
             if (!err && _.isBuffer(body)) {
                 imagePath = path.join(secret.tempPath, 'image', 'saucenao_' + uuid() + '.jpg');
                 fs.writeFileSync(imagePath, body);
-                const sourceImg = images(imagePath);
-                const waterMarkImg = images('watermark.png');
-                const x = sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6);
-                const y = sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6);
-                sourceImg.draw(images(waterMarkImg,
-                        x < 0 ? -x : 0,
-                        y < 0 ? -y : 0,
-                        x < 0 ? waterMarkImg.width() + x : waterMarkImg.width(),
-                        y < 0 ? waterMarkImg.height() + y : waterMarkImg.height()
-                    ),
-                    x < 0 ? 0 : x,
-                    y < 0 ? 0 : y
-                ).save(imagePath);
+                const sourceImg = sharp(imagePath);
+                const sourceImgMetadata = await sourceImg.metadata();
+                const waterMarkImg = sharp('watermark.png');
+                const waterMarkImgMetadata = await waterMarkImg.metadata();
+                await sourceImg.composite([{
+                    input: 'watermark.png',
+                    left: sourceImgMetadata.width - waterMarkImgMetadata.width - (parseInt(Math.random() * 5) + 6),
+                    top: sourceImgMetadata.height - waterMarkImgMetadata.height - (parseInt(Math.random() * 5) + 6)
+                }]).toFile(imagePath);
             }
             resolve(imagePath);
         });

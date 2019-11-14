@@ -2,7 +2,7 @@ const PixivAppApi = require('pixiv-app-api');
 const pixivImg = require("pixiv-img");
 const fs = require('fs');
 const path = require('path');
-const images = require('images');
+const sharp = require('sharp');
 const _ = require('lodash');
 
 // 初始化pixiv-app-api
@@ -191,19 +191,15 @@ async function setuDownload(regExp = null) {
             await pixivImg(url, setuPath);
             setuShown.push(illust.id.toString());
             fs.appendFileSync('setuShown.txt', illust.id + '\n');
-            const sourceImg = images(setuPath);
-            const waterMarkImg = images('watermark.png');
-            const x = sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6);
-            const y = sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6);
-            sourceImg.draw(images(waterMarkImg,
-                    x < 0 ? -x : 0,
-                    y < 0 ? -y : 0,
-                    x < 0 ? waterMarkImg.width() + x : waterMarkImg.width(),
-                    y < 0 ? waterMarkImg.height() + y : waterMarkImg.height()
-                ),
-                x < 0 ? 0 : x,
-                y < 0 ? 0 : y
-            ).save(setuPath);
+            const sourceImg = sharp(setuPath);
+            const sourceImgMetadata = await sourceImg.metadata();
+            const waterMarkImg = sharp('watermark.png');
+            const waterMarkImgMetadata = await waterMarkImg.metadata();
+            await sourceImg.composite([{
+                input: 'watermark.png',
+                left: sourceImgMetadata.width - waterMarkImgMetadata.width - (parseInt(Math.random() * 5) + 6),
+                top: sourceImgMetadata.height - waterMarkImgMetadata.height - (parseInt(Math.random() * 5) + 6)
+            }]).toFile(setuPath);
             if (nextIllust) {
                 setuPool[setuIndex] = nextIllust;
             } else {

@@ -157,6 +157,10 @@ async function initDatabase() {
                             endDate: `${y}-${m}-${d}`
                         })).illusts;
                     } catch {
+                        if (dayCount > 5000) {
+                            console.error('Exceed the limit');
+                            continue;
+                        }
                         console.error('Network failed');
                         if (pixivUserName == secret.PixivUserName) {
                             pixivUserName = secret.PixivUserName2;
@@ -186,6 +190,10 @@ async function initDatabase() {
                         try {
                             illusts = (await pixiv.next()).illusts;
                         } catch {
+                            if (dayCount > 5000) {
+                                console.error('Exceed the limit');
+                                break;
+                            }
                             console.error('Network failed');
                             if (pixivUserName == secret.PixivUserName) {
                                 pixivUserName = secret.PixivUserName2;

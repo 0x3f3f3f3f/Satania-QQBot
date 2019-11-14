@@ -128,6 +128,7 @@ async function initDatabase() {
     }, 3600000);
 
     let count = 0;
+    let dayCount = 0;
     const counterTimer = setInterval(() => {
         console.log('count:', count);
     }, 10000);
@@ -135,8 +136,6 @@ async function initDatabase() {
     const curDate = new Date();
 
     for (const tag of tagList) {
-        console.log('Start pull tag:', tag);
-
         let y = curDate.getFullYear();
         let m = curDate.getMonth() + 1;
         let d = curDate.getDate();
@@ -149,7 +148,8 @@ async function initDatabase() {
                 }
 
                 for (; d > 0; d--) {
-                    console.log(`${y}-${m}-${d}`);
+                    console.log(`${y}-${m}-${d}`, tag, 'day count:', dayCount);
+                    dayCount = 0;
                     let illusts;
                     try {
                         illusts = (await pixiv.searchIllust(tag, {
@@ -177,6 +177,7 @@ async function initDatabase() {
                     for (const illust of illusts) {
                         testIllust(illust);
                         count++;
+                        dayCount++
                     }
 
                     while (pixiv.hasNext()) {
@@ -205,6 +206,7 @@ async function initDatabase() {
                         for (const illust of illusts) {
                             testIllust(illust);
                             count++;
+                            dayCount++;
                         }
                     }
                 }

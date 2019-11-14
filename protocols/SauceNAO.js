@@ -77,10 +77,18 @@ async function SauceNAO(url, recvObj, client) {
                 const sourceImgMetadata = await sourceImg.metadata();
                 const waterMarkImg = sharp('watermark.png');
                 const waterMarkImgMetadata = await waterMarkImg.metadata();
+                const x = sourceImgMetadata.width - waterMarkImgMetadata.width - (parseInt(Math.random() * 5) + 6);
+                const y = sourceImgMetadata.height - waterMarkImgMetadata.height - (parseInt(Math.random() * 5) + 6);
+                const watermarkBuffer = await waterMarkImg.extract({
+                    top: x < 0 ? -x : 0,
+                    left: y < 0 ? -y : 0,
+                    width: x < 0 ? waterMarkImgMetadata.width + x : waterMarkImgMetadata.width,
+                    height: y < 0 ? waterMarkImgMetadata.height + y : waterMarkImgMetadata.height
+                }).toBuffer();
                 await sourceImg.composite([{
-                    input: 'watermark.png',
-                    left: sourceImgMetadata.width - waterMarkImgMetadata.width - (parseInt(Math.random() * 5) + 6),
-                    top: sourceImgMetadata.height - waterMarkImgMetadata.height - (parseInt(Math.random() * 5) + 6)
+                    input: watermarkBuffer,
+                    left: x < 0 ? 0 : x,
+                    top: y < 0 ? 0 : y
                 }]).toFile(imagePath);
             }
             resolve(imagePath);

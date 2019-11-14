@@ -160,7 +160,7 @@ async function initDatabase() {
                         })).illusts;
                     } catch {
                         console.error('Network failed');
-                        await new Promise(resolve => setTimeout(resolve, 60000));
+                        await new Promise(resolve => setTimeout(resolve, 300000));
                         pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
                             camelcaseKeys: true
                         });
@@ -174,6 +174,9 @@ async function initDatabase() {
                         count++;
                     }
 
+                    // 不要搞太快
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
                     while (pixiv.hasNext()) {
                         illusts = null;
 
@@ -181,7 +184,7 @@ async function initDatabase() {
                             illusts = (await pixiv.next()).illusts;
                         } catch {
                             console.error('Network failed');
-                            await new Promise(resolve => setTimeout(resolve, 60000));
+                            await new Promise(resolve => setTimeout(resolve, 300000));
                             pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
                                 camelcaseKeys: true
                             });

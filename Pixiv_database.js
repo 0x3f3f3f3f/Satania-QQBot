@@ -183,8 +183,8 @@ async function initDatabase() {
         for (; year >= 2010; year--) {
             for (; month > 0; month--) {
                 if (date == 0) {
-                    const date = new Date(year, month, 0);
-                    date = date.getDate();
+                    const specifiedDate = new Date(year, month, 0);
+                    date = specifiedDate.getDate();
                 }
 
                 for (; date > 0; date--) {
@@ -231,6 +231,7 @@ async function initDatabase() {
                         try {
                             illusts = (await pixiv.next()).illusts;
                         } catch {
+                            console.log('Day count:', dayCount);
                             if (dayCount > 5000) {
                                 console.error('\nExceed the limit\n');
                                 break;
@@ -258,8 +259,6 @@ async function initDatabase() {
                             dayCount++;
                         }
                     }
-
-                    console.log('Day count:', dayCount);
                 }
             }
             month = 12;

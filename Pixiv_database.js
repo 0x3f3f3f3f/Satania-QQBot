@@ -330,13 +330,14 @@ async function setIllust(illust) {
     }
     if ((await knex('illusts').where('id', illust.id))[0]) {
         await knex('illusts').where('id', illust.id).update(data);
+        console.log('update=>', illust.id, illust.title);
     } else {
         await knex('illusts').insert({
             id: illust.id,
             ...data
         });
+        console.log(util.format('set=>', illust.id, illust.title).bold);
     }
-    console.log('set=>', illust.id, illust.title);
 }
 
 async function recordWork(tag, year, month, date) {

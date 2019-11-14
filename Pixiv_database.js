@@ -111,7 +111,7 @@ async function initDatabase() {
     await initDatabase();
 
     const browser = await puppeteer.launch({
-        headless: false,
+        // headless: false,
         userDataDir: secret.chromiumUserData,
         args: [
             '--proxy-server="direct://"',
@@ -169,9 +169,9 @@ async function initDatabase() {
 
     const curDate = new Date();
     const targetDate = new Date(curDate);
-    targetDate.setFullYear(targetDate.getFullYear - argYear);
-    targetDate.setMonth(targetDate.getMonth - argMonth);
-    targetDate.setDate(targetDate.getFullYear - argDate);
+    targetDate.setFullYear(targetDate.getFullYear() - argYear);
+    targetDate.setMonth(targetDate.getMonth() - argMonth);
+    targetDate.setDate(targetDate.getFullYear() - argDate);
 
     for (const tag of tagList) {
         let year;

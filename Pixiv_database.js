@@ -4,9 +4,9 @@ const puppeteer = require('puppeteer');
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
-let pixivUserName = secret.PixivUserName;
+let pixivUserName = secret.PixivUserName2;
 
-let pixiv = new PixivAppApi(pixivUserName, secret.PixivPassword, {
+let pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
     camelcaseKeys: true
 });
 
@@ -203,14 +203,14 @@ async function initDatabase() {
                         })).illusts;
                     } catch {
                         console.error('\nNetwork failed\n');
-                        if (pixivUserName == secret.PixivUserName) {
-                            pixivUserName = secret.PixivUserName2;
-                            pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword2, {
+                        if (pixivUserName == secret.PixivUserName2) {
+                            pixivUserName = secret.PixivUserName3;
+                            pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {
                                 camelcaseKeys: true
                             });
                         } else {
-                            pixivUserName = secret.PixivUserName;
-                            pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
+                            pixivUserName = secret.PixivUserName2;
+                            pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
                                 camelcaseKeys: true
                             });
                         }
@@ -237,14 +237,14 @@ async function initDatabase() {
                                 break;
                             }
                             console.error('\nNetwork failed\n');
-                            if (pixivUserName == secret.PixivUserName) {
-                                pixivUserName = secret.PixivUserName2;
-                                pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword2, {
+                            if (pixivUserName == secret.PixivUserName2) {
+                                pixivUserName = secret.PixivUserName3;
+                                pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {
                                     camelcaseKeys: true
                                 });
                             } else {
-                                pixivUserName = secret.PixivUserName;
-                                pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
+                                pixivUserName = secret.PixivUserName2;
+                                pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
                                     camelcaseKeys: true
                                 });
                             }

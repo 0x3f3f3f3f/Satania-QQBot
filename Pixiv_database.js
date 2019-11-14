@@ -106,7 +106,7 @@ async function initDatabase() {
         });
     }
 
-    console.log('\n\nDatabase init finished'.green.bold);
+    console.log('\nDatabase init finished'.green.bold);
 }
 
 (async function () {

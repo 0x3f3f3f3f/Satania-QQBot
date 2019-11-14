@@ -171,7 +171,7 @@ async function initDatabase() {
     const targetDate = new Date(curDate);
     targetDate.setFullYear(targetDate.getFullYear() - argYear);
     targetDate.setMonth(targetDate.getMonth() - argMonth);
-    targetDate.setDate(targetDate.setDate() - argDate);
+    targetDate.setDate(targetDate.getDate() - argDate);
 
     for (const tag of tagList) {
         let year;

@@ -193,9 +193,16 @@ async function setuDownload(regExp = null) {
             fs.appendFileSync('setuShown.txt', illust.id + '\n');
             const sourceImg = images(setuPath);
             const waterMarkImg = images('watermark.png');
-            sourceImg.draw(waterMarkImg,
-                sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6),
-                sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6)
+            const x = sourceImg.width() - waterMarkImg.width() - (parseInt(Math.random() * 5) + 6);
+            const y = sourceImg.height() - waterMarkImg.height() - (parseInt(Math.random() * 5) + 6);
+            sourceImg.draw(images(waterMarkImg,
+                    x < 0 ? -x : 0,
+                    y < 0 ? -y : 0,
+                    x < 0 ? waterMarkImg.width() + x : waterMarkImg.width(),
+                    y < 0 ? waterMarkImg.height() + y : waterMarkImg.height()
+                ),
+                x < 0 ? 0 : x,
+                y < 0 ? 0 : y
             ).save(setuPath);
             if (nextIllust) {
                 setuPool[setuIndex] = nextIllust;

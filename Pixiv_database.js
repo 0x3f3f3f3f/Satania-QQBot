@@ -158,7 +158,6 @@ async function initDatabase() {
                         })).illusts;
                     } catch {
                         console.error('Network failed');
-                        await new Promise(resolve => setTimeout(resolve, 300000));
                         if (pixivUserName == secret.PixivUserName) {
                             pixivUserName = secret.PixivUserName2;
                             pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword2, {
@@ -187,7 +186,6 @@ async function initDatabase() {
                             illusts = (await pixiv.next()).illusts;
                         } catch {
                             console.error('Network failed');
-                            await new Promise(resolve => setTimeout(resolve, 300000));
                             if (pixivUserName == secret.PixivUserName) {
                                 pixivUserName = secret.PixivUserName2;
                                 pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword2, {

@@ -109,18 +109,15 @@ async function initDatabase() {
     tagList.unshift('丝袜');
     tagList.unshift('ストッキング');
     tagList.unshift('タイツ');
-    tagList.unshift('白ストッキング');
-    tagList.unshift('白タイツ');
     tagList.unshift('白スト');
-    tagList.unshift('黒ストッキング');
     tagList.unshift('黒スト');
-    tagList.unshift('拘束');
-    tagList.unshift('緊縛');
-    tagList.unshift('ソックス足裏');
-    tagList.unshift('タイツ足裏');
-    tagList.unshift('足裏');
+    tagList.unshift('束');
+    tagList.unshift('縛');
+    tagList.unshift('足');
 
     tagList.splice(tagList.indexOf('R-18'), 1);
+    tagList.splice(tagList.indexOf('裸足'), 1);
+    tagList.splice(tagList.indexOf('黒タイツ'), 1);
 
     await pixiv.login();
     // 长期作业
@@ -154,7 +151,6 @@ async function initDatabase() {
                     let illusts;
                     try {
                         illusts = (await pixiv.searchIllust(tag, {
-                            searchTarget: 'exact_match_for_tags',
                             startDate: `${y}-${m}-${d}`,
                             endDate: `${y}-${m}-${d}`
                         })).illusts;
@@ -173,9 +169,6 @@ async function initDatabase() {
                         testIllust(illust);
                         count++;
                     }
-
-                    // 不要搞太快
-                    await new Promise(resolve => setTimeout(resolve, 1000));
 
                     while (pixiv.hasNext()) {
                         illusts = null;
@@ -197,9 +190,6 @@ async function initDatabase() {
                             testIllust(illust);
                             count++;
                         }
-
-                        // 不要搞太快
-                        await new Promise(resolve => setTimeout(resolve, 1000));
                     }
                 }
             }

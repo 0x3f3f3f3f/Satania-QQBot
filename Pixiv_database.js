@@ -26,6 +26,11 @@ async function initDatabase() {
             table.integer('id').unsigned().primary();
         });
     }
+    if (!(await knex.schema.hasTable('recovery_work'))) {
+        await knex.schema.createTable('recovery_work', table => {
+            table.string('name').primary();
+        });
+    }
 
     if (!(await knex.schema.hasColumn('illusts', 'title'))) {
         await knex.schema.table('illusts', table => {
@@ -70,6 +75,26 @@ async function initDatabase() {
     if (!(await knex.schema.hasColumn('illusts', 'total_bookmarks'))) {
         await knex.schema.table('illusts', table => {
             table.integer('total_bookmarks').unsigned();
+        });
+    }
+    if (!(await knex.schema.hasColumn('recovery_work', 'tag'))) {
+        await knex.schema.table('recovery_work', table => {
+            table.string('tag');
+        });
+    }
+    if (!(await knex.schema.hasColumn('recovery_work', 'year'))) {
+        await knex.schema.table('recovery_work', table => {
+            table.integer('year').unsigned();
+        });
+    }
+    if (!(await knex.schema.hasColumn('recovery_work', 'month'))) {
+        await knex.schema.table('recovery_work', table => {
+            table.integer('month').unsigned();
+        });
+    }
+    if (!(await knex.schema.hasColumn('recovery_work', 'date'))) {
+        await knex.schema.table('recovery_work', table => {
+            table.integer('date').unsigned();
         });
     }
 
@@ -121,6 +146,9 @@ async function initDatabase() {
     tagList.splice(tagList.indexOf('裸足'), 1);
     tagList.splice(tagList.indexOf('黒タイツ'), 1);
 
+    // 恢复作业
+    let recoveryWork = (await knex('recovery_work').where('name', 'all'))[0];
+
     await pixiv.login();
     // 长期作业
     const pixivLoginTimer = setInterval(async () => {
@@ -130,37 +158,50 @@ async function initDatabase() {
     let count = 0;
     let dayCount = 0;
     const counterTimer = setInterval(() => {
-        console.log('\nTotal count:', count, '\n');
+        console.log('Total count:', count);
     }, 10000);
 
     const curDate = new Date();
 
     for (const tag of tagList) {
-        let y = curDate.getFullYear();
-        let m = curDate.getMonth() + 1;
-        let d = curDate.getDate();
+        let year;
+        let month;
+        let date;
 
-        for (; y >= 2010; y--) {
-            for (; m > 0; m--) {
-                if (d == 0) {
-                    const date = new Date(y, m, 0);
-                    d = date.getDate();
+        if (recoveryWork) {
+            if (tag != recoveryWork.tag) continue;
+            year = recoveryWork.year
+            month = recoveryWork.month
+            date = recoveryWork.date
+            recoveryWork = null;
+        } else {
+            year = curDate.getFullYear();
+            month = curDate.getMonth() + 1;
+            date = curDate.getDate();
+        }
+
+        for (; year >= 2010; year--) {
+            for (; month > 0; month--) {
+                if (date == 0) {
+                    const date = new Date(year, month, 0);
+                    date = date.getDate();
                 }
 
-                for (; d > 0; d--) {
-                    console.log(`\n${y}-${m}-${d}`, tag, 'day count:', dayCount, '\n');
+                for (; date > 0; date--) {
                     dayCount = 0;
+
+                    // 记录当前作业
+                    await recordWork(tag, year, month, date);
+
+                    console.log(`${year}-${month}-${date}`, tag);
+
                     let illusts;
                     try {
                         illusts = (await pixiv.searchIllust(tag, {
-                            startDate: `${y}-${m}-${d}`,
-                            endDate: `${y}-${m}-${d}`
+                            startDate: `${year}-${month}-${date}`,
+                            endDate: `${year}-${month}-${date}`
                         })).illusts;
                     } catch {
-                        if (dayCount > 5000) {
-                            console.error('\nExceed the limit\n');
-                            continue;
-                        }
                         console.error('\nNetwork failed\n');
                         if (pixivUserName == secret.PixivUserName) {
                             pixivUserName = secret.PixivUserName2;
@@ -174,7 +215,7 @@ async function initDatabase() {
                             });
                         }
                         await pixiv.login();
-                        d++;
+                        date++;
                         continue;
                     }
 
@@ -207,7 +248,7 @@ async function initDatabase() {
                                 });
                             }
                             await pixiv.login();
-                            d++;
+                            date++;
                             break;
                         }
 
@@ -217,9 +258,11 @@ async function initDatabase() {
                             dayCount++;
                         }
                     }
+
+                    console.log('Day count:', dayCount);
                 }
             }
-            m = 12;
+            month = 12;
         }
     }
 
@@ -263,4 +306,21 @@ async function setIllust(illust) {
         });
     }
     console.log('set=>', illust.id, illust.title);
+}
+
+async function recordWork(tag, year, month, date) {
+    const data = {
+        tag,
+        year,
+        month,
+        date
+    }
+    if ((await knex('recovery_work').where('name', 'all'))[0]) {
+        await knex('recovery_work').update(data);
+    } else {
+        await knex('recovery_work').insert({
+            name: 'all',
+            ...data
+        });
+    }
 }

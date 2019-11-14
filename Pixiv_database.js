@@ -158,7 +158,7 @@ async function initDatabase() {
     let count = 0;
     let dayCount = 0;
     const counterTimer = setInterval(() => {
-        console.log('Total count:', count);
+        console.log('\nTotal count:', count, '\n');
     }, 10000);
 
     const curDate = new Date();

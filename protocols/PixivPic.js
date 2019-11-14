@@ -198,8 +198,8 @@ async function setuDownload(regExp = null) {
             const x = sourceImgMetadata.width - waterMarkImgMetadata.width - (parseInt(Math.random() * 5) + 6);
             const y = sourceImgMetadata.height - waterMarkImgMetadata.height - (parseInt(Math.random() * 5) + 6);
             const watermarkBuffer = await waterMarkImg.extract({
-                top: x < 0 ? -x : 0,
-                left: y < 0 ? -y : 0,
+                left: x < 0 ? -x : 0,
+                top: y < 0 ? -y : 0,
                 width: x < 0 ? waterMarkImgMetadata.width + x : waterMarkImgMetadata.width,
                 height: y < 0 ? waterMarkImgMetadata.height + y : waterMarkImgMetadata.height
             }).toBuffer();

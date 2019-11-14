@@ -100,11 +100,27 @@ async function initDatabase() {
         const tagList = document.querySelectorAll('.tag-list li');
         const result = [];
         for (const tag of tagList) {
-            result.push(tag.querySelector('.tag-value').textContent)
+            result.push(tag.querySelector('.tag-value').textContent.trim());
         }
         return result;
     });
     await browser.close();
+
+    tagList.unshift('丝袜');
+    tagList.unshift('ストッキング');
+    tagList.unshift('タイツ');
+    tagList.unshift('白ストッキング');
+    tagList.unshift('白タイツ');
+    tagList.unshift('白スト');
+    tagList.unshift('黒ストッキング');
+    tagList.unshift('黒スト');
+    tagList.unshift('拘束');
+    tagList.unshift('緊縛');
+    tagList.unshift('ソックス足裏');
+    tagList.unshift('タイツ足裏');
+    tagList.unshift('足裏');
+
+    tagList.splice(tagList.indexOf('R-18'), 1);
 
     await pixiv.login();
     // 长期作业
@@ -118,12 +134,14 @@ async function initDatabase() {
     }, 10000);
 
     const curDate = new Date();
-    let y = curDate.getFullYear();
-    let m = curDate.getMonth() + 1;
-    let d = curDate.getDate();
 
     for (const tag of tagList) {
         console.log('Start pull tag:', tag);
+
+        let y = curDate.getFullYear();
+        let m = curDate.getMonth() + 1;
+        let d = curDate.getDate();
+
         for (; y >= 2010; y--) {
             for (; m > 0; m--) {
                 if (d == 0) {

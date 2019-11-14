@@ -4,9 +4,9 @@ const puppeteer = require('puppeteer');
 
 // 获得参数
 const argName = process.argv[2] || 'all';
-const argYear = process.argv[3] || 10;
-const argMonth = process.argv[4] || 0;
-const argDate = process.argv[5] || 0;
+const argYear = parseInt(process.argv[3]) || 10;
+const argMonth = parseInt(process.argv[4]) || 0;
+const argDate = parseInt(process.argv[5]) || 0;
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 

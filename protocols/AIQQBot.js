@@ -18,7 +18,7 @@ module.exports = function (recvObj, client) {
     for (let i = ruleKeys.length - 1; i >= 0; i--) {
         if (new RegExp(ruleKeys[i], 'im').test(inputText)) {
             const index = parseInt(Math.random() * rules[ruleKeys[i]].length);
-            const msg = rules[ruleKeys[i]][index];
+            let msg = rules[ruleKeys[i]][index];
             msg = msg.replace('emoticons', secret.emoticonsPath);
             client.sendMsg(recvObj, msg);
             return;

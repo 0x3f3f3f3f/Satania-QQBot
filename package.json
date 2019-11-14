@@ -4,6 +4,7 @@
   "description": "QQ机器人",
   "main": "app.js",
   "dependencies": {
+    "colors": "^1.4.0",
     "gif-frames": "^1.0.1",
     "knex": "^0.20.1",
     "lodash": "^4.17.15",

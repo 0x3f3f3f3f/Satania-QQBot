@@ -1,6 +1,8 @@
 const fs = require('fs');
 const PixivAppApi = require('pixiv-app-api');
 const puppeteer = require('puppeteer');
+const util = require('util');
+require('colors');
 
 // 获得参数
 const argName = process.argv[2] || 'all';
@@ -104,7 +106,7 @@ async function initDatabase() {
         });
     }
 
-    console.log('\n\nDatabase init finished');
+    console.log('\n\nDatabase init finished'.green.bold);
 }
 
 (async function () {
@@ -164,7 +166,7 @@ async function initDatabase() {
     let count = 0;
     let dayCount = 0;
     const counterTimer = setInterval(() => {
-        console.log('\nTotal count:', count, '\n');
+        console.log(util.format('Total count:', count).magenta);
     }, 10000);
 
     const curDate = new Date();
@@ -191,6 +193,7 @@ async function initDatabase() {
         }
 
         let outOfRange = false;
+        let isDateDesc = true;
         for (; year > 0; year--) {
             if (outOfRange) break;
 
@@ -213,16 +216,17 @@ async function initDatabase() {
                     // 记录当前作业
                     await recordWork(tag, year, month, date);
 
-                    console.log(`${year}-${month}-${date}`, tag);
+                    console.log(util.format(`${year}-${month}-${date}`, tag).green);
 
                     let illusts;
                     try {
                         illusts = (await pixiv.searchIllust(tag, {
+                            sort: isDateDesc ? 'date_desc' : 'date_asc',
                             startDate: `${year}-${month}-${date}`,
                             endDate: `${year}-${month}-${date}`
                         })).illusts;
                     } catch {
-                        console.error('\nNetwork failed\n');
+                        console.log('Network failed'.red.bold);
                         if (pixivUserName == secret.PixivUserName2) {
                             pixivUserName = secret.PixivUserName3;
                             pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {
@@ -251,12 +255,20 @@ async function initDatabase() {
                         try {
                             illusts = (await pixiv.next()).illusts;
                         } catch {
-                            console.log('\nDay count:', dayCount);
+                            console.log(util.format('Day count:', dayCount).magenta.bold);
                             if (dayCount > 5000) {
-                                console.error('\nExceed the limit\n');
-                                break;
+                                console.error('Exceed the limit'.red.bold);
+                                // 用升序再试一遍，这样单天至少能刷到1w张
+                                if (isDateDesc) {
+                                    isDateDesc = false;
+                                    date++;
+                                    break;
+                                } else {
+                                    isDateDesc = true;
+                                    break;
+                                }
                             }
-                            console.error('\nNetwork failed\n');
+                            console.log('Network failed'.red.bold);
                             if (pixivUserName == secret.PixivUserName2) {
                                 pixivUserName = secret.PixivUserName3;
                                 pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {

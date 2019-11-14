@@ -203,11 +203,12 @@ async function setuDownload(regExp = null) {
                 width: x < 0 ? waterMarkImgMetadata.width + x : waterMarkImgMetadata.width,
                 height: y < 0 ? waterMarkImgMetadata.height + y : waterMarkImgMetadata.height
             }).toBuffer();
-            await sourceImg.composite([{
+            const imgBuffer = await sourceImg.composite([{
                 input: watermarkBuffer,
                 left: x < 0 ? 0 : x,
                 top: y < 0 ? 0 : y
-            }]).toFile(setuPath);
+            }]).toBuffer();
+            fs.writeFileSync(setuPath, imgBuffer);
             if (nextIllust) {
                 setuPool[setuIndex] = nextIllust;
             } else {

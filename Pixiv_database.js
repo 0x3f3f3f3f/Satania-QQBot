@@ -1,6 +1,7 @@
 const fs = require('fs');
 const PixivAppApi = require('pixiv-app-api');
 const util = require('util');
+const _ = require('lodash');
 require('colors');
 
 // 获得参数

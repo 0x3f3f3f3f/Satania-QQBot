@@ -179,7 +179,7 @@ async function initDatabase() {
 
                 let illusts;
                 try {
-                    illusts = (await pixiv.searchIllust(tagList.join(' OR '), {
+                    illusts = (await pixiv.searchIllust(tagList.join(' OR ') + ' -腐', {
                         sort: isDateDesc ? 'date_desc' : 'date_asc',
                         startDate: `${year}-${month}-${date}`,
                         endDate: `${year}-${month}-${date}`
@@ -277,7 +277,6 @@ function testIllust(illust) {
     if (/男/.test(illust.tags)) {
         if (!(/男の娘|ちんちんの付いた美少女/.test(illust.tags))) return;
     }
-    if (/(^|,)ガロリオ($|,)/.test(illust.tags)) return;
 
     // 不要小于1000收藏
     if (illust.totalBookmarks < 1000) return;

@@ -315,7 +315,7 @@ async function recordWork(year, month, date) {
         date
     }
     if ((await knex('recovery_work').where('name', argName))[0]) {
-        await knex('recovery_work').update(data);
+        await knex('recovery_work').where('name', argName).update(data);
     } else {
         await knex('recovery_work').insert({
             name: argName,

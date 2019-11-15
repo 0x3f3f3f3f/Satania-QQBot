@@ -4,10 +4,10 @@ const util = require('util');
 require('colors');
 
 // 获得参数
-const argName = process.argv[2] || 'all';
-const argYear = parseInt(process.argv[3]) || 10;
-const argMonth = parseInt(process.argv[4]) || 0;
-const argDate = parseInt(process.argv[5]) || 0;
+const argName = _.isUndefined(process.argv[2]) ? 'all' : process.argv[2];
+const argYear = _.isUndefined(process.argv[3]) ? 10 : parseInt(process.argv[3]);
+const argMonth = _.isUndefined(process.argv[4]) ? 0 : parseInt(process.argv[4]);
+const argDate = _.isUndefined(process.argv[5]) ? 0 : parseInt(process.argv[5]);
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 

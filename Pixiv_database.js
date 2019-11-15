@@ -5,10 +5,15 @@ const _ = require('lodash');
 require('colors');
 
 // 获得参数
-const argName = _.isUndefined(process.argv[2]) ? 'all' : process.argv[2];
-const argYear = _.isUndefined(process.argv[3]) ? 10 : parseInt(process.argv[3]);
-const argMonth = _.isUndefined(process.argv[4]) ? 0 : parseInt(process.argv[4]);
-const argDate = _.isUndefined(process.argv[5]) ? 0 : parseInt(process.argv[5]);
+const tagList = _.isUndefined(process.argv[2]) ? null : process.argv[2].split(',');
+if (!tagList) {
+    console.log('Tags input is incorrect!'.red.bold);
+    return;
+}
+const argName = _.isUndefined(process.argv[3]) ? 'all' : process.argv[3];
+const argYear = _.isUndefined(process.argv[4]) ? 10 : parseInt(process.argv[4]);
+const argMonth = _.isUndefined(process.argv[5]) ? 0 : parseInt(process.argv[5]);
+const argDate = _.isUndefined(process.argv[6]) ? 0 : parseInt(process.argv[6]);
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
@@ -105,32 +110,8 @@ async function initDatabase() {
     console.log('\nDatabase init finished'.green.bold);
 }
 
-const tagList = [];
-
 (async function () {
     await initDatabase();
-
-    tagList.push('足');
-    tagList.push('束');
-    tagList.push('縛');
-    tagList.push('黒スト');
-    tagList.push('白スト');
-    tagList.push('丝袜');
-    tagList.push('タイツ');
-    tagList.push('ストッキング');
-    tagList.push('着');
-    tagList.push('乳');
-    tagList.push('おっぱい');
-    tagList.push('魅惑');
-    tagList.push('尻');
-    tagList.push('ぱんつ');
-    tagList.push('パンツ');
-    tagList.push('パンチラ');
-    tagList.push('ロリ');
-    tagList.push('幼女');
-    tagList.push('獣耳');
-    tagList.push('男の娘');
-    tagList.push('ちんちんの付いた美少女');
 
     // 恢复作业
     let recoveryWork = (await knex('recovery_work').where('name', argName))[0];

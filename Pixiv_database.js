@@ -156,7 +156,7 @@ async function initDatabase() {
     targetDate.setMonth(targetDate.getMonth() - argMonth);
     targetDate.setDate(targetDate.getDate() - argDate);
 
-    console.log(util.format('\nTarget date:', `${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}\n`).cyan.bold);
+    console.log(util.format('\nTarget date:', `${targetDate.getFullYear()}-${targetDate.getMonth()+1}-${targetDate.getDate()}\n`).cyan.bold);
 
     for (const tag of tagList) {
         let year;

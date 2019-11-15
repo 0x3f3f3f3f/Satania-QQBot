@@ -1,6 +1,5 @@
 const fs = require('fs');
 const PixivAppApi = require('pixiv-app-api');
-const puppeteer = require('puppeteer');
 const util = require('util');
 require('colors');
 
@@ -112,47 +111,28 @@ async function initDatabase() {
 (async function () {
     await initDatabase();
 
-    const browser = await puppeteer.launch({
-        // headless: false,
-        userDataDir: secret.chromiumUserData,
-        args: [
-            '--proxy-server="direct://"',
-            '--proxy-bypass-list=*'
-        ]
-    });
-
-    const page = await browser.newPage();
-
-    page.goto('https://www.pixiv.net/tags.php', {
-        timeout: 0
-    });
-    await page.waitForSelector('.tag-list', {
-        timeout: 0
-    });
-
-    const tagList = await page.evaluate(() => {
-        window.stop();
-        const tagList = document.querySelectorAll('.tag-list li');
-        const result = [];
-        for (const tag of tagList) {
-            result.push(tag.querySelector('.tag-value').textContent.trim());
-        }
-        return result;
-    });
-    await browser.close();
-
-    tagList.unshift('丝袜');
-    tagList.unshift('ストッキング');
-    tagList.unshift('タイツ');
-    tagList.unshift('白スト');
-    tagList.unshift('黒スト');
-    tagList.unshift('束');
-    tagList.unshift('縛');
-    tagList.unshift('足');
-
-    tagList.splice(tagList.indexOf('R-18'), 1);
-    tagList.splice(tagList.indexOf('裸足'), 1);
-    tagList.splice(tagList.indexOf('黒タイツ'), 1);
+    const tagList = [];
+    tagList.push('足');
+    tagList.push('束');
+    tagList.push('縛');
+    tagList.push('黒スト');
+    tagList.push('白スト');
+    tagList.push('丝袜');
+    tagList.push('タイツ');
+    tagList.push('ストッキング');
+    tagList.push('着');
+    tagList.push('乳');
+    tagList.push('おっぱい');
+    tagList.push('魅惑');
+    tagList.push('尻');
+    tagList.push('ぱんつ');
+    tagList.push('パンツ');
+    tagList.push('パンチラ');
+    tagList.push('ロリ');
+    tagList.push('幼女');
+    tagList.push('獣耳');
+    tagList.push('男の娘');
+    tagList.push('ちんちんの付いた美少女');
 
     // 恢复作业
     let recoveryWork = (await knex('recovery_work').where('name', argName))[0];
@@ -302,14 +282,16 @@ async function initDatabase() {
 })();
 
 function testIllust(illust) {
+    // 只要插画
     if (illust.type != 'illust') return;
-    // 不要R-18
+
     let tags = '';
     for (const tag of illust.tags) {
         tags += tags ? (',' + tag.name) : tag.name;
     }
     illust.tags = tags;
     if (/r-18/i.test(illust.tags)) return;
+
     // 不要小于1000收藏
     if (illust.totalBookmarks < 1000) return;
 

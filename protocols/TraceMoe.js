@@ -135,10 +135,6 @@ async function TraceMoe(imgInfo, recvObj, client) {
                         left: x < 0 ? 0 : x,
                         top: y < 0 ? 0 : y
                     }])
-                    .jpeg({
-                        quality: 100,
-                        chromaSubsampling: '4:4:4'
-                    })
                     .toBuffer();
                 fs.writeFileSync(imagePath, imgBuffer);
             }

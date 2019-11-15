@@ -85,11 +85,7 @@ async function initDatabase() {
             table.integer('total_bookmarks').unsigned();
         });
     }
-    if (!(await knex.schema.hasColumn('recovery_work', 'tag'))) {
-        await knex.schema.table('recovery_work', table => {
-            table.string('tag');
-        });
-    }
+
     if (!(await knex.schema.hasColumn('recovery_work', 'year'))) {
         await knex.schema.table('recovery_work', table => {
             table.integer('year').unsigned();
@@ -109,10 +105,11 @@ async function initDatabase() {
     console.log('\nDatabase init finished'.green.bold);
 }
 
+const tagList = [];
+
 (async function () {
     await initDatabase();
 
-    const tagList = [];
     tagList.push('足');
     tagList.push('束');
     tagList.push('縛');
@@ -158,57 +155,97 @@ async function initDatabase() {
 
     console.log(util.format('\nTarget date:', `${targetDate.getFullYear()}-${targetDate.getMonth()+1}-${targetDate.getDate()}\n`).cyan.bold);
 
-    for (const tag of tagList) {
-        let year;
-        let month;
-        let date;
+    let year;
+    let month;
+    let date;
 
-        if (recoveryWork) {
-            if (tag != recoveryWork.tag) continue;
-            year = recoveryWork.year
-            month = recoveryWork.month
-            date = recoveryWork.date
-            recoveryWork = null;
-        } else {
-            year = curDate.getFullYear();
-            month = curDate.getMonth() + 1;
-            date = curDate.getDate();
-        }
+    if (recoveryWork) {
+        year = recoveryWork.year
+        month = recoveryWork.month
+        date = recoveryWork.date
+        recoveryWork = null;
+    } else {
+        year = curDate.getFullYear();
+        month = curDate.getMonth() + 1;
+        date = curDate.getDate();
+    }
 
-        let outOfRange = false;
-        let isDateDesc = true;
-        for (; year > 0; year--) {
+    let outOfRange = false;
+    let isDateDesc = true;
+    for (; year > 0; year--) {
+        if (outOfRange) break;
+
+        for (; month > 0; month--) {
             if (outOfRange) break;
 
-            for (; month > 0; month--) {
-                if (outOfRange) break;
+            if (date == 0) {
+                const specifiedDate = new Date(year, month, 0);
+                date = specifiedDate.getDate();
+            }
 
-                if (date == 0) {
-                    const specifiedDate = new Date(year, month, 0);
-                    date = specifiedDate.getDate();
+            for (; date > 0; date--) {
+                if (new Date(year, month - 1, date) - targetDate < 0) {
+                    outOfRange = true;
+                    break;
                 }
 
-                for (; date > 0; date--) {
-                    if (new Date(year, month - 1, date) - targetDate < 0) {
-                        outOfRange = true;
-                        break;
+                dayCount = 0;
+
+                // 记录当前作业
+                await recordWork(year, month, date);
+
+                console.log(`${year}-${month}-${date}`.green);
+
+                let illusts;
+                try {
+                    illusts = (await pixiv.searchIllust(tagList.join(' OR '), {
+                        sort: isDateDesc ? 'date_desc' : 'date_asc',
+                        startDate: `${year}-${month}-${date}`,
+                        endDate: `${year}-${month}-${date}`
+                    })).illusts;
+                } catch {
+                    console.log('Network failed'.red.bold);
+                    if (pixivUserName == secret.PixivUserName2) {
+                        pixivUserName = secret.PixivUserName3;
+                        pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {
+                            camelcaseKeys: true
+                        });
+                    } else {
+                        pixivUserName = secret.PixivUserName2;
+                        pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
+                            camelcaseKeys: true
+                        });
                     }
+                    await pixiv.login();
+                    date++;
+                    continue;
+                }
 
-                    dayCount = 0;
+                for (const illust of illusts) {
+                    testIllust(illust);
+                    count++;
+                    dayCount++
+                }
 
-                    // 记录当前作业
-                    await recordWork(tag, year, month, date);
+                while (pixiv.hasNext()) {
+                    illusts = null;
 
-                    console.log(util.format(`${year}-${month}-${date}`, tag).green);
-
-                    let illusts;
                     try {
-                        illusts = (await pixiv.searchIllust(tag, {
-                            sort: isDateDesc ? 'date_desc' : 'date_asc',
-                            startDate: `${year}-${month}-${date}`,
-                            endDate: `${year}-${month}-${date}`
-                        })).illusts;
+                        illusts = (await pixiv.next()).illusts;
                     } catch {
+                        console.log(util.format('Day count:', dayCount).magenta.bold);
+                        if (dayCount > 5000) {
+                            console.error('Exceed the limit'.red.bold);
+                            // 用升序再试一遍，这样单天至少能刷到1w张
+                            if (isDateDesc) {
+                                isDateDesc = false;
+                                date++;
+                                break;
+                            } else {
+                                isDateDesc = true;
+                                break;
+                            }
+                        }
                         console.log('Network failed'.red.bold);
                         if (pixivUserName == secret.PixivUserName2) {
                             pixivUserName = secret.PixivUserName3;
@@ -223,61 +260,18 @@ async function initDatabase() {
                         }
                         await pixiv.login();
                         date++;
-                        continue;
+                        break;
                     }
 
                     for (const illust of illusts) {
                         testIllust(illust);
                         count++;
-                        dayCount++
-                    }
-
-                    while (pixiv.hasNext()) {
-                        illusts = null;
-
-                        try {
-                            illusts = (await pixiv.next()).illusts;
-                        } catch {
-                            console.log(util.format('Day count:', dayCount).magenta.bold);
-                            if (dayCount > 5000) {
-                                console.error('Exceed the limit'.red.bold);
-                                // 用升序再试一遍，这样单天至少能刷到1w张
-                                if (isDateDesc) {
-                                    isDateDesc = false;
-                                    date++;
-                                    break;
-                                } else {
-                                    isDateDesc = true;
-                                    break;
-                                }
-                            }
-                            console.log('Network failed'.red.bold);
-                            if (pixivUserName == secret.PixivUserName2) {
-                                pixivUserName = secret.PixivUserName3;
-                                pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {
-                                    camelcaseKeys: true
-                                });
-                            } else {
-                                pixivUserName = secret.PixivUserName2;
-                                pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
-                                    camelcaseKeys: true
-                                });
-                            }
-                            await pixiv.login();
-                            date++;
-                            break;
-                        }
-
-                        for (const illust of illusts) {
-                            testIllust(illust);
-                            count++;
-                            dayCount++;
-                        }
+                        dayCount++;
                     }
                 }
             }
-            month = 12;
         }
+        month = 12;
     }
 
     clearInterval(pixivLoginTimer);
@@ -293,7 +287,15 @@ function testIllust(illust) {
         tags += tags ? (',' + tag.name) : tag.name;
     }
     illust.tags = tags;
-    if (/r-18/i.test(illust.tags)) return;
+
+    // 不要黑车
+    if (/足りない/.test(illust.tags)) {
+        const tags = illust.tags.replace(/足りない/g, '');
+        if (!(new RegExp(tagList.join('|')).test(tags))) return;
+    }
+    if (/男/.test(illust.tags)) {
+        if (!(/男の娘|ちんちんの付いた美少女/.test(illust.tags))) return;
+    }
 
     // 不要小于1000收藏
     if (illust.totalBookmarks < 1000) return;
@@ -325,9 +327,8 @@ async function setIllust(illust) {
     }
 }
 
-async function recordWork(tag, year, month, date) {
+async function recordWork(year, month, date) {
     const data = {
-        tag,
         year,
         month,
         date

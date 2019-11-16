@@ -155,18 +155,19 @@ async function searchIllust(group, tags, num) {
                     ).whereRaw('illusts.id = seen.illust_id')
                 ))[0];
         } else {
-            const min = (await knex('illusts').min('id as min'))[0].min;
-            const max = (await knex('illusts').max('id as max'))[0].max;
-            illust = (await knex.from(illustsQuery)
+            const curQuery = knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(
                         knex('seen_list').where('group', group).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
-                ).whereRaw('and illusts.id >= ?', [parseInt(min + Math.random() * (max - min))]).limit(1))[0];
+                );
+            const min = (await curQuery.min('id as min'))[0].min;
+            const max = (await curQuery.max('id as max'))[0].max;
+            illust = (await curQuery.whereRaw('illusts.id >= ?', [parseInt(min + Math.random() * (max - min))]).limit(1))[0];
         }
     } else {
-        const min = (await knex('illusts').min('id as min'))[0].min;
-        const max = (await knex('illusts').max('id as max'))[0].max;
+        const min = (await illustsQuery.min('id as min'))[0].min;
+        const max = (await illustsQuery.max('id as max'))[0].max;
         illust = (await illustsQuery.whereRaw('illusts.id >= ?', [parseInt(min + Math.random() * (max - min))]).limit(1))[0];
     }
 

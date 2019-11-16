@@ -219,7 +219,9 @@ module.exports = function (recvObj, client) {
     }
 
     if (/(色|涩|瑟)图计数|总数|总计/) {
-        client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('tags', 'not like', '%r-18%').select('count(*) as count'))[0].count + '张');
+        (async function () {
+            client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('tags', 'not like', '%r-18%').select('count(*) as count'))[0].count + '张');
+        })();
     }
 
     // 重发

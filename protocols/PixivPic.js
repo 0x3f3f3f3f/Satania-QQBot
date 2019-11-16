@@ -290,7 +290,7 @@ module.exports = function (recvObj, client) {
     }
     // 拘束
     else if (/拘|束|捆|绑|缚/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '[拘束', '緊縛]');
+        PixivPic(recvObj, client, ['拘束', '緊縛']);
         return true;
     }
     // 萝莉

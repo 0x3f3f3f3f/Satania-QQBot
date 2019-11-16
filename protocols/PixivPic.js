@@ -218,12 +218,12 @@ module.exports = function (recvObj, client) {
         return false;
     }
 
-    if (/(色|涩|瑟)图计数|总数|总计/) {
+    // 色图计数
+    if (/((色|涩|瑟)图|图库)计数|总(数|计)/m.test(recvObj.content)) {
         (async function () {
             client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('tags', 'not like', '%r-18%').select('count(*) as count'))[0].count + '张');
         })();
     }
-
     // 重发
     if (/(重|重新|再)发/m.test(recvObj.content)) {
         const msg = recvObj.content.replace(/\[.*?\]|(重|重新|再)发/g, '').trim();

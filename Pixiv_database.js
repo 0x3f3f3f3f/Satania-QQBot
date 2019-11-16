@@ -262,6 +262,9 @@ async function initDatabase() {
 
     clearInterval(pixivLoginTimer);
     clearInterval(counterTimer);
+    // 执行完了需要干掉自己的作业记录
+    await knex('recovery_work').where('name', argName).delete();
+    process.exit();
 })();
 
 function testIllust(illust) {

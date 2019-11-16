@@ -3,6 +3,7 @@ const PixivAppApi = require('pixiv-app-api');
 const util = require('util');
 const _ = require('lodash');
 require('colors');
+const moment = require('moment');
 
 // 获得参数
 const tagList = _.isUndefined(process.argv[2]) ? null : process.argv[2].split(',');
@@ -11,9 +12,9 @@ if (!tagList) {
     return;
 }
 const argName = _.isUndefined(process.argv[3]) ? 'all' : process.argv[3];
-const argYear = _.isUndefined(process.argv[4]) ? 10 : parseInt(process.argv[4]);
-const argMonth = _.isUndefined(process.argv[5]) ? 0 : parseInt(process.argv[5]);
-const argDate = _.isUndefined(process.argv[6]) ? 0 : parseInt(process.argv[6]);
+const argYears = _.isUndefined(process.argv[4]) ? 10 : parseInt(process.argv[4]);
+const argMonths = _.isUndefined(process.argv[5]) ? 0 : parseInt(process.argv[5]);
+const argDays = _.isUndefined(process.argv[6]) ? 0 : parseInt(process.argv[6]);
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
@@ -133,13 +134,13 @@ async function initDatabase() {
         console.log(util.format('Total count:', count).magenta);
     }, 10000);
 
-    const curDate = new Date();
-    const targetDate = new Date(curDate);
-    targetDate.setFullYear(targetDate.getFullYear() - argYear);
-    targetDate.setMonth(targetDate.getMonth() - argMonth);
-    targetDate.setDate(targetDate.getDate() - argDate);
+    const curDate = moment();
+    const targetDate = moment(curDate);
+    targetDate.subtract(argYears, 'years');
+    targetDate.subtract(argMonths, 'months');
+    targetDate.subtract(argDays, 'days');
 
-    console.log(util.format('\nTarget date:', `${targetDate.getFullYear()}-${targetDate.getMonth()+1}-${targetDate.getDate()}\n`).cyan.bold);
+    console.log(util.format('\nTarget date:', targetDate.format('YYYY-MM-DD'), '\n').cyan.bold);
 
     let year;
     let month;
@@ -151,9 +152,9 @@ async function initDatabase() {
         date = recoveryWork.date
         recoveryWork = null;
     } else {
-        year = curDate.getFullYear();
-        month = curDate.getMonth() + 1;
-        date = curDate.getDate();
+        year = curDate.year();
+        month = curDate.month() + 1;
+        date = curDate.date();
     }
 
     let outOfRange = false;
@@ -165,12 +166,20 @@ async function initDatabase() {
             if (outOfRange) break;
 
             if (date == 0) {
-                const specifiedDate = new Date(year, month, 0);
-                date = specifiedDate.getDate();
+                const specifiedDate = moment({
+                    year,
+                    month,
+                    date: 1
+                }).subtract(1, 'days');
+                date = specifiedDate.date();
             }
 
             for (; date > 0; date--) {
-                if (new Date(year, month - 1, date) - targetDate < 0) {
+                if (moment({
+                        year,
+                        month: month - 1,
+                        date
+                    }) - targetDate < 0) {
                     outOfRange = true;
                     break;
                 }

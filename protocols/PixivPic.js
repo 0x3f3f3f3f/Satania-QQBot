@@ -5,6 +5,7 @@ const sharp = require('sharp');
 sharp.cache(false);
 const _ = require('lodash');
 const childProcess = require('child_process');
+const moment = require('moment');
 
 // 连接数据库
 const knex = require('knex')({
@@ -55,15 +56,15 @@ let isInitialized = false;
 
 // 计时器 每秒执行一次
 // 当前小时
-let curHours = new Date().getHours();
+let curHours = moment().hours();
 // 色图技能充能
 const illustMaxCharge = 5;
 const illustCD = 120;
 const illustCharge = {};
 const timer = setInterval(() => {
-    const curDate = new Date();
-    if (curHours != curDate.getHours()) {
-        curHours = curDate.getHours();
+    const curMoment = moment();
+    if (curHours != curMoment.hours()) {
+        curHours = curMoment.hours();
         // 每天12点清理色图缓存、更新色图库
         if (curHours == 12) {
             cleanUp();
@@ -168,7 +169,7 @@ async function downloadIllust(illust, group) {
             await knex('seen_list').insert({
                 group,
                 illust_id: illust.id,
-                date: new Date().toISOString()
+                date: moment().format()
             });
         }
         const sourceImg = sharp(illustPath);

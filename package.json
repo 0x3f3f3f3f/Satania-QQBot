@@ -8,6 +8,7 @@
     "gif-frames": "^1.0.1",
     "knex": "^0.20.1",
     "lodash": "^4.17.15",
+    "moment": "^2.24.0",
     "mysql2": "^2.0.0",
     "pixiv-app-api": "^1.0.2",
     "pixiv-img": "^1.0.0",

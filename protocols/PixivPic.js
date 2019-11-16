@@ -141,7 +141,12 @@ async function searchIllust(group, tags, num) {
         }
         illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
     } else {
-        illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%').as('illusts');
+        let likeQuery = '';
+        for (const tag of tagList) {
+            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
+            likeQuery += ' and \`tags\` not like \'%r-18%\'';
+        }
+        illustsQuery = knex('illusts').where(likeQuery).as('illusts');
     }
 
     if (group != '') {
@@ -151,31 +156,20 @@ async function searchIllust(group, tags, num) {
                     knex.from(
                         knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
-                );
+                ).orderByRaw('rand()').limit(1);
         } else {
             illusts = await knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(
                         knex('seen_list').where('group', group).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
-                );
+                ).orderByRaw('rand()').limit(1);
         }
     } else {
-        illusts = await illustsQuery;
+        illusts = await illustsQuery.orderByRaw('rand()').limit(1);
     }
 
-    if (_.isEmpty(illusts)) return null;
-
-    while (illusts.length > 0) {
-        const index = parseInt(Math.random() * illusts.length);
-        const illust = illusts[index];
-        if (tags || new RegExp(tagList.join('|')).test(illust.tags)) {
-            return illusts[index];
-        } else {
-            illusts.splice(index, 1);
-        }
-    }
-    return null;
+    return illusts[0];
 }
 
 async function downloadIllust(illust, group, num) {

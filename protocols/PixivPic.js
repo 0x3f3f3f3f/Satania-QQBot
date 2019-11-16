@@ -1,10 +1,10 @@
-const PixivAppApi = require('pixiv-app-api');
 const pixivImg = require("pixiv-img");
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 sharp.cache(false);
 const _ = require('lodash');
+const childProcess = require('child_process');
 
 // 连接数据库
 const knex = require('knex')({
@@ -46,7 +46,7 @@ const groupList = JSON.parse(fs.readFileSync('./protocols/PixivPic_group_list.js
 let isInitialized = false;
 
 (async function () {
-    illustClear();
+    cleanUp();
     // 初始化数据库
     await initDatabase();
 
@@ -67,7 +67,8 @@ const timer = setInterval(() => {
         pixiv.login();
         // 每天12点清理色图缓存、更新色图库
         if (curHours == 12) {
-            illustClear();
+            cleanUp();
+            updateIllusts();
         }
     }
     // 充能（区分每个群）
@@ -83,49 +84,11 @@ const timer = setInterval(() => {
     }
 }, 1000);
 
-function illustClear() {
+function cleanUp() {
     const illustDir = fs.readdirSync(path.join(secret.tempPath, 'image'));
     for (const illustPath of illustDir) {
         fs.unlinkSync(path.join(secret.tempPath, 'image', illustPath));
     }
-}
-
-async function searchIllust(group, regExp) {
-    let illustsQuery;
-    let illusts;
-
-    if (regExp) illustsQuery = knex('illusts').where('tags', 'regexp', regExp).as('illusts');
-    else illustsQuery = 'illusts';
-
-    if (group != '') {
-        illusts = await knex.from(illustsQuery)
-            .whereNotExists(
-                knex.from(
-                    knex('seen_list').where('group', group).as('seen')
-                ).whereRaw('illusts.id = seen.illust_id')
-            );
-    } else {
-        illusts = await knex.from(illustsQuery);
-    }
-
-    if (_.isEmpty(illusts)) return null;
-
-    // 筛选
-    while (illusts.length > 0) {
-        const index = parseInt(Math.random() * illusts.length);
-        const illust = illusts[index];
-
-        if (
-            /r-18/i.test(illust.tags) //不要r18
-            // illust.total_bookmarks < 2000 //不要小于2000收藏
-        ) {
-            illusts.splice(index, 1);
-            continue;
-        }
-
-        return illust;
-    }
-    return null;
 }
 
 const tagList = [
@@ -155,6 +118,48 @@ const tagList = [
     '男の娘',
     'ちんちんの付いた美少女' //带把美少女
 ];
+
+function updateIllusts() {
+    childProcess.fork('Pixiv_database.js', [tagList.join(','), 'day', 0, 0, 7]);
+}
+
+async function searchIllust(group, regExp) {
+    let illustsQuery;
+    let illusts;
+
+    if (regExp) illustsQuery = knex('illusts').where('tags', 'regexp', regExp).as('illusts');
+    else illustsQuery = 'illusts';
+
+    if (group != '') {
+        illusts = await knex.from(illustsQuery)
+            .whereNotExists(
+                knex.from(
+                    knex('seen_list').where('group', group).as('seen')
+                ).whereRaw('illusts.id = seen.illust_id')
+            );
+    } else {
+        illusts = await knex.from(illustsQuery);
+    }
+
+    if (_.isEmpty(illusts)) return null;
+
+    // 筛选
+    while (illusts.length > 0) {
+        const index = parseInt(Math.random() * illusts.length);
+        const illust = illusts[index];
+
+        if (
+            /r-18/i.test(illust.tags) || //不要r18
+            illust.total_bookmarks < 2000 //不要小于2000收藏
+        ) {
+            illusts.splice(index, 1);
+            continue;
+        }
+
+        return illust;
+    }
+    return null;
+}
 
 async function downloadIllust(illust, group) {
     try {

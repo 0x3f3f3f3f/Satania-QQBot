@@ -141,17 +141,21 @@ async function searchIllust(group, tags, num) {
             likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
         }
         likeQuery += ') and \`tags\` not like \'%r-18%\'';
-        illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
+        illustsQuery = knex('illusts').whereRaw(likeQuery);
     } else {
-        illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%').as('illusts');
+        illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
     }
+    if (!num.resend & num.num > 1000) {
+        illustsQuery.where('total_bookmarks', '>=', num.num);
+    }
+    illustsQuery.as('illusts');
 
     if (group != '') {
-        if (num) {
+        if (num.resend) {
             illust = (await knex.from('illusts')
                 .whereExists(
                     knex.from(
-                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1).as('seen')
+                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num.num - 1).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
                 ))[0];
         } else {
@@ -182,7 +186,7 @@ async function downloadIllust(illust, group, num) {
     try {
         const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.image_url));
         await pixivImg(illust.image_url, illustPath);
-        if (group != '' && !num) {
+        if (group != '' && !num.resend) {
             await knex('seen_list').insert({
                 group,
                 illust_id: illust.id,
@@ -232,109 +236,172 @@ module.exports = function (recvObj, client) {
         })();
         return true;
     }
-    // 重发
-    if (/(重|重新|再)发/m.test(recvObj.content)) {
-        const msg = recvObj.content.replace(/\[.*?\]|(重|重新|再)发/g, '').trim();
-        let num = parseInt(msg.match(/\d+/));
+    // 获取数字
+    let num; {
+        const msg = recvObj.content.replace(/\[.*?\]/g, '').trim();
+        num = parseInt(msg.match(/\d+/));
         if (!num) {
             const numZh = msg.match(/[零一二两三四五六七八九十百千万亿兆]+/);
             if (numZh)
                 num = parseInt(nzhcn.decodeS(numZh.toString().replace(/两/g, '二')));
         }
-        PixivPic(recvObj, client, null, num || 1);
+    }
+    // 重发
+    if (/(重|重新|再)发/m.test(recvObj.content)) {
+        PixivPic(recvObj, client, null, {
+            resend: true,
+            num: num || 1
+        });
         return true;
     }
     // 胸
     if (/奶|乳|胸|欧派/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['乳,おっぱい', '魅惑の谷間']);
+        PixivPic(recvObj, client, ['乳,おっぱい', '魅惑の谷間'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 黑丝
     else if (/黑丝/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['黒スト', '黒ニーソ', '黒タイツ']);
+        PixivPic(recvObj, client, ['黒スト', '黒ニーソ', '黒タイツ'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 白丝
     else if (/白丝/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['白スト', '白ニーソ', '白タイツ']);
+        PixivPic(recvObj, client, ['白スト', '白ニーソ', '白タイツ'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 泡泡袜
     else if (/泡泡袜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ルーズソックス']);
+        PixivPic(recvObj, client, ['ルーズソックス'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 吊带袜
     else if (/吊带袜|吊袜带/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ガーターストッキング', 'ガーターベルト']);
+        PixivPic(recvObj, client, ['ガーターストッキング', 'ガーターベルト'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 其他丝袜
     else if (/袜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['丝袜', 'タイツ,パンスト', 'ストッキング']);
+        PixivPic(recvObj, client, ['丝袜', 'タイツ,パンスト', 'ストッキング'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 大腿
     else if (/腿/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['魅惑のふともも']);
+        PixivPic(recvObj, client, ['魅惑のふともも'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 臀
     else if (/屁股|臀|屁屁/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['尻']);
+        PixivPic(recvObj, client, ['尻'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 足底
     else if (/(足|脚)底/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['足裏']);
+        PixivPic(recvObj, client, ['足裏'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 足
     else if (/足|脚|jio/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['足']);
+        PixivPic(recvObj, client, ['足'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 胖次
     else if (/胖次|内裤|小裤裤/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ']);
+        PixivPic(recvObj, client, ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 拘束
     else if (/拘|束|捆|绑|缚/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['拘束', '緊縛']);
+        PixivPic(recvObj, client, ['拘束', '緊縛'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 萝莉
     else if (/萝莉|幼女|炼铜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ロリ', '幼女']);
+        PixivPic(recvObj, client, ['ロリ', '幼女'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 兽耳
     else if (/兽耳|兽娘/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['獣耳']);
+        PixivPic(recvObj, client, ['獣耳'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 伪娘
     else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['男の娘', 'ちんちんの付いた美少女']);
+        PixivPic(recvObj, client, ['男の娘', 'ちんちんの付いた美少女'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 蕾姆
     else if (/(蕾|雷)(姆|母)|rem/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['レム(リゼロ)']);
+        PixivPic(recvObj, client, ['レム(リゼロ)'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 初音未来
     else if (/初音|初音未来|miku|hatsunemiku|hatsune miku/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['初音ミク']);
+        PixivPic(recvObj, client, ['初音ミク'], {
+            resend: false,
+            num
+        });
         return true;
     }
     // 萨塔妮娅自己
     else if (/(萨|傻|撒)塔(妮|尼)(娅|亚)/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['サターニャ', '胡桃沢=サタニキア=マクドウェル']);
+        PixivPic(recvObj, client, ['サターニャ', '胡桃沢=サタニキア=マクドウェル'], {
+            resend: false,
+            num
+        });
         return true;
     } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
-        PixivPic(recvObj, client);
+        PixivPic(recvObj, client, null, {
+            resend: false,
+            num
+        });
         return true;
     }
     return false;

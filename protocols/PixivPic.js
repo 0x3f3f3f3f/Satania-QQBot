@@ -139,14 +139,14 @@ async function searchIllust(group, tags, num) {
             likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
             likeQuery += ' and \`tags\` not like \'%r-18%\'';
         }
-        illustsQuery = knex('illusts').whereRaw(likeQuery);
+        illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
     } else {
         let likeQuery = '';
         for (const tag of tagList) {
             likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
             likeQuery += ' and \`tags\` not like \'%r-18%\'';
         }
-        illustsQuery = knex('illusts').whereRaw(likeQuery);
+        illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
     }
 
     if (group != '') {
@@ -154,15 +154,15 @@ async function searchIllust(group, tags, num) {
             illusts = await knex.from('illusts')
                 .whereExists(
                     knex.from(
-                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1)
-                    ).whereRaw('illusts.id = seen_list.illust_id')
+                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1).as('seen')
+                    ).whereRaw('illusts.id = seen.illust_id')
                 );
         } else {
             illusts = await knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(
-                        knex('seen_list').where('group', group)
-                    ).whereRaw('illusts.id = seen_list.illust_id')
+                        knex('seen_list').where('group', group).as('seen')
+                    ).whereRaw('illusts.id = seen.illust_id')
                 );
         }
     } else {

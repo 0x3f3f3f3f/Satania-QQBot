@@ -171,23 +171,10 @@ async function searchIllust(group, tags, num) {
 
     if (_.isEmpty(illusts)) return null;
 
-    // 筛选
-    while (illusts.length > 0) {
+    if (illusts.length > 0) {
         const index = parseInt(Math.random() * illusts.length);
-        const illust = illusts[index];
-
-        if (
-            /r-18/i.test(illust.tags) || //不要r18
-            (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) //再次过滤一遍标签
-            // illust.total_bookmarks < 2000 //不要小于2000收藏
-        ) {
-            illusts.splice(index, 1);
-            continue;
-        }
-
-        return illust;
-    }
-    return null;
+        return illusts[index]
+    } else return null;
 }
 
 async function downloadIllust(illust, group, num) {

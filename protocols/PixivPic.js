@@ -117,13 +117,16 @@ const tagList = [
     '幼女',
     '獣耳',
     '男の娘',
-    'ちんちんの付いた美少女', //带把美少女
+    'ちんちんの付いた美少女' //带把美少女
+]
+
+const charTagList = [
     'レム(リゼロ)', //蕾姆
     '初音ミク' //初音未来
-];
+]
 
 function updateIllusts() {
-    childProcess.fork('Pixiv_database.js', [tagList.join(','), 'day', 0, 0, 7]);
+    childProcess.fork('Pixiv_database.js', [tagList.join(',') + ',' + charTagList.join(), 'day', 0, 0, 7]);
 }
 
 async function searchIllust(group, regExp, num) {
@@ -131,7 +134,7 @@ async function searchIllust(group, regExp, num) {
     let illusts;
 
     if (regExp) illustsQuery = knex('illusts').where('tags', 'regexp', regExp).as('illusts');
-    else illustsQuery = knex('illusts').where('tags', 'not regexp', 'レム\\(リゼロ\\)|初音ミク').as('illusts');
+    else illustsQuery = knex('illusts').where('tags', 'regexp', tagList.join('|')).as('illusts');
 
     if (group != '') {
         if (num) {

@@ -223,6 +223,7 @@ module.exports = function (recvObj, client) {
         (async function () {
             client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('tags', 'not like', '%r-18%').count('* as count'))[0].count + '张');
         })();
+        return true;
     }
     // 重发
     if (/(重|重新|再)发/m.test(recvObj.content)) {

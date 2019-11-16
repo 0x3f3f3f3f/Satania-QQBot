@@ -149,8 +149,8 @@ async function searchIllust(group, regExp) {
         const illust = illusts[index];
 
         if (
-            /r-18/i.test(illust.tags) || //不要r18
-            illust.total_bookmarks < 5000 //不要小于5000收藏
+            /r-18/i.test(illust.tags) //不要r18
+            // illust.total_bookmarks < 2000 //不要小于2000收藏
         ) {
             illusts.splice(index, 1);
             continue;

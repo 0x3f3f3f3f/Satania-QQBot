@@ -306,6 +306,11 @@ module.exports = function (recvObj, client) {
     else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.content)) {
         PixivPic(recvObj, client, '男の娘|ちんちんの付いた美少女');
         return true;
+    }
+    // 蕾姆
+    else if (/(蕾|雷)(姆|母)/m.test(recvObj.content)) {
+        PixivPic(recvObj, client, 'レム(リゼロ)');
+        return true;
     } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
         PixivPic(recvObj, client);
         return true;

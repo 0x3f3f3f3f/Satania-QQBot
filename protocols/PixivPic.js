@@ -166,7 +166,7 @@ async function downloadIllust(illust, group) {
         const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.image_url));
         await pixivImg(illust.image_url, illustPath);
         if (group != '') {
-            knex('seen_list').insert({
+            await knex('seen_list').insert({
                 group,
                 illust_id: illust.id,
                 date: new Date().toISOString()

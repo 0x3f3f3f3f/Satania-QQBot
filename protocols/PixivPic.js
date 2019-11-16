@@ -64,7 +64,6 @@ const timer = setInterval(() => {
     const curDate = new Date();
     if (curHours != curDate.getHours()) {
         curHours = curDate.getHours();
-        pixiv.login();
         // 每天12点清理色图缓存、更新色图库
         if (curHours == 12) {
             cleanUp();

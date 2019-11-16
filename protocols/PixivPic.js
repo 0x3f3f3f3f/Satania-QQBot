@@ -160,18 +160,21 @@ async function searchIllust(group, tags, num) {
                     knex.from(
                         knex('seen_list').where('group', group).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
-                ).orderByRaw('rand()').limit(1);
+                );
         }
     } else {
-        illusts = await illustsQuery.orderByRaw('rand()').limit(1);
+        illusts = await illustsQuery;
     }
 
     // 没给标签也没有命中性癖标签，需要重新找一次
-    if (!tags && !(new RegExp(tagList.join('|')).test(illusts[0].tags))) {
-        return searchIllust(group, tags, num);
+    while (illusts.length > 0) {
+        const index = parseInt(Math.random() * illusts.length);
+        const illust = illusts[index];
+        if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
+            illusts.splice(index, i);
+        } else return illust;
     }
-
-    return illusts[0];
+    return null;
 }
 
 async function downloadIllust(illust, group, num) {

@@ -141,12 +141,7 @@ async function searchIllust(group, tags, num) {
         }
         illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
     } else {
-        let likeQuery = '';
-        for (const tag of tagList) {
-            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
-            likeQuery += ' and \`tags\` not like \'%r-18%\'';
-        }
-        illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
+        illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%').as('illusts');
     }
 
     if (group != '') {
@@ -171,10 +166,16 @@ async function searchIllust(group, tags, num) {
 
     if (_.isEmpty(illusts)) return null;
 
-    if (illusts.length > 0) {
+    while (illusts.length > 0) {
         const index = parseInt(Math.random() * illusts.length);
-        return illusts[index]
-    } else return null;
+        const illust = illusts[index];
+        if (tags || new RegExp(tagList.join('|')).test(illust.tags)) {
+            return illusts[index];
+        } else {
+            illusts.splice(index, 1);
+        }
+    }
+    return null;
 }
 
 async function downloadIllust(illust, group, num) {

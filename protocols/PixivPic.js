@@ -133,7 +133,7 @@ function updateIllusts() {
 
 async function searchIllust(group, tags, num) {
     let illustsQuery;
-    let illusts;
+    let illust;
 
     if (tags) {
         let likeQuery = '';
@@ -148,33 +148,36 @@ async function searchIllust(group, tags, num) {
 
     if (group != '') {
         if (num) {
-            illusts = await knex.from('illusts')
+            illust = (await knex.from('illusts')
                 .whereExists(
                     knex.from(
                         knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
-                );
+                ))[0];
         } else {
-            illusts = await knex.from(illustsQuery)
+            const min = (await knex('illusts').min('id as min'))[0].min;
+            const max = (await knex('illusts').max('id as max'))[0].max;
+            illust = (await knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(
                         knex('seen_list').where('group', group).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
-                );
+                ).whereRaw('and illusts.id >= ?', [parseInt(min + Math.random() * (max - min))]).limit(1))[0];
         }
     } else {
-        illusts = await illustsQuery;
+        const min = (await knex('illusts').min('id as min'))[0].min;
+        const max = (await knex('illusts').max('id as max'))[0].max;
+        illust = (await illustsQuery.whereRaw('illusts.id >= ?', [parseInt(min + Math.random() * (max - min))]).limit(1))[0];
     }
 
+    if (!illust) return null;
+
     // 没给标签也没有命中性癖标签，需要重新找一次
-    while (illusts.length > 0) {
-        const index = parseInt(Math.random() * illusts.length);
-        const illust = illusts[index];
-        if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
-            illusts.splice(index, i);
-        } else return illust;
+    if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
+        return searchIllust(group, tags, num);
     }
-    return null;
+
+    return illust;
 }
 
 async function downloadIllust(illust, group, num) {

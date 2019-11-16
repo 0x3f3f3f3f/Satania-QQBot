@@ -170,11 +170,11 @@ async function searchIllust(group, regExp, num) {
     return null;
 }
 
-async function downloadIllust(illust, group) {
+async function downloadIllust(illust, group, num) {
     try {
         const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.image_url));
         await pixivImg(illust.image_url, illustPath);
-        if (group != '') {
+        if (group != '' && !num) {
             await knex('seen_list').insert({
                 group,
                 illust_id: illust.id,
@@ -294,7 +294,7 @@ module.exports = function (recvObj, client) {
     return false;
 }
 
-async function PixivPic(recvObj, client, regExp = null, num) {
+async function PixivPic(recvObj, client, regExp, num) {
     if (!isInitialized) {
         client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
         return;
@@ -323,7 +323,7 @@ async function PixivPic(recvObj, client, regExp = null, num) {
     try {
         const illust = await searchIllust(recvObj.group, regExp, num);
         if (!illust) throw 'illust is null';
-        illustPath = await downloadIllust(illust, recvObj.group);
+        illustPath = await downloadIllust(illust, recvObj.group, num);
     } catch {}
 
     if (illustPath) {

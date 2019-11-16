@@ -310,7 +310,7 @@ module.exports = function (recvObj, client) {
     }
     // 蕾姆
     else if (/(蕾|雷)(姆|母)|rem/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, 'レム\(リゼロ\)');
+        PixivPic(recvObj, client, 'レム\\(リゼロ\\)');
         return true;
     } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
         PixivPic(recvObj, client);

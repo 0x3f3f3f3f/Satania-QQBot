@@ -243,6 +243,11 @@ module.exports = function (recvObj, client) {
         PixivPic(recvObj, client, 'ルーズソックス');
         return true;
     }
+    // 吊带袜
+    else if (/吊带袜|吊袜带/m.test(recvObj.content)) {
+        PixivPic(recvObj, client, 'ガーターストッキング|ガーターベルト');
+        return true;
+    }
     // 其他丝袜
     else if (/袜/m.test(recvObj.content)) {
         PixivPic(recvObj, client, '丝袜|タイツ|パンスト|ストッキング');

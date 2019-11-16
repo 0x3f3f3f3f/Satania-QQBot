@@ -173,6 +173,8 @@ async function searchIllust(group, tags, num) {
         return searchIllust(group, tags, num);
     }
 
+    console.log('PixivPic:', illust.id, illust.title);
+
     return illust;
 }
 

@@ -129,31 +129,44 @@ function updateIllusts() {
     childProcess.fork('Pixiv_database.js', [tagList.join(',') + ',' + charTagList.join(), 'day', 0, 0, 7]);
 }
 
-async function searchIllust(group, regExp, num) {
+async function searchIllust(group, tags, num) {
     let illustsQuery;
     let illusts;
 
-    if (regExp) illustsQuery = knex('illusts').where('tags', 'regexp', regExp).as('illusts');
-    else illustsQuery = 'illusts';
+    if (tags) {
+        let likeQuery = '';
+        for (const tag of tags) {
+            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
+            likeQuery += ' and \`tags\` not like \'%r-18%\'';
+        }
+        illustsQuery = knex('illusts').whereRaw(likeQuery);
+    } else {
+        let likeQuery = '';
+        for (const tag of tagList) {
+            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
+            likeQuery += ' and \`tags\` not like \'%r-18%\'';
+        }
+        illustsQuery = knex('illusts').whereRaw(likeQuery);
+    }
 
     if (group != '') {
         if (num) {
             illusts = await knex.from('illusts')
                 .whereExists(
                     knex.from(
-                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1).as('seen')
-                    ).whereRaw('illusts.id = seen.illust_id')
+                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1)
+                    ).whereRaw('illusts.id = seen_list.illust_id')
                 );
         } else {
             illusts = await knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(
-                        knex('seen_list').where('group', group).as('seen')
-                    ).whereRaw('illusts.id = seen.illust_id')
+                        knex('seen_list').where('group', group)
+                    ).whereRaw('illusts.id = seen_list.illust_id')
                 );
         }
     } else {
-        illusts = await knex.from(illustsQuery);
+        illusts = await illustsQuery;
     }
 
     if (_.isEmpty(illusts)) return null;
@@ -165,7 +178,7 @@ async function searchIllust(group, regExp, num) {
 
         if (
             /r-18/i.test(illust.tags) || //不要r18
-            (!regExp && !(new RegExp(tagList.join('|')).test(illust.tags))) //再次过滤一遍标签
+            (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) //再次过滤一遍标签
             // illust.total_bookmarks < 2000 //不要小于2000收藏
         ) {
             illusts.splice(index, 1);
@@ -245,82 +258,82 @@ module.exports = function (recvObj, client) {
     }
     // 胸
     if (/奶|乳|胸|欧派/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '乳|おっぱい|魅惑の谷間');
+        PixivPic(recvObj, client, ['乳,おっぱい', '魅惑の谷間']);
         return true;
     }
     // 黑丝
     else if (/黑丝/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '黒スト|黒ニーソ|黒タイツ');
+        PixivPic(recvObj, client, ['黒スト', '黒ニーソ', '黒タイツ']);
         return true;
     }
     // 白丝
     else if (/白丝/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '白スト|白ニーソ|白タイツ');
+        PixivPic(recvObj, client, ['白スト', '白ニーソ', '白タイツ']);
         return true;
     }
     // 泡泡袜
     else if (/泡泡袜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, 'ルーズソックス');
+        PixivPic(recvObj, client, ['ルーズソックス']);
         return true;
     }
     // 吊带袜
     else if (/吊带袜|吊袜带/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, 'ガーターストッキング|ガーターベルト');
+        PixivPic(recvObj, client, ['ガーターストッキング', 'ガーターベルト']);
         return true;
     }
     // 其他丝袜
     else if (/袜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '丝袜|タイツ|パンスト|ストッキング');
+        PixivPic(recvObj, client, ['丝袜', 'タイツ,パンスト', 'ストッキング']);
         return true;
     }
     // 大腿
     else if (/腿/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '魅惑のふともも');
+        PixivPic(recvObj, client, ['魅惑のふともも']);
         return true;
     }
     // 臀
     else if (/屁股|臀|屁屁/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '尻');
+        PixivPic(recvObj, client, ['尻']);
         return true;
     }
     // 足
     else if (/足|脚|jio/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, '足');
+        PixivPic(recvObj, client, ['足']);
         return true;
     }
     // 胖次
     else if (/胖次|内裤|小裤裤/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, 'ぱんつ|パンツ|パンティ|パンチラ');
+        PixivPic(recvObj, client, ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ']);
         return true;
     }
     // 拘束
     else if (/拘|束|捆|绑|缚/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '拘束|緊縛');
+        PixivPic(recvObj, client, '[拘束', '緊縛]');
         return true;
     }
     // 萝莉
     else if (/萝莉|幼女|炼铜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, 'ロリ|幼女');
+        PixivPic(recvObj, client, ['ロリ', '幼女']);
         return true;
     }
     // 兽耳
     else if (/兽耳|兽娘/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '獣耳');
+        PixivPic(recvObj, client, ['獣耳']);
         return true;
     }
     // 伪娘
     else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, '男の娘|ちんちんの付いた美少女');
+        PixivPic(recvObj, client, ['男の娘', 'ちんちんの付いた美少女']);
         return true;
     }
     // 蕾姆
     else if (/(蕾|雷)(姆|母)|rem/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, 'レム\\(リゼロ\\)');
+        PixivPic(recvObj, client, ['レム(リゼロ)']);
         return true;
     }
     // 初音未来
     else if (/初音|初音未来|miku|hatsunemiku|hatsune miku/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, '初音ミク');
+        PixivPic(recvObj, client, ['初音ミク']);
         return true;
     } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
         PixivPic(recvObj, client);
@@ -329,7 +342,7 @@ module.exports = function (recvObj, client) {
     return false;
 }
 
-async function PixivPic(recvObj, client, regExp, num) {
+async function PixivPic(recvObj, client, tags, num) {
     if (!isInitialized) {
         client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
         return;
@@ -356,7 +369,7 @@ async function PixivPic(recvObj, client, regExp, num) {
 
     let illustPath;
     try {
-        const illust = await searchIllust(recvObj.group, regExp, num);
+        const illust = await searchIllust(recvObj.group, tags, num);
         if (!illust) throw 'illust is null';
         illustPath = await downloadIllust(illust, recvObj.group, num);
     } catch {}

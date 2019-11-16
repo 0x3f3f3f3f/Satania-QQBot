@@ -145,7 +145,7 @@ async function searchIllust(group, tags, num) {
     } else {
         illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
     }
-    if (!num.resend & num.num > 1000) {
+    if (!num.resend && num.num > 1000 && group == '') {
         illustsQuery.where('total_bookmarks', '>=', num.num);
     }
     illustsQuery.as('illusts');

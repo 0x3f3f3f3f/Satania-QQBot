@@ -284,13 +284,18 @@ module.exports = function (recvObj, client) {
         PixivPic(recvObj, client, ['尻']);
         return true;
     }
+    // 足底
+    else if (/(足|脚)底/m.test(recvObj.content)) {
+        PixivPic(recvObj, client, ['足裏']);
+        return true;
+    }
     // 足
     else if (/足|脚|jio/im.test(recvObj.content)) {
         PixivPic(recvObj, client, ['足']);
         return true;
     }
     // 胖次
-    else if (/胖次|内裤|小裤裤/im.test(recvObj.content)) {
+    else if (/胖次|内裤|小裤裤/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ']);
         return true;
     }
@@ -325,7 +330,7 @@ module.exports = function (recvObj, client) {
         return true;
     }
     // 萨塔妮娅自己
-    else if (/(萨|傻|撒)塔(妮|尼)(娅|亚)/im.test(recvObj.content)) {
+    else if (/(萨|傻|撒)塔(妮|尼)(娅|亚)/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['サターニャ', '胡桃沢=サタニキア=マクドウェル']);
         return true;
     } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {

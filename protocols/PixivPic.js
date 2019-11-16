@@ -141,12 +141,7 @@ async function searchIllust(group, tags, num) {
         likeQuery += ') and \`tags\` not like \'%r-18%\'';
         illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
     } else {
-        let likeQuery = '';
-        for (const tag of tagList) {
-            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
-        }
-        likeQuery += ') and \`tags\` not like \'%r-18%\'';
-        illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
+        illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%').as('illusts');
     }
 
     if (group != '') {
@@ -167,6 +162,11 @@ async function searchIllust(group, tags, num) {
         }
     } else {
         illusts = await illustsQuery.orderByRaw('rand()').limit(1);
+    }
+
+    // 没给标签也没有命中性癖标签，需要重新找一次
+    if (!tags && !(new RegExp(tagList.join('|')).test(illusts[0].tags))) {
+        return searchIllust(group, tags, num);
     }
 
     return illusts[0];

@@ -6,6 +6,7 @@ sharp.cache(false);
 const _ = require('lodash');
 const childProcess = require('child_process');
 const moment = require('moment');
+const nzhcn = require('nzh/cn');
 
 // 连接数据库
 const knex = require('knex')({
@@ -219,7 +220,11 @@ module.exports = function (recvObj, client) {
 
     // 重发
     if (/(重|重新|再)发/m.test(recvObj.content)) {
-        const num = parseInt(recvObj.content.replace(/\[.*?\]|(重|重新|再)发/g, '').trim().match(/\d+/));
+        const msg = recvObj.content.replace(/\[.*?\]|(重|重新|再)发/g, '').trim();
+        let num = parseInt(msg.match(/\d+/));
+        if (!num) {
+            num = parseInt(nzhcn.decodeS(msg.match(/[零一二三四五六七八九十百千万亿兆]+/)));
+        }
         PixivPic(recvObj, client, null, num || 1);
         return true;
     }

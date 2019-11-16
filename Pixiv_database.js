@@ -70,6 +70,11 @@ async function initDatabase() {
             table.dateTime('create_date');
         });
     }
+    if (!(await knex.schema.hasColumn('illusts', 'page_count'))) {
+        await knex.schema.table('illusts', table => {
+            table.integer('page_count').unsigned();
+        });
+    }
     if (!(await knex.schema.hasColumn('illusts', 'width'))) {
         await knex.schema.table('illusts', table => {
             table.integer('width').unsigned();
@@ -179,7 +184,7 @@ async function initDatabase() {
 
                 let illusts;
                 try {
-                    illusts = (await pixiv.searchIllust(tagList.join(' OR ') + ' -腐', {
+                    illusts = (await pixiv.searchIllust(tagList.join(' OR ') + ' -腐 -足りない', {
                         sort: isDateDesc ? 'date_desc' : 'date_asc',
                         startDate: `${year}-${month}-${date}`,
                         endDate: `${year}-${month}-${date}`
@@ -270,10 +275,6 @@ function testIllust(illust) {
     illust.tags = tags;
 
     // 不要黑车
-    if (/足りない/.test(illust.tags)) {
-        const tags = illust.tags.replace(/足りない/g, '');
-        if (!(new RegExp(tagList.join('|')).test(tags))) return;
-    }
     if (/男/.test(illust.tags)) {
         if (!(/男の娘|ちんちんの付いた美少女/.test(illust.tags))) return;
     }
@@ -291,6 +292,7 @@ async function setIllust(illust) {
         user_id: illust.user.id,
         tags: illust.tags,
         create_date: illust.createDate,
+        page_count: illust.pageCount,
         width: illust.width,
         height: illust.height,
         total_view: illust.totalView,

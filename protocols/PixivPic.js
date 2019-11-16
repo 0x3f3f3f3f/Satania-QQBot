@@ -118,7 +118,8 @@ const tagList = [
     '獣耳',
     '男の娘',
     'ちんちんの付いた美少女', //带把美少女
-    'レム(リゼロ)' //蕾姆
+    'レム(リゼロ)', //蕾姆
+    '初音ミク' //初音未来
 ];
 
 function updateIllusts() {
@@ -311,6 +312,11 @@ module.exports = function (recvObj, client) {
     // 蕾姆
     else if (/(蕾|雷)(姆|母)|rem/im.test(recvObj.content)) {
         PixivPic(recvObj, client, 'レム\\(リゼロ\\)');
+        return true;
+    }
+    // 初音未来
+    else if (/初音|初音未来|miku|hatsunemiku|hatsune miku/im.test(recvObj.content)) {
+        PixivPic(recvObj, client, '初音ミク');
         return true;
     } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
         PixivPic(recvObj, client);

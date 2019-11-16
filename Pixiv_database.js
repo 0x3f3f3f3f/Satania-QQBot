@@ -167,8 +167,8 @@ async function initDatabase() {
 
             if (date == 0) {
                 const specifiedDate = moment({
-                    year,
-                    month,
+                    year: month == 12 ? year + 1 : year,
+                    month: month == 12 ? 0 : month,
                     date: 1
                 }).subtract(1, 'days');
                 date = specifiedDate.date();

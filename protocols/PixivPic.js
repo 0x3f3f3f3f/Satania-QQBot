@@ -123,7 +123,7 @@ function updateIllusts() {
     childProcess.fork('Pixiv_database.js', [tagList.join(','), 'day', 0, 0, 7]);
 }
 
-async function searchIllust(group, regExp) {
+async function searchIllust(group, regExp, num) {
     let illustsQuery;
     let illusts;
 
@@ -131,12 +131,21 @@ async function searchIllust(group, regExp) {
     else illustsQuery = 'illusts';
 
     if (group != '') {
-        illusts = await knex.from(illustsQuery)
-            .whereNotExists(
-                knex.from(
-                    knex('seen_list').where('group', group).as('seen')
-                ).whereRaw('illusts.id = seen.illust_id')
-            );
+        if (num) {
+            illusts = await knex.from('illusts')
+                .whereExists(
+                    knex.from(
+                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num - 1).as('seen')
+                    ).whereRaw('illusts.id = seen.illust_id')
+                );
+        } else {
+            illusts = await knex.from(illustsQuery)
+                .whereNotExists(
+                    knex.from(
+                        knex('seen_list').where('group', group).as('seen')
+                    ).whereRaw('illusts.id = seen.illust_id')
+                );
+        }
     } else {
         illusts = await knex.from(illustsQuery);
     }
@@ -208,6 +217,12 @@ module.exports = function (recvObj, client) {
         return false;
     }
 
+    // 重发
+    if (/(重|重新|再)发/m.test(recvObj.content)) {
+        const num = parseInt(recvObj.match(/\d+/));
+        PixivPic(recvObj, client, null, num || 1);
+        return true;
+    }
     // 胸
     if (/奶|乳|胸|欧派/m.test(recvObj.content)) {
         PixivPic(recvObj, client, '乳|おっぱい|魅惑の谷間');
@@ -279,7 +294,7 @@ module.exports = function (recvObj, client) {
     return false;
 }
 
-async function PixivPic(recvObj, client, regExp = null) {
+async function PixivPic(recvObj, client, regExp = null, num) {
     if (!isInitialized) {
         client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
         return;
@@ -296,7 +311,7 @@ async function PixivPic(recvObj, client, regExp = null) {
         illustCharge[recvObj.group].count = 99;
     }
 
-    if (illustCharge[recvObj.group].count == 0) {
+    if (illustCharge[recvObj.group].count == 0 && !num) {
         client.sendMsg(recvObj, '搞太快了~ 请等待' +
             (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +
             illustCharge[recvObj.group].cd % 60 + '秒'
@@ -306,7 +321,7 @@ async function PixivPic(recvObj, client, regExp = null) {
 
     let illustPath;
     try {
-        const illust = await searchIllust(recvObj.group, regExp);
+        const illust = await searchIllust(recvObj.group, regExp, num);
         if (!illust) throw 'illust is null';
         illustPath = await downloadIllust(illust, recvObj.group);
     } catch {}

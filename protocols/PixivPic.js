@@ -218,6 +218,10 @@ module.exports = function (recvObj, client) {
         return false;
     }
 
+    if (/(色|涩|瑟)图计数|总数|总计/) {
+        client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('tags', 'not like', '%r-18%').select('count(*) as count'))[0].count + '张');
+    }
+
     // 重发
     if (/(重|重新|再)发/m.test(recvObj.content)) {
         const msg = recvObj.content.replace(/\[.*?\]|(重|重新|再)发/g, '').trim();
@@ -299,7 +303,7 @@ module.exports = function (recvObj, client) {
     else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.content)) {
         PixivPic(recvObj, client, '男の娘|ちんちんの付いた美少女');
         return true;
-    } else if (/(色|涩|瑟).*?图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
+    } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
         PixivPic(recvObj, client);
         return true;
     }

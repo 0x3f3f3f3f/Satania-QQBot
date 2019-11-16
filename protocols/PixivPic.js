@@ -136,16 +136,16 @@ async function searchIllust(group, tags, num) {
     if (tags) {
         let likeQuery = '';
         for (const tag of tags) {
-            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
+            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
         }
-        likeQuery += ' and \`tags\` not like \'%r-18%\'';
+        likeQuery += ') and \`tags\` not like \'%r-18%\'';
         illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
     } else {
         let likeQuery = '';
         for (const tag of tagList) {
-            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `\`tags\` like \'%${tag}%\'`;
+            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
         }
-        likeQuery += ' and \`tags\` not like \'%r-18%\'';
+        likeQuery += ') and \`tags\` not like \'%r-18%\'';
         illustsQuery = knex('illusts').whereRaw(likeQuery).as('illusts');
     }
 

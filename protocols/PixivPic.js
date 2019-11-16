@@ -219,7 +219,7 @@ module.exports = function (recvObj, client) {
 
     // 重发
     if (/(重|重新|再)发/m.test(recvObj.content)) {
-        const num = parseInt(recvObj.content.match(/\d+/));
+        const num = parseInt(recvObj.content.replace(/\[.*?\]|(重|重新|再)发/g, '').trim().match(/\d+/));
         PixivPic(recvObj, client, null, num || 1);
         return true;
     }

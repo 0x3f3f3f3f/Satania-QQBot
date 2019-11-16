@@ -223,7 +223,9 @@ module.exports = function (recvObj, client) {
         const msg = recvObj.content.replace(/\[.*?\]|(重|重新|再)发/g, '').trim();
         let num = parseInt(msg.match(/\d+/));
         if (!num) {
-            num = parseInt(nzhcn.decodeS(msg.match(/[零一二三四五六七八九十百千万亿兆]+/).replace(/两/g, '二')));
+            const numZh = msg.match(/[零一二两三四五六七八九十百千万亿兆]+/);
+            if (numZh)
+                num = parseInt(nzhcn.decodeS(numZh.replace(/两/g, '二')));
         }
         PixivPic(recvObj, client, null, num || 1);
         return true;

@@ -131,7 +131,7 @@ function updateIllusts() {
     childProcess.fork('Pixiv_database.js', [tagList.join(',') + ',' + charTagList.join(), 'day', 0, 0, 7]);
 }
 
-async function searchIllust(group, tags, num) {
+async function searchIllust(recvObj, tags, num) {
     let illustsQuery;
     let illust;
 
@@ -140,29 +140,37 @@ async function searchIllust(group, tags, num) {
         for (const tag of tags) {
             likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
         }
-        likeQuery += ') and \`tags\` not like \'%r-18%\'';
+        if (!num.resend && recvObj.type == 1 && num.num == 18) {
+            likeQuery += ')';
+        } else {
+            likeQuery += ') and \`tags\` not like \'%r-18%\'';
+        }
         illustsQuery = knex('illusts').whereRaw(likeQuery);
     } else {
-        illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
+        if (!num.resend && recvObj.type == 1 && num.num == 18) {
+            illustsQuery = knex('illusts');
+        } else {
+            illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
+        }
     }
-    if (!num.resend && num.num > 1000 && group == '') {
+    if (!num.resend && (recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && num.num > 1000) {
         illustsQuery.where('total_bookmarks', '>=', num.num);
     }
     illustsQuery.as('illusts');
 
-    if (group != '') {
+    if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj != '') {
         if (num.resend) {
             illust = (await knex.from('illusts')
                 .whereExists(
                     knex.from(
-                        knex('seen_list').where('group', group).orderBy('id', 'desc').limit(1).offset(num.num - 1).as('seen')
+                        knex('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(num.num - 1).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
                 ))[0];
         } else {
             illust = (await knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(
-                        knex('seen_list').where('group', group).as('seen')
+                        knex('seen_list').where('group', recvObj.group).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
                 ).orderByRaw('rand()').limit(1))[0];
         }
@@ -176,19 +184,19 @@ async function searchIllust(group, tags, num) {
 
     // 没给标签也没有命中性癖标签，需要重新找一次
     if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
-        return searchIllust(group, tags, num);
+        return searchIllust(recvObj, tags, num);
     }
 
     return illust;
 }
 
-async function downloadIllust(illust, group, num) {
+async function downloadIllust(illust, recvObj, num) {
     try {
         const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.image_url));
         await pixivImg(illust.image_url, illustPath);
-        if (group != '' && !num.resend) {
+        if (!num.resend && !(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj.group != '') {
             await knex('seen_list').insert({
-                group,
+                group: recvObj.group,
                 illust_id: illust.id,
                 date: moment().format()
             });
@@ -434,9 +442,9 @@ async function PixivPic(recvObj, client, tags, num) {
 
     let illustPath;
     try {
-        const illust = await searchIllust(recvObj.group, tags, num);
+        const illust = await searchIllust(recvObj, tags, num);
         if (!illust) throw 'illust is null';
-        illustPath = await downloadIllust(illust, recvObj.group, num);
+        illustPath = await downloadIllust(illust, recvObj, num);
     } catch {}
 
     if (illustPath) {

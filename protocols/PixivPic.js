@@ -131,7 +131,7 @@ async function searchIllust(group, regExp, num) {
     let illusts;
 
     if (regExp) illustsQuery = knex('illusts').where('tags', 'regexp', regExp).as('illusts');
-    else illustsQuery = 'illusts';
+    else illustsQuery = knex('illusts').where('tags', 'not regexp', 'レム\\(リゼロ\\)|初音ミク').as('illusts');
 
     if (group != '') {
         if (num) {

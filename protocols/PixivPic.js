@@ -168,12 +168,12 @@ async function searchIllust(group, tags, num) {
 
     if (!illust) return null;
 
+    console.log('PixivPic:', illust.id, illust.title);
+
     // 没给标签也没有命中性癖标签，需要重新找一次
     if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
         return searchIllust(group, tags, num);
     }
-
-    console.log('PixivPic:', illust.id, illust.title);
 
     return illust;
 }

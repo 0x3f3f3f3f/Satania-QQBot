@@ -134,7 +134,7 @@ async function searchIllust(group, regExp, num) {
     let illusts;
 
     if (regExp) illustsQuery = knex('illusts').where('tags', 'regexp', regExp).as('illusts');
-    else illustsQuery = knex('illusts').where('tags', 'regexp', tagList.join('|')).as('illusts');
+    else illustsQuery = 'illusts';
 
     if (group != '') {
         if (num) {
@@ -164,7 +164,8 @@ async function searchIllust(group, regExp, num) {
         const illust = illusts[index];
 
         if (
-            /r-18/i.test(illust.tags) //不要r18
+            /r-18/i.test(illust.tags) || //不要r18
+            (!regExp && !(new RegExp(tagList.join('|')).test(illust.tags))) //再次过滤一遍标签
             // illust.total_bookmarks < 2000 //不要小于2000收藏
         ) {
             illusts.splice(index, 1);

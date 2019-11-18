@@ -147,11 +147,16 @@ async function searchIllust(recvObj, tags, num) {
         }
         illustsQuery = knex('illusts').whereRaw(likeQuery);
     } else {
-        if (recvObj.type == 1) {
-            illustsQuery = knex('illusts');
-        } else {
-            illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
+        let likeQuery = '';
+        for (const tag of tagList) {
+            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
         }
+        if (recvObj.type == 1) {
+            likeQuery += ')';
+        } else {
+            likeQuery += ') and \`tags\` not like \'%r-18%\'';
+        }
+        illustsQuery = knex('illusts').whereRaw(likeQuery);
     }
     if (!num.resend && (recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && num.num > 1000) {
         illustsQuery.where('total_bookmarks', '>=', num.num);
@@ -167,25 +172,25 @@ async function searchIllust(recvObj, tags, num) {
                     ).whereRaw('illusts.id = seen.illust_id')
                 ))[0];
         } else {
-            illust = (await knex.from(illustsQuery)
+            const curQuery = knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(
                         knex('seen_list').where('group', recvObj.group).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
-                ).orderByRaw('rand()').limit(1))[0];
+                );
+            const count = (await knex(curQuery).count('* as count'))[0].count;
+            const rand = Math.sqrt(1 - Math.pow(Math.random(), 2));
+            illust = (await curQuery.limit(1).offset(parseInt(rand * count)))[0];
         }
     } else {
-        illust = (await illustsQuery.orderByRaw('rand()').limit(1))[0];
+        const count = (await knex(illustsQuery).count('* as count'))[0].count;
+        const rand = Math.sqrt(1 - Math.pow(Math.random(), 2));
+        illust = (await illustsQuery.limit(1).offset(parseInt(rand * count)))[0];
     }
 
     if (!illust) return null;
 
-    console.log('PixivPic:', illust.id, illust.title);
-
-    // 没给标签也没有命中性癖标签，需要重新找一次
-    if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
-        return searchIllust(recvObj, tags, num);
-    }
+    console.log('PixivPic:', illust.id, illust.title, illust.create_date);
 
     return illust;
 }

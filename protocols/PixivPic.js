@@ -176,10 +176,10 @@ async function searchIllust(recvObj, tags, opt) {
         } else {
             illustsQuery.as('illusts');
             const curQuery = knex.from(illustsQuery)
-                .whereNotExists(
-                    knex.from(knex('seen_list').where('group', recvObj.group).as('seen'))
-                    .whereRaw('illusts.id = seen.illust_id')
-                );
+                .whereNotIn(
+                    'id',
+                    knex.select('illust_id as id').from('seen_list').where('group', recvObj.group)
+                )
             const count = (await curQuery.clone().count('* as count'))[0].count;
             const rand = 1 - Math.pow(1 - Math.random(), 2);
             illust = (await curQuery.limit(1).offset(parseInt(rand * count)))[0];

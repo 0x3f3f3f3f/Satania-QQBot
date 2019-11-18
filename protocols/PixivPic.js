@@ -140,12 +140,12 @@ async function searchIllust(recvObj, tags, num) {
     let illust;
 
     if (tags) {
-        let likeQuery = '';
+        let stringQuery = '';
         if (recvObj.type != 1) {
-            likeQuery += '\`tags\` not like \'%r-18%\' and ';
+            stringQuery += '\`tags\` not like \'%r-18%\' and ';
         }
-        likeQuery += `\`tags\` regexp ${replaceChar(tags.join('|'))}`;
-        illustsQuery = knex('illusts').whereRaw(likeQuery);
+        stringQuery += `\`tags\` regexp \'${replaceChar(tags.join('|'))}\'`;
+        illustsQuery = knex('illusts').whereRaw(stringQuery);
     } else {
         if (recvObj.type == 1) {
             illustsQuery = knex('illusts');

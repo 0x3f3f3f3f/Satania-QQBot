@@ -127,7 +127,7 @@ const charTagList = [
     '胡桃沢=サタニキア=マクドウェル' //胡桃泽·萨塔妮基亚·麦克道威尔
 ]
 
-function replaceChar(tag) {
+function replaceRegexpChar(tag) {
     return tag.replace(/(?=[\(\)\=])/g, '\\');
 }
 
@@ -144,7 +144,10 @@ async function searchIllust(recvObj, tags, num) {
         if (recvObj.type != 1) {
             stringQuery += '\`tags\` not like \'%r-18%\' and ';
         }
-        stringQuery += `\`tags\` regexp \'${replaceChar(tags.join('|'))}\'`;
+        for (const tag of tags) {
+            stringQuery += stringQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
+        }
+        stringQuery += ')';
         illustsQuery = knex('illusts').whereRaw(stringQuery);
     } else {
         if (recvObj.type == 1) {

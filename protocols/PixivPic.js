@@ -135,7 +135,7 @@ function updateIllusts() {
     childProcess.fork('Pixiv_database.js', [tagList.join(',') + ',' + charTagList.join(), 'day', 0, 0, 7]);
 }
 
-async function searchIllust(recvObj, tags, num) {
+async function searchIllust(recvObj, tags, opt) {
     let illustsQuery;
     let illust;
 
@@ -156,9 +156,9 @@ async function searchIllust(recvObj, tags, num) {
             illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
         }
     }
-    if (!num.resend) {
-        if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && num.num > 1000) {
-            illustsQuery.where('total_bookmarks', '>=', num.num);
+    if (!opt.resend) {
+        if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && opt.num > 1000) {
+            illustsQuery.where('total_bookmarks', '>=', opt.num);
         } else {
             const rand = 1 - Math.pow(1 - Math.random(), 2) * 20000;
             if (rand > 1000)
@@ -167,10 +167,10 @@ async function searchIllust(recvObj, tags, num) {
     }
 
     if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj != '') {
-        if (num.resend) {
+        if (opt.resend) {
             illust = (await knex('illusts')
                 .whereExists(
-                    knex.from(knex('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(num.num - 1).as('seen'))
+                    knex.from(knex('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(opt.num - 1).as('seen'))
                     .whereRaw('illusts.id = seen.illust_id')
                 ))[0];
         } else {
@@ -196,17 +196,17 @@ async function searchIllust(recvObj, tags, num) {
 
     // 没给标签也没有命中性癖标签，需要重新找一次
     if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
-        return searchIllust(recvObj, tags, num);
+        return searchIllust(recvObj, tags, opt);
     }
 
     return illust;
 }
 
-async function downloadIllust(illust, recvObj, num) {
+async function downloadIllust(illust, recvObj, opt) {
     try {
         const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.image_url));
         await pixivImg(illust.image_url, illustPath);
-        if (!num.resend && !(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj.group != '') {
+        if (!opt.resend && !(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj.group != '') {
             await knex('seen_list').insert({
                 group: recvObj.group,
                 illust_id: illust.id,
@@ -274,10 +274,22 @@ module.exports = function (recvObj, client) {
         });
         return true;
     }
+    // 十连or三连
+    let autoBurst = false;
+    let burstNum = 0;
+    if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) &&
+        /(十|10)连/m.test(recvObj.content)) {
+        autoBurst = true;
+        burstNum = 10;
+    } else if (/(三|3)连/m.test(recvObj.content)) {
+        autoBurst = true;
+        burstNum = 3;
+    }
     // 胸
     if (/奶|乳|胸|欧派/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['乳,おっぱい', '魅惑の谷間'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -285,7 +297,8 @@ module.exports = function (recvObj, client) {
     // 黑丝
     else if (/黑丝/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['黒スト', '黒ニーソ', '黒タイツ'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -293,7 +306,8 @@ module.exports = function (recvObj, client) {
     // 白丝
     else if (/白丝/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['白スト', '白ニーソ', '白タイツ'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -301,7 +315,8 @@ module.exports = function (recvObj, client) {
     // 泡泡袜
     else if (/泡泡袜/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['ルーズソックス'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -309,7 +324,8 @@ module.exports = function (recvObj, client) {
     // 吊带袜
     else if (/吊带袜|吊袜带/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['ガーターストッキング', 'ガーターベルト'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -317,7 +333,8 @@ module.exports = function (recvObj, client) {
     // 其他丝袜
     else if (/袜/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['丝袜', 'タイツ,パンスト', 'ストッキング'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -325,7 +342,8 @@ module.exports = function (recvObj, client) {
     // 大腿
     else if (/腿/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['魅惑のふともも'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -333,7 +351,8 @@ module.exports = function (recvObj, client) {
     // 臀
     else if (/屁股|臀|屁屁/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['尻'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -341,7 +360,8 @@ module.exports = function (recvObj, client) {
     // 足底
     else if (/(足|脚)底/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['足裏'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -349,7 +369,8 @@ module.exports = function (recvObj, client) {
     // 足
     else if (/足|脚|jio/im.test(recvObj.content)) {
         PixivPic(recvObj, client, ['足'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -357,7 +378,8 @@ module.exports = function (recvObj, client) {
     // 胖次
     else if (/胖次|内裤|小裤裤/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -365,7 +387,8 @@ module.exports = function (recvObj, client) {
     // 拘束
     else if (/拘|束|捆|绑|缚/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['拘束', '緊縛'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -373,7 +396,8 @@ module.exports = function (recvObj, client) {
     // 萝莉
     else if (/萝莉|幼女|炼铜/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['ロリ', '幼女'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -381,7 +405,8 @@ module.exports = function (recvObj, client) {
     // 兽耳
     else if (/兽耳|兽娘/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['獣耳'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -389,7 +414,8 @@ module.exports = function (recvObj, client) {
     // 伪娘
     else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['男の娘', 'ちんちんの付いた美少女'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -397,7 +423,8 @@ module.exports = function (recvObj, client) {
     // 蕾姆
     else if (/(蕾|雷)(姆|母)|rem/im.test(recvObj.content)) {
         PixivPic(recvObj, client, ['レム(リゼロ)'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -405,7 +432,8 @@ module.exports = function (recvObj, client) {
     // 初音未来
     else if (/初音|初音未来|miku|hatsunemiku|hatsune miku/im.test(recvObj.content)) {
         PixivPic(recvObj, client, ['初音ミク'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -413,13 +441,15 @@ module.exports = function (recvObj, client) {
     // 萨塔妮娅自己
     else if (/(萨|傻|撒)塔(妮|尼)(娅|亚)/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['サターニャ', '胡桃沢=サタニキア=マクドウェル'], {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
     } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
         PixivPic(recvObj, client, null, {
-            resend: false,
+            autoBurst,
+            burstNum,
             num
         });
         return true;
@@ -427,7 +457,16 @@ module.exports = function (recvObj, client) {
     return false;
 }
 
-async function PixivPic(recvObj, client, tags, num) {
+async function PixivPic(recvObj, client, tags, opt) {
+    // N连抽
+    if (opt.autoBurst) {
+        opt.autoBurst = false;
+        for (let i = 0; i < opt.burstNum; i++) {
+            await PixivPic(recvObj, client, tags, opt);
+        }
+        return;
+    }
+
     if (!isInitialized) {
         client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
         return;
@@ -444,7 +483,7 @@ async function PixivPic(recvObj, client, tags, num) {
         illustCharge[recvObj.group].count = 99;
     }
 
-    if (illustCharge[recvObj.group].count == 0 && !num) {
+    if (illustCharge[recvObj.group].count == 0 && !opt) {
         client.sendMsg(recvObj, '搞太快了~ 请等待' +
             (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +
             illustCharge[recvObj.group].cd % 60 + '秒'
@@ -454,9 +493,9 @@ async function PixivPic(recvObj, client, tags, num) {
 
     let illustPath;
     try {
-        const illust = await searchIllust(recvObj, tags, num);
+        const illust = await searchIllust(recvObj, tags, opt);
         if (!illust) throw 'illust is null';
-        illustPath = await downloadIllust(illust, recvObj, num);
+        illustPath = await downloadIllust(illust, recvObj, opt);
     } catch {}
 
     if (illustPath) {

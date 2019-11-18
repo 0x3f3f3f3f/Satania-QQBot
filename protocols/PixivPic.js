@@ -161,17 +161,17 @@ async function searchIllust(recvObj, tags, num) {
     if (!num.resend && (recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && num.num > 1000) {
         illustsQuery.where('total_bookmarks', '>=', num.num);
     }
-    illustsQuery.as('illusts');
 
     if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj != '') {
         if (num.resend) {
-            illust = (await knex.from('illusts')
+            illust = (await knex('illusts')
                 .whereExists(
                     knex.from(
                         knex('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(num.num - 1).as('seen')
                     ).whereRaw('illusts.id = seen.illust_id')
                 ))[0];
         } else {
+            illustsQuery.as('illusts');
             const curQuery = knex.from(illustsQuery)
                 .whereNotExists(
                     knex.from(

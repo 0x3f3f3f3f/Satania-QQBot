@@ -66,9 +66,9 @@ const timer = setInterval(() => {
     const curMoment = moment();
     if (curHours != curMoment.hours()) {
         curHours = curMoment.hours();
+        cleanUp();
         // 每天12点清理色图缓存、更新色图库
         if (curHours == 12) {
-            cleanUp();
             updateIllusts();
         }
     }
@@ -127,6 +127,10 @@ const charTagList = [
     '胡桃沢=サタニキア=マクドウェル' //胡桃泽·萨塔妮基亚·麦克道威尔
 ]
 
+function replaceChar(tag) {
+    return tag.replace(/(?=[\(\)\=])/g, '\\');
+}
+
 function updateIllusts() {
     childProcess.fork('Pixiv_database.js', [tagList.join(',') + ',' + charTagList.join(), 'day', 0, 0, 7]);
 }
@@ -137,14 +141,10 @@ async function searchIllust(recvObj, tags, num) {
 
     if (tags) {
         let likeQuery = '';
-        for (const tag of tags) {
-            likeQuery += likeQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
+        if (recvObj.type != 1) {
+            likeQuery += '\`tags\` not like \'%r-18%\' and ';
         }
-        if (recvObj.type == 1) {
-            likeQuery += ')';
-        } else {
-            likeQuery += ') and \`tags\` not like \'%r-18%\'';
-        }
+        likeQuery += `\`tags\` regexp ${replaceChar(tags.join('|'))}`;
         illustsQuery = knex('illusts').whereRaw(likeQuery);
     } else {
         if (recvObj.type == 1) {
@@ -160,18 +160,16 @@ async function searchIllust(recvObj, tags, num) {
     if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj != '') {
         if (num.resend) {
             illust = (await knex('illusts')
-                .whereExists(
-                    knex.from(
-                        knex('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(num.num - 1).as('seen')
-                    ).whereRaw('illusts.id = seen.illust_id')
+                .whereIn(
+                    'id',
+                    knex.select('illust_id').from('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(num.num - 1)
                 ))[0];
         } else {
             illustsQuery.as('illusts');
             const curQuery = knex.from(illustsQuery)
-                .whereNotExists(
-                    knex.from(
-                        knex('seen_list').where('group', recvObj.group).as('seen')
-                    ).whereRaw('illusts.id = seen.illust_id')
+                .whereNot(
+                    'id',
+                    knex.select('illust_id').where('seen_list').where('group', recvObj.group)
                 );
             const count = (await curQuery.clone().count('* as count'))[0].count;
             const rand = Math.sqrt(1 - Math.pow(Math.random(), 2));

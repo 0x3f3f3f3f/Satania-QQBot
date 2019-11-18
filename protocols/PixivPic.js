@@ -172,7 +172,7 @@ async function searchIllust(recvObj, tags, num) {
             const curQuery = knex.from(illustsQuery)
                 .whereNot(
                     'id',
-                    knex.select('illust_id').where('seen_list').where('group', recvObj.group)
+                    knex.select('illust_id').from('seen_list').where('group', recvObj.group)
                 );
             const count = (await curQuery.clone().count('* as count'))[0].count;
             const rand = Math.sqrt(1 - Math.pow(Math.random(), 2));

@@ -141,11 +141,11 @@ async function searchIllust(recvObj, tags, num) {
 
     if (tags) {
         let stringQuery = '';
-        if (recvObj.type != 1) {
-            stringQuery += '\`tags\` not like \'%r-18%\' and ';
-        }
         for (const tag of tags) {
             stringQuery += stringQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
+        }
+        if (recvObj.type != 1) {
+            stringQuery = '\`tags\` not like \'%r-18%\' and ' + stringQuery;
         }
         stringQuery += ')';
         illustsQuery = knex('illusts').whereRaw(stringQuery);

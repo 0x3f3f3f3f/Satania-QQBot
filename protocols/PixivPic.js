@@ -185,7 +185,7 @@ async function searchIllust(recvObj, tags, num) {
 
     if (!illust) return null;
 
-    console.log('PixivPic:', illust.id, illust.title);
+    console.log('PixivPic:', illust.id, illust.title, moment(illust.create_date).format('YYYY-MM-DD, H:mm:ss'));
 
     // 没给标签也没有命中性癖标签，需要重新找一次
     if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {

@@ -163,16 +163,16 @@ async function searchIllust(recvObj, tags, num) {
     if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj != '') {
         if (num.resend) {
             illust = (await knex('illusts')
-                .whereIn(
-                    'id',
-                    knex.select('illust_id').from('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(num.num - 1)
+                .whereExists(
+                    knex.from(knex('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(num.num - 1).as('seen'))
+                    .whereRaw('illusts.id = seen.illust_id')
                 ))[0];
         } else {
             illustsQuery.as('illusts');
             const curQuery = knex.from(illustsQuery)
-                .whereNot(
-                    'id',
-                    knex.select('illust_id').from('seen_list').where('group', recvObj.group)
+                .whereNotExists(
+                    knex.from(knex('seen_list').where('group', recvObj.group).as('seen'))
+                    .whereRaw('illusts.id = seen.illust_id')
                 );
             const count = (await curQuery.clone().count('* as count'))[0].count;
             const rand = Math.sqrt(1 - Math.pow(Math.random(), 2));

@@ -156,8 +156,14 @@ async function searchIllust(recvObj, tags, num) {
             illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
         }
     }
-    if (!num.resend && (recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && num.num > 1000) {
-        illustsQuery.where('total_bookmarks', '>=', num.num);
+    if (!num.resend) {
+        if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && num.num > 1000) {
+            illustsQuery.where('total_bookmarks', '>=', num.num);
+        } else {
+            const rand = 1 - Math.pow(1 - Math.random(), 2) * 20000;
+            if (rand > 1000)
+                illustsQuery.where('total_bookmarks', '>=', rand);
+        }
     }
 
     if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj != '') {
@@ -175,12 +181,12 @@ async function searchIllust(recvObj, tags, num) {
                     .whereRaw('illusts.id = seen.illust_id')
                 );
             const count = (await curQuery.clone().count('* as count'))[0].count;
-            const rand = Math.sqrt(1 - Math.pow(Math.random(), 2));
+            const rand = 1 - Math.pow(1 - Math.random(), 2);
             illust = (await curQuery.limit(1).offset(parseInt(rand * count)))[0];
         }
     } else {
         const count = (await illustsQuery.clone().count('* as count'))[0].count;
-        const rand = Math.sqrt(1 - Math.pow(Math.random(), 2));
+        const rand = 1 - Math.pow(1 - Math.random(), 2);
         illust = (await illustsQuery.limit(1).offset(parseInt(rand * count)))[0];
     }
 

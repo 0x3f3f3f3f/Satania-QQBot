@@ -4,6 +4,7 @@ const util = require('util');
 const _ = require('lodash');
 require('colors');
 const moment = require('moment');
+const EventEmitter = require('events');
 
 // 获得参数
 const tagList = _.isUndefined(process.argv[2]) ? null : process.argv[2].split(',');
@@ -18,11 +19,17 @@ const argDays = _.isUndefined(process.argv[6]) ? 0 : parseInt(process.argv[6]);
 
 const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 
-let pixivUserName = secret.PixivUserName2;
+const pixivClients = [];
+for (const account of secret.PixivAPIAccounts) {
+    const pixivClient = new PixivAppApi(account.userName, account.password, {
+        camelcaseKeys: true
+    });
+    pixivClient.rStatus = true;
+    pixivClient.rEvent = new EventEmitter();
+    pixivClients.push(pixivClient);
+}
 
-let pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
-    camelcaseKeys: true
-});
+let curPixivClient = pixivClients[0];
 
 const knex = require('knex')({
     client: 'mysql2',
@@ -122,10 +129,14 @@ async function initDatabase() {
     // 恢复作业
     let recoveryWork = (await knex('recovery_work').where('name', argName))[0];
 
-    await pixiv.login();
+    for (const pixivClient of pixivClients) {
+        await pixivClient.login();
+    }
     // 长期作业
     const pixivLoginTimer = setInterval(async () => {
-        await pixiv.login();
+        for (const pixivClient of pixivClients) {
+            await pixivClient.login();
+        }
     }, 3600000);
 
     let count = 0;
@@ -193,25 +204,17 @@ async function initDatabase() {
 
                 let illusts;
                 try {
-                    illusts = (await pixiv.searchIllust(tagList.join(' OR ') + ' -腐 -足りない', {
+                    illusts = (await curPixivClient.searchIllust(tagList.join(' OR ') + ' -腐 -足りない', {
                         sort: isDateDesc ? 'date_desc' : 'date_asc',
                         startDate: `${year}-${month}-${date}`,
                         endDate: `${year}-${month}-${date}`
                     })).illusts;
                 } catch {
                     console.log('Network failed'.red.bold);
-                    if (pixivUserName == secret.PixivUserName2) {
-                        pixivUserName = secret.PixivUserName3;
-                        pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {
-                            camelcaseKeys: true
-                        });
-                    } else {
-                        pixivUserName = secret.PixivUserName2;
-                        pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
-                            camelcaseKeys: true
-                        });
-                    }
-                    await pixiv.login();
+
+                    await waitPixivClientRecovery();
+
+                    await curPixivClient.login();
                     date++;
                     continue;
                 }
@@ -222,11 +225,11 @@ async function initDatabase() {
                     dayCount++
                 }
 
-                while (pixiv.hasNext()) {
+                while (curPixivClient.hasNext()) {
                     illusts = null;
 
                     try {
-                        illusts = (await pixiv.next()).illusts;
+                        illusts = (await curPixivClient.next()).illusts;
                     } catch {
                         console.log(util.format('Day count:', dayCount).magenta.bold);
                         if (dayCount > 5000) {
@@ -242,18 +245,10 @@ async function initDatabase() {
                             }
                         }
                         console.log('Network failed'.red.bold);
-                        if (pixivUserName == secret.PixivUserName2) {
-                            pixivUserName = secret.PixivUserName3;
-                            pixiv = new PixivAppApi(secret.PixivUserName3, secret.PixivPassword2, {
-                                camelcaseKeys: true
-                            });
-                        } else {
-                            pixivUserName = secret.PixivUserName2;
-                            pixiv = new PixivAppApi(secret.PixivUserName2, secret.PixivPassword, {
-                                camelcaseKeys: true
-                            });
-                        }
-                        await pixiv.login();
+
+                        await waitPixivClientRecovery();
+
+                        await curPixivClient.login();
                         date++;
                         break;
                     }
@@ -262,6 +257,40 @@ async function initDatabase() {
                         testIllust(illust);
                         count++;
                         dayCount++;
+                    }
+                }
+
+                async function waitPixivClientRecovery() {
+                    if (curPixivClient.rStatus) {
+                        curPixivClient.rStatus = false;
+                        setTimeout(() => {
+                            curPixivClient.rStatus = true;
+                            curPixivClient.rEvent.emit('recovery', curPixivClient);
+                        }, 300000);
+                    }
+
+                    let isFound = false;
+                    for (const pixivClient of pixivClients) {
+                        if (pixivClient.rStatus) {
+                            curPixivClient = pixivClient;
+                            isFound = true;
+                            break;
+                        }
+                    }
+                    if (!isFound) {
+                        await new Promise(resolve => {
+                            for (const pixivClient of pixivClients) {
+                                pixivClient.on('recovery', onRecovery);
+                            }
+
+                            function onRecovery(client) {
+                                for (const pixivClient of pixivClients) {
+                                    pixivClient.off('recovery', onRecovery);
+                                }
+                                curPixivClient = client;
+                                resolve();
+                            }
+                        });
                     }
                 }
             }

@@ -280,12 +280,12 @@ async function initDatabase() {
                     if (!isFound) {
                         await new Promise(resolve => {
                             for (const pixivClient of pixivClients) {
-                                pixivClient.on('recovery', onRecovery);
+                                pixivClient.rEvent.on('recovery', onRecovery);
                             }
 
                             function onRecovery(client) {
                                 for (const pixivClient of pixivClients) {
-                                    pixivClient.off('recovery', onRecovery);
+                                    pixivClient.rEvent.off('recovery', onRecovery);
                                 }
                                 curPixivClient = client;
                                 resolve();

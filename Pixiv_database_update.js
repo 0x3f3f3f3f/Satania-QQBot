@@ -136,8 +136,24 @@ async function getIllust(pixiv, illust, progress) {
                 break;
         }
     }
+
+    let tags = '';
+    for (const tag of illust.tags) {
+        tags += tags ? (',' + tag.name) : tag.name;
+    }
+
     await knex('illusts').where('id', illust.id).update({
-        level
+        title: illust.title,
+        image_url: illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
+        user_id: illust.user.id,
+        level,
+        tags,
+        create_date: illust.createDate,
+        page_count: illust.pageCount,
+        width: illust.width,
+        height: illust.height,
+        total_view: illust.totalView,
+        total_bookmarks: illust.totalBookmarks
     });
 
     console.log(`[${progress.index}/${progress.length}]`.green, illust.id, illust.title, level ? level.bold : level);

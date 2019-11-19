@@ -119,7 +119,7 @@ async function getIllust(pixiv, illust, progress) {
         return getIllust(curPixivClient, illust, progress);
     }
 
-    let level = null;
+    let level = '';
     if (!_.isEmpty(detail)) {
         switch (detail.xRestrict) {
             case 0:
@@ -156,7 +156,7 @@ async function getIllust(pixiv, illust, progress) {
         total_bookmarks: detail.totalBookmarks
     });
 
-    console.log(`[${progress.index}/${progress.length}]`.green, illust.id, detail.title, level ? level.bold : level);
+    console.log(`[${progress.index}/${progress.length}]`.green, illust.id, detail.title, level.bold);
 
     requests.splice(progress.i, 1);
     requestEvent.emit('finish');

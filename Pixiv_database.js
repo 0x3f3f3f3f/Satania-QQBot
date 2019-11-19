@@ -68,6 +68,11 @@ async function initDatabase() {
             table.integer('user_id').unsigned();
         });
     }
+    if (!(await knex.schema.hasColumn('illusts', 'level'))) {
+        await knex.schema.table('illusts', table => {
+            table.string('level').index('level');
+        });
+    }
     if (!(await knex.schema.hasColumn('illusts', 'tags'))) {
         await knex.schema.table('illusts', table => {
             table.string('tags');
@@ -327,10 +332,26 @@ function testIllust(illust) {
 }
 
 async function setIllust(illust) {
+    let level = '';
+    switch (illust.xRestrict) {
+        case 0:
+            level = 'safe';
+            break
+        case 1:
+            level = 'r18';
+            break;
+        case 2:
+            level = 'r18g';
+            break;
+        default:
+            level = 'unknow:' + illust.xRestrict;
+            break;
+    }
     const data = {
         title: illust.title,
         image_url: illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
         user_id: illust.user.id,
+        level,
         tags: illust.tags,
         create_date: illust.createDate,
         page_count: illust.pageCount,
@@ -341,13 +362,13 @@ async function setIllust(illust) {
     }
     if ((await knex('illusts').where('id', illust.id))[0]) {
         await knex('illusts').where('id', illust.id).update(data);
-        console.log('update=>', illust.id, illust.title);
+        console.log('update=>', illust.id, illust.title, level);
     } else {
         await knex('illusts').insert({
             id: illust.id,
             ...data
         });
-        console.log(util.format('set=>', illust.id, illust.title).bold);
+        console.log(util.format('set=>', illust.id, illust.title, level).bold);
     }
 }
 

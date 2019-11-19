@@ -138,25 +138,25 @@ async function getIllust(pixiv, illust, progress) {
     }
 
     let tags = '';
-    for (const tag of illust.tags) {
+    for (const tag of detail.tags) {
         tags += tags ? (',' + tag.name) : tag.name;
     }
 
     await knex('illusts').where('id', illust.id).update({
-        title: illust.title,
-        image_url: illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
-        user_id: illust.user.id,
+        title: detail.title,
+        image_url: detail.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
+        user_id: detail.user.id,
         level,
         tags,
-        create_date: illust.createDate,
-        page_count: illust.pageCount,
-        width: illust.width,
-        height: illust.height,
-        total_view: illust.totalView,
-        total_bookmarks: illust.totalBookmarks
+        create_date: detail.createDate,
+        page_count: detail.pageCount,
+        width: detail.width,
+        height: detail.height,
+        total_view: detail.totalView,
+        total_bookmarks: detail.totalBookmarks
     });
 
-    console.log(`[${progress.index}/${progress.length}]`.green, illust.id, illust.title, level ? level.bold : level);
+    console.log(`[${progress.index}/${progress.length}]`.green, illust.id, detail.title, level ? level.bold : level);
 
     requests.splice(progress.i, 1);
     requestEvent.emit('finish');

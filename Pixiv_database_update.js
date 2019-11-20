@@ -31,6 +31,8 @@ const knex = require('knex')({
 const requests = [];
 const requestEvent = new EventEmitter();
 
+const index = _.isUndefined(process.argv[2]) ? 0 : parseInt(process.argv[2]) - 1;
+
 (async function () {
     for (const pixivClient of pixivClients) {
         await pixivClient.login();
@@ -42,7 +44,7 @@ const requestEvent = new EventEmitter();
     }, 3600000);
 
     const illusts = await knex('illusts');
-    for (let i = 0; i < illusts.length; i++) {
+    for (let i = index; i < illusts.length; i++) {
         const illust = illusts[i];
 
         getIllust(curPixivClient, illust, {
@@ -161,7 +163,7 @@ async function getIllust(pixiv, illust, progress) {
         total_bookmarks: detail.totalBookmarks
     });
 
-    console.log(`[${progress.index}/${progress.length}]`.green, illust.id, detail.title, level.bold);
+    console.log(`[${progress.index+1}/${progress.length}]`.green, illust.id, detail.title, level.bold);
 
     requests.splice(progress.i, 1);
     requestEvent.emit('finish');

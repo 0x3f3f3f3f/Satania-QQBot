@@ -82,12 +82,6 @@ async function getIllust(pixiv, illust, progress) {
             requestEvent.emit('finish');
             return;
         }
-        let accountStatus = '';
-        for (const pixivClient of pixivClients) {
-            if (pixivClient.rStatus) accountStatus += '[' + 'a'.green + ']';
-            else accountStatus += '[' + 'dead'.red.bold + ']';
-        }
-        console.log('Network failed'.red.bold, accountStatus);
 
         if (pixiv.rStatus) {
             pixiv.rStatus = false;
@@ -96,6 +90,13 @@ async function getIllust(pixiv, illust, progress) {
                 pixiv.rEvent.emit('recovery', pixiv);
             }, 300000);
         }
+
+        let accountStatus = '';
+        for (const pixivClient of pixivClients) {
+            if (pixivClient.rStatus) accountStatus += '[' + 'a'.green + ']';
+            else accountStatus += '[' + 'd'.red.bold + ']';
+        }
+        console.log('Network failed'.red.bold, accountStatus);
 
         let isFound = false;
         for (const pixivClient of pixivClients) {

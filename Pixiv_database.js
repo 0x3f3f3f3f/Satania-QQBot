@@ -215,8 +215,6 @@ async function initDatabase() {
                         endDate: `${year}-${month}-${date}`
                     })).illusts;
                 } catch {
-                    console.log('Network failed'.red.bold);
-
                     await waitPixivClientRecovery();
 
                     await curPixivClient.login();
@@ -249,7 +247,6 @@ async function initDatabase() {
                                 break;
                             }
                         }
-                        console.log('Network failed'.red.bold);
 
                         await waitPixivClientRecovery();
 
@@ -273,6 +270,13 @@ async function initDatabase() {
                             curPixivClient.rEvent.emit('recovery', curPixivClient);
                         }, 300000);
                     }
+
+                    let accountStatus = '';
+                    for (const pixivClient of pixivClients) {
+                        if (pixivClient.rStatus) accountStatus += '[' + 'a'.green + ']';
+                        else accountStatus += '[' + 'd'.red.bold + ']';
+                    }
+                    console.log('Network failed'.red.bold, accountStatus);
 
                     let isFound = false;
                     for (const pixivClient of pixivClients) {

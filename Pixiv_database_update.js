@@ -51,7 +51,7 @@ const requestEvent = new EventEmitter();
         });
 
         await new Promise(resolve => {
-            if (requests.length < 10) resolve();
+            if (requests.length < 5) resolve();
             requestEvent.on('finish', onFinish);
 
             function onFinish() {
@@ -80,7 +80,12 @@ async function getIllust(pixiv, illust, progress) {
             requestEvent.emit('finish');
             return;
         }
-        console.log('Network failed'.red.bold);
+        let accountStatus = '';
+        for (const pixivClient of pixivClients) {
+            if (pixivClient.rStatus) accountStatus += '[' + 'a'.green + ']';
+            else accountStatus += '[' + 'dead'.red.bold + ']';
+        }
+        console.log('Network failed'.red.bold, accountStatus);
 
         if (pixiv.rStatus) {
             pixiv.rStatus = false;

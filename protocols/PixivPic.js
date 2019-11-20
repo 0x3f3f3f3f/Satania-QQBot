@@ -124,7 +124,8 @@ const charTagList = [
     'レム(リゼロ)', //蕾姆
     '初音ミク', //初音未来
     'サターニャ', //萨塔妮娅
-    '胡桃沢=サタニキア=マクドウェル' //胡桃泽·萨塔妮基亚·麦克道威尔
+    '胡桃沢=サタニキア=マクドウェル', //胡桃泽·萨塔妮基亚·麦克道威尔
+    '時崎狂三'
 ]
 
 function replaceRegexpChar(tag) {
@@ -145,7 +146,7 @@ async function searchIllust(recvObj, tags, opt) {
             stringQuery += stringQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
         }
         if (recvObj.type != 1) {
-            stringQuery = '\`tags\` not like \'%r-18%\' and ' + stringQuery;
+            stringQuery = '\`rating\` not like \'r18%\' and ' + stringQuery;
         }
         stringQuery += ')';
         illustsQuery = knex('illusts').whereRaw(stringQuery);
@@ -153,7 +154,7 @@ async function searchIllust(recvObj, tags, opt) {
         if (recvObj.type == 1) {
             illustsQuery = knex('illusts');
         } else {
-            illustsQuery = knex('illusts').where('tags', 'not like', '%r-18%')
+            illustsQuery = knex('illusts').where('rating', 'not like', 'r18%')
         }
     }
     if (!opt.resend) {
@@ -286,7 +287,7 @@ module.exports = function (recvObj, client) {
         burstNum = 3;
     }
     // 胸
-    if (/奶|乳|胸|欧派/m.test(recvObj.content)) {
+    if (/奶|乳|胸|欧派|咪咪/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['乳,おっぱい', '魅惑の谷間'], {
             autoBurst,
             burstNum,
@@ -430,7 +431,7 @@ module.exports = function (recvObj, client) {
         return true;
     }
     // 初音未来
-    else if (/初音|初音未来|miku|hatsunemiku|hatsune miku/im.test(recvObj.content)) {
+    else if (/初音|初音未来|miku|hatsunemiku|hatsune miku|公主殿下/im.test(recvObj.content)) {
         PixivPic(recvObj, client, ['初音ミク'], {
             autoBurst,
             burstNum,
@@ -441,6 +442,16 @@ module.exports = function (recvObj, client) {
     // 萨塔妮娅自己
     else if (/(萨|傻|撒)塔(妮|尼)(娅|亚)/m.test(recvObj.content)) {
         PixivPic(recvObj, client, ['サターニャ', '胡桃沢=サタニキア=マクドウェル'], {
+            autoBurst,
+            burstNum,
+            num
+        });
+        return true;
+
+    }
+    // 時崎狂三
+    else if (/狂三|时崎狂三|三三/m.test(recvObj.content)) {
+        PixivPic(recvObj, client, ['時崎狂三'], {
             autoBurst,
             burstNum,
             num
@@ -483,7 +494,7 @@ async function PixivPic(recvObj, client, tags, opt) {
         illustCharge[recvObj.group].count = 99;
     }
 
-    if (illustCharge[recvObj.group].count == 0 && !opt) {
+    if (illustCharge[recvObj.group].count <= 0 && !opt) {
         client.sendMsg(recvObj, '搞太快了~ 请等待' +
             (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +
             illustCharge[recvObj.group].cd % 60 + '秒'

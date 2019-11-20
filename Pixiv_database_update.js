@@ -74,8 +74,10 @@ const index = _.isUndefined(process.argv[2]) ? 0 : parseInt(process.argv[2]) - 1
         requestEvent.on('finish', onFinish);
 
         function onFinish() {
-            requestEvent.off('finish', onFinish);
-            if (requests.length == 0) resolve();
+            if (requests.length == 0) {
+                requestEvent.off('finish', onFinish);
+                resolve();
+            }
         }
     });
 
@@ -143,20 +145,20 @@ async function getIllust(pixiv, illust, progress) {
         return getIllust(curPixivClient, illust, progress);
     }
 
-    let level = '';
+    let rating = '';
     if (!_.isEmpty(detail)) {
         switch (detail.xRestrict) {
             case 0:
-                level = 'safe';
+                rating = 'safe';
                 break
             case 1:
-                level = 'r18';
+                rating = 'r18';
                 break;
             case 2:
-                level = 'r18g';
+                rating = 'r18g';
                 break;
             default:
-                level = 'unknow:' + detail.xRestrict;
+                rating = 'unknow:' + detail.xRestrict;
                 break;
         }
     }
@@ -170,7 +172,7 @@ async function getIllust(pixiv, illust, progress) {
         title: detail.title,
         image_url: detail.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
         user_id: detail.user.id,
-        level,
+        rating,
         tags,
         create_date: detail.createDate,
         page_count: detail.pageCount,
@@ -180,7 +182,7 @@ async function getIllust(pixiv, illust, progress) {
         total_bookmarks: detail.totalBookmarks
     });
 
-    console.log(`[${progress.index+1}/${progress.length}]`.green, illust.id, detail.title, level.bold);
+    console.log(`[${progress.index+1}/${progress.length}]`.green, illust.id, detail.title, rating.bold);
 
     requests.splice(progress.i, 1);
     requestEvent.emit('finish');

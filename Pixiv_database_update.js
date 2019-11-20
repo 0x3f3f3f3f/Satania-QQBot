@@ -53,15 +53,31 @@ const index = _.isUndefined(process.argv[2]) ? 0 : parseInt(process.argv[2]) - 1
         });
 
         await new Promise(resolve => {
-            if (requests.length < 5) resolve();
+            if (requests.length < 5) {
+                resolve();
+                return;
+            }
             requestEvent.on('finish', onFinish);
 
             function onFinish() {
-                resolve();
                 requestEvent.off('finish', onFinish);
+                resolve();
             }
         });
     }
+
+    await new Promise(resolve => {
+        if (requests.length == 0) {
+            resolve();
+            return;
+        }
+        requestEvent.on('finish', onFinish);
+
+        function onFinish() {
+            requestEvent.off('finish', onFinish);
+            if (requests.length == 0) resolve();
+        }
+    });
 
     clearInterval(pixivLoginTimer);
     process.exit();

@@ -494,7 +494,7 @@ async function PixivPic(recvObj, client, tags, opt) {
         illustCharge[recvObj.group].count = 99;
     }
 
-    if (illustCharge[recvObj.group].count <= 0 && !opt) {
+    if (illustCharge[recvObj.group].count <= 0 && !opt.resend) {
         client.sendMsg(recvObj, '搞太快了~ 请等待' +
             (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +
             illustCharge[recvObj.group].cd % 60 + '秒'

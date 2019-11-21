@@ -215,7 +215,7 @@ async function initDatabase() {
                         endDate: `${year}-${month}-${date}`
                     })).illusts;
                 } catch {
-                    await waitPixivClientRecovery();
+                    await waitPixivClientRecovery(curPixivClient);
 
                     await curPixivClient.login();
                     date++;
@@ -248,7 +248,7 @@ async function initDatabase() {
                             }
                         }
 
-                        await waitPixivClientRecovery();
+                        await waitPixivClientRecovery(curPixivClient);
 
                         await curPixivClient.login();
                         date++;
@@ -262,12 +262,12 @@ async function initDatabase() {
                     }
                 }
 
-                async function waitPixivClientRecovery() {
-                    if (curPixivClient.rStatus) {
-                        curPixivClient.rStatus = false;
+                async function waitPixivClientRecovery(pClient) {
+                    if (pClient.rStatus) {
+                        pClient.rStatus = false;
                         setTimeout(() => {
-                            curPixivClient.rStatus = true;
-                            curPixivClient.rEvent.emit('recovery', curPixivClient);
+                            pClient.rStatus = true;
+                            pClient.rEvent.emit('recovery', pClient);
                         }, 300000);
                     }
 

@@ -55,7 +55,7 @@ function connet() {
         client.off('close', onClose);
         client.off('error', onError);
     }
-    client = new WebSocket(`ws://${secret.wsHost}:${secret.wsPort}/`);
+    client = new WebSocket(`ws://${secret.wsHost}:${secret.wsPort}${secret.wsPath}`);
     client.on('open', onOpen);
     client.on('message', onMessage);
     client.on('pong', onPong);
@@ -81,11 +81,11 @@ for (const protocolName of fs.readdirSync('./protocols')) {
 }
 
 // 协议入口
-function protocolEntry(recvObj, client) {
+async function protocolEntry(recvObj, client) {
     if (!protocols.SauceNAO(recvObj, client) &&
         !protocols.TraceMoe(recvObj, client) &&
         !protocols.UnityDoc(recvObj, client) &&
-        !protocols.PixivPic(recvObj, client)) {
+        !await protocols.PixivPic(recvObj, client)) {
         protocols.AIQQBot(recvObj, client);
     }
 }
@@ -95,7 +95,7 @@ function onOpen() {
 }
 
 // ws消息送达
-function onMessage(data) {
+async function onMessage(data) {
     if (!_.isString(data)) return;
     // console.log('=>', data);
 
@@ -145,11 +145,11 @@ function onMessage(data) {
         recvObj.type == 3 ||
         recvObj.type == 5 ||
         recvObj.type == 6) {
-        protocolEntry(recvObj, client);
+        await protocolEntry(recvObj, client);
     }
     // 在群里需要先被at了
     else if (protocols.atme(recvObj)) {
-        protocolEntry(recvObj, client);
+        await protocolEntry(recvObj, client);
     } else {
         // 复读机
         protocols.repeater(recvObj, client);

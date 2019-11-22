@@ -25,6 +25,11 @@ async function initDatabase() {
             table.increments('id').primary();
         });
     }
+    if (!(await knex.schema.hasTable('rule_list'))) {
+        await knex.schema.createTable('rule_list', table => {
+            table.increments('id').primary();
+        });
+    }
 
     if (!(await knex.schema.hasColumn('seen_list', 'group'))) {
         await knex.schema.table('seen_list', table => {
@@ -41,9 +46,22 @@ async function initDatabase() {
             table.dateTime('date');
         });
     }
+    if (!(await knex.schema.hasColumn('rule_list', 'type'))) {
+        await knex.schema.table('rule_list', table => {
+            table.string('type');
+        });
+    }
+    if (!(await knex.schema.hasColumn('rule_list', 'name'))) {
+        await knex.schema.table('rule_list', table => {
+            table.string('name');
+        });
+    }
+    if (!(await knex.schema.hasColumn('rule_list', 'rule'))) {
+        await knex.schema.table('rule_list', table => {
+            table.string('rule');
+        });
+    }
 }
-
-const groupList = JSON.parse(fs.readFileSync('./protocols/PixivPic_group_list.json', 'utf8'));
 
 let isInitialized = false;
 
@@ -66,8 +84,9 @@ const timer = setInterval(() => {
     const curMoment = moment();
     if (curHours != curMoment.hours()) {
         curHours = curMoment.hours();
+        //清理色图缓存
         cleanUp();
-        // 每天12点清理色图缓存、更新色图库
+        // 每天12点更新色图库
         if (curHours == 12) {
             updateIllusts();
         }
@@ -244,17 +263,31 @@ async function downloadIllust(illust, recvObj, opt) {
     }
 }
 
-module.exports = function (recvObj, client) {
+module.exports = async function (recvObj, client) {
     // 群黑名单
-    if (groupList.block.indexOf(recvObj.group.toString()) != -1) {
-        return false;
+    if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6)) {
+        const rule = (await knex('rule_list').where({
+            type: 'qq',
+            name: recvObj.qq,
+            rule: 'block'
+        }))[0];
+        if (rule && rule.name == recvObj.qq.toString()) {
+            return false;
+        }
+    } else {
+        const rule = (await knex('rule_list').where({
+            type: 'group',
+            name: recvObj.group,
+            rule: 'block'
+        }))[0];
+        if (rule && rule.group == recvObj.group.toString()) {
+            return false;
+        }
     }
 
     // 色图计数
     if (/((色|涩|瑟)图|图库)计数|总(数|计)/m.test(recvObj.content)) {
-        (async function () {
-            client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('rating', 'not like', 'r18%').count('* as count'))[0].count + '张');
-        })();
+        client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('rating', 'not like', 'r18%').count('* as count'))[0].count + '张');
         return true;
     }
     // 获取数字
@@ -490,16 +523,21 @@ async function PixivPic(recvObj, client, tags, opt) {
         }
     }
     // 白名单
-    if (groupList.white.indexOf(recvObj.group.toString()) != -1) {
-        illustCharge[recvObj.group].count = 99;
-    }
-
-    if (illustCharge[recvObj.group].count <= 0 && !opt.resend) {
-        client.sendMsg(recvObj, '搞太快了~ 请等待' +
-            (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +
-            illustCharge[recvObj.group].cd % 60 + '秒'
-        );
-        return;
+    if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6)) {
+        const rule = (await knex('rule_list').where({
+            type: 'group',
+            name: recvObj.group,
+            rule: 'white'
+        }))[0];
+        if (!(rule && rule.name == recvObj.group.toString())) {
+            if (illustCharge[recvObj.group].count <= 0 && !opt.resend) {
+                client.sendMsg(recvObj, '搞太快了~ 请等待' +
+                    (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +
+                    illustCharge[recvObj.group].cd % 60 + '秒'
+                );
+                return;
+            }
+        }
     }
 
     let illustPath;

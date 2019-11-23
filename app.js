@@ -71,10 +71,14 @@ let keepid = '';
 const heartBeat = setInterval(() => {
     if (client.readyState == WebSocket.OPEN) {
         client.ping();
+        // 保活查昵称怼过去
         keepid = uuid();
         client.send(JSON.stringify({
             id: keepid,
-            method: 'getLoginAccount'
+            method: 'getNickname',
+            params: {
+                qq: secret.targetQQ
+            }
         }));
     }
 }, 3000);

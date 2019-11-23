@@ -37,7 +37,7 @@ const heartBeat = setInterval(() => {
             }
         }));
     }
-}, 5000);
+}, 3000);
 
 
 function onOpen() {

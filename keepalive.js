@@ -23,8 +23,8 @@ function connet() {
 let client;
 connet();
 
-// 心跳
-const heartBeat = setInterval(() => {
+// 保活
+const keepalive = setInterval(() => {
     if (client.readyState == WebSocket.OPEN) {
         client.send(JSON.stringify({
             id: uuid(),

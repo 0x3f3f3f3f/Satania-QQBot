@@ -105,9 +105,6 @@ async function onMessage(data) {
     } catch {}
     if (_.isEmpty(recvObj)) return;
 
-    // 心跳
-    if (recvObj.params.qq == secret.heartbeatQQ) return;
-
     // 判断是否为qq消息
     if (recvObj.event != 'message') {
         console.log('=>', recvObj);
@@ -121,6 +118,9 @@ async function onMessage(data) {
         group: recvObj.params.group || '',
         content: recvObj.params.content || ''
     }
+
+    // 心跳
+    if (recvObj.qq == secret.keepaliveQQ) return;
 
     // 打印消息内容
     console.log('群:', recvObj.group, 'qq:', recvObj.qq, recvObj.content);

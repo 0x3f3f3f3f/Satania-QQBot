@@ -33,12 +33,12 @@ async function initDatabase() {
 
     if (!(await knex.schema.hasColumn('seen_list', 'group'))) {
         await knex.schema.table('seen_list', table => {
-            table.string('group');
+            table.string('group').index('group');
         });
     }
     if (!(await knex.schema.hasColumn('seen_list', 'illust_id'))) {
         await knex.schema.table('seen_list', table => {
-            table.integer('illust_id').unsigned();
+            table.integer('illust_id').index('illust_id').unsigned();
         });
     }
     if (!(await knex.schema.hasColumn('seen_list', 'date'))) {
@@ -48,17 +48,17 @@ async function initDatabase() {
     }
     if (!(await knex.schema.hasColumn('rule_list', 'type'))) {
         await knex.schema.table('rule_list', table => {
-            table.string('type');
+            table.string('type').index('type');
         });
     }
     if (!(await knex.schema.hasColumn('rule_list', 'name'))) {
         await knex.schema.table('rule_list', table => {
-            table.string('name');
+            table.string('name').index('name');
         });
     }
     if (!(await knex.schema.hasColumn('rule_list', 'rule'))) {
         await knex.schema.table('rule_list', table => {
-            table.string('rule');
+            table.string('rule').index('rule');
         });
     }
 }

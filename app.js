@@ -67,10 +67,17 @@ let client;
 connet();
 
 // 心跳
+let keepid = '';
 const heartBeat = setInterval(() => {
-    if (client.readyState == WebSocket.OPEN)
+    if (client.readyState == WebSocket.OPEN) {
         client.ping();
-}, 10000);
+        keepid = uuid();
+        client.send(JSON.stringify({
+            id: keepid,
+            method: 'getLoginAccount'
+        }));
+    }
+}, 3000);
 
 // 载入所有协议
 global.protocols = {};
@@ -107,7 +114,7 @@ async function onMessage(data) {
 
     // 判断是否为qq消息
     if (recvObj.event != 'message') {
-        console.log('=>', recvObj);
+        if (recvObj.id != keepid) console.log('=>', recvObj);
         return;
     }
 
@@ -118,9 +125,6 @@ async function onMessage(data) {
         group: recvObj.params.group || '',
         content: recvObj.params.content || ''
     }
-
-    // 心跳
-    if (recvObj.qq == secret.keepaliveQQ) return;
 
     // 打印消息内容
     console.log('群:', recvObj.group, 'qq:', recvObj.qq, recvObj.content);

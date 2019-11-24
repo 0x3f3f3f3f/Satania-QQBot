@@ -263,6 +263,37 @@ async function downloadIllust(illust, recvObj, opt) {
     }
 }
 
+//支持的标签
+let tagDic = 
+[
+    { RegExp :/奶|乳|胸|欧派|咪咪/m ,JapaneseTags = ['乳,おっぱい', '魅惑の谷間']},
+    { RegExp :/黑丝/m ,JapaneseTags = ['黒スト', '黒ニーソ', '黒タイツ']},
+    { RegExp :/白丝/m ,JapaneseTags = ['白スト', '白ニーソ', '白タイツ']},
+    { RegExp :/泡泡袜/m ,JapaneseTags = ['ルーズソックス']},
+    { RegExp :/吊带袜|吊袜带/m ,JapaneseTags = ['ガーターストッキング', 'ガーターベルト']},
+    { RegExp :/袜/m ,JapaneseTags = ['丝袜', 'タイツ,パンスト', 'ストッキング']},
+    { RegExp :/腿/m ,JapaneseTags = ['魅惑のふともも']},
+    { RegExp :/屁股|臀|屁屁/m ,JapaneseTags = ['尻']},
+    { RegExp :/(足|脚)底/m ,JapaneseTags = ['足裏']},
+    { RegExp :/足|脚|jio/im ,JapaneseTags = ['足']},
+    { RegExp :/胖次|内裤|小裤裤/m ,JapaneseTags = ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ']},
+    { RegExp :/拘|束|捆|绑|缚/m ,JapaneseTags = ['拘束', '緊縛']},
+    { RegExp :/萝莉|幼女|炼铜/m ,JapaneseTags = ['ロリ', '幼女']},
+    { RegExp :/兽耳|兽娘/m ,JapaneseTags = ['獣耳']},
+    { RegExp :/伪娘|女装|铝装|可爱的男|带把/m ,JapaneseTags = ['男の娘', 'ちんちんの付いた美少女']},
+    { RegExp :/(蕾|雷)(姆|母)|rem/im ,JapaneseTags = ['レム(リゼロ)']},
+    { RegExp :/初音|初音未来|miku|hatsunemiku|hatsune miku|公主殿下/im ,JapaneseTags = ['初音ミク']},
+    { RegExp :/(萨|傻|撒)塔(妮|尼)(娅|亚)/m ,JapaneseTags = ['サターニャ', '胡桃沢=サタニキア=マクドウェル']},
+    { RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
+    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
+    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
+    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
+    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
+    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
+    //在此处上方添加新的Tag！
+    { RegExp :/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im ,JapaneseTags = null},
+];
+
 module.exports = async function (recvObj, client) {
     // 群黑名单
     if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6)) {
@@ -319,185 +350,19 @@ module.exports = async function (recvObj, client) {
         autoBurst = true;
         burstNum = 3;
     }
-    // 胸
-    if (/奶|乳|胸|欧派|咪咪/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['乳,おっぱい', '魅惑の谷間'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 黑丝
-    else if (/黑丝/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['黒スト', '黒ニーソ', '黒タイツ'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 白丝
-    else if (/白丝/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['白スト', '白ニーソ', '白タイツ'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 泡泡袜
-    else if (/泡泡袜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ルーズソックス'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 吊带袜
-    else if (/吊带袜|吊袜带/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ガーターストッキング', 'ガーターベルト'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 其他丝袜
-    else if (/袜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['丝袜', 'タイツ,パンスト', 'ストッキング'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 大腿
-    else if (/腿/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['魅惑のふともも'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 臀
-    else if (/屁股|臀|屁屁/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['尻'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 足底
-    else if (/(足|脚)底/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['足裏'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 足
-    else if (/足|脚|jio/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['足'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 胖次
-    else if (/胖次|内裤|小裤裤/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 拘束
-    else if (/拘|束|捆|绑|缚/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['拘束', '緊縛'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 萝莉
-    else if (/萝莉|幼女|炼铜/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['ロリ', '幼女'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 兽耳
-    else if (/兽耳|兽娘/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['獣耳'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 伪娘
-    else if (/伪娘|女装|铝装|可爱的男|带把/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['男の娘', 'ちんちんの付いた美少女'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 蕾姆
-    else if (/(蕾|雷)(姆|母)|rem/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['レム(リゼロ)'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 初音未来
-    else if (/初音|初音未来|miku|hatsunemiku|hatsune miku|公主殿下/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['初音ミク'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
-    // 萨塔妮娅自己
-    else if (/(萨|傻|撒)塔(妮|尼)(娅|亚)/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['サターニャ', '胡桃沢=サタニキア=マクドウェル'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
 
-    }
-    // 時崎狂三
-    else if (/狂三|时崎狂三|三三/m.test(recvObj.content)) {
-        PixivPic(recvObj, client, ['時崎狂三'], {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    } else if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
-        PixivPic(recvObj, client, null, {
-            autoBurst,
-            burstNum,
-            num
-        });
-        return true;
-    }
+    //按照数组顺序贪婪匹配
+    tagDic.forEach(element => {
+        if (element.RegExp.test(recvObj.content)) {
+            PixivPic(recvObj, client, element.JapaneseTags, {
+                autoBurst,
+                burstNum,
+                num
+            });
+            return true;
+        }
+    });
+
     return false;
 }
 

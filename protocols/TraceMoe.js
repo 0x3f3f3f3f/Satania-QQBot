@@ -57,13 +57,9 @@ async function TraceMoe(imgInfo, recvObj, client) {
 
         tracemoeObj = await new Promise((resolve, reject) => {
             request.post('https://trace.moe/api/search', {
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: {
+                json: {
                     image: 'data:image/jpeg;base64,' + imgBase64
-                },
-                json: true
+                }
             }, (err, res, body) => {
                 if (err) {
                     reject();

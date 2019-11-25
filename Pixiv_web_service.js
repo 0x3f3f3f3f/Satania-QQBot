@@ -138,7 +138,7 @@ app.post('/login', async (req, res) => {
     await knex('users').where('account', account).update(user);
     res.json({
         result: true,
-        nextUri: '/edit.html?key=' + req.body.userKey
+        nextUrl: '/edit.html?key=' + req.body.userKey
     });
 });
 

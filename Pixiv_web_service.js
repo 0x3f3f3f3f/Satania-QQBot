@@ -66,6 +66,12 @@ const port = 33000;
 
 app.use(express.json());
 
+// 支持跨域
+app.all('*', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
+});
+
 // 获得用户名
 app.post('/getUserName', async (req, res) => {
     if (!_.isString(req.body.userKey)) {
@@ -232,10 +238,6 @@ app.post('/setUserTag', async (req, res) => {
     res.json({
         result: true
     });
-});
-
-app.all('*', (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
 });
 
 module.exports = function () {

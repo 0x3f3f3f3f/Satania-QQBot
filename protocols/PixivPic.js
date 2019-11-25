@@ -8,6 +8,9 @@ const childProcess = require('child_process');
 const moment = require('moment');
 const nzhcn = require('nzh/cn');
 
+const tagList = JSON.parse(fs.readFileSync('./protocols/Pixiv_tags.json', 'utf8'));
+tagList.searchTags = JSON.parse(fs.readFileSync('./protocols/Pixiv_search_tags.json', 'utf8'));
+
 // 连接数据库
 const knex = require('knex')({
     client: 'mysql2',
@@ -111,48 +114,12 @@ function cleanUp() {
     }
 }
 
-const tagList = [
-    '着',
-    '乳',
-    'おっぱい', //欧派
-    '魅惑', //可以匹配到魅惑的大腿、魅惑的乳沟
-    '黒スト', //黑Stocking 黑丝袜简称
-    '白スト', //白Stocking 白丝袜简称
-    'ニーソ', //Knee socks 过膝袜简称
-    'タイツ', //Tights 裤袜
-    'パンスト', //Panty stocking 裤袜简称
-    'ストッキング', //Stocking 丝袜
-    'ルーズソックス', //Loose socks 泡泡袜
-    '丝袜',
-    '足',
-    '尻',
-    'ぱんつ', //Pants 胖次
-    'パンツ', //Pants 胖次
-    'パンティ', //Panty 内裤
-    'パンチラ', //露内裤
-    '縛',
-    '束',
-    'ロリ', //萝莉
-    '幼女',
-    '獣耳',
-    '男の娘',
-    'ちんちんの付いた美少女' //带把美少女
-]
-
-const charTagList = [
-    'レム(リゼロ)', //蕾姆
-    '初音ミク', //初音未来
-    'サターニャ', //萨塔妮娅
-    '胡桃沢=サタニキア=マクドウェル', //胡桃泽·萨塔妮基亚·麦克道威尔
-    '時崎狂三'
-]
-
 function replaceRegexpChar(tag) {
     return tag.replace(/(?=[\(\)\=])/g, '\\');
 }
 
 function updateIllusts() {
-    childProcess.fork('Pixiv_database.js', [tagList.join(',') + ',' + charTagList.join(), 'day', 0, 0, 7]);
+    childProcess.fork('Pixiv_database.js', [tagList.sexTags.join() + ',' + tagList.charTags.join(), 'day', 0, 0, 7]);
 }
 
 async function searchIllust(recvObj, tags, opt) {
@@ -215,7 +182,7 @@ async function searchIllust(recvObj, tags, opt) {
     console.log('PixivPic:', illust.id, illust.title, moment(illust.create_date).format('YYYY-MM-DD, H:mm:ss'));
 
     // 没给标签也没有命中性癖标签，需要重新找一次
-    if (!tags && !(new RegExp(tagList.join('|')).test(illust.tags))) {
+    if (!tags && !(new RegExp(tagList.sexTags.join('|')).test(illust.tags))) {
         return searchIllust(recvObj, tags, opt);
     }
 
@@ -263,39 +230,8 @@ async function downloadIllust(illust, recvObj, opt) {
     }
 }
 
-//支持的标签
-let tagDic = 
-[
-    { RegExp :/奶|乳|胸|欧派|咪咪/m ,JapaneseTags = ['乳,おっぱい', '魅惑の谷間']},
-    { RegExp :/黑丝/m ,JapaneseTags = ['黒スト', '黒ニーソ', '黒タイツ']},
-    { RegExp :/白丝/m ,JapaneseTags = ['白スト', '白ニーソ', '白タイツ']},
-    { RegExp :/泡泡袜/m ,JapaneseTags = ['ルーズソックス']},
-    { RegExp :/吊带袜|吊袜带/m ,JapaneseTags = ['ガーターストッキング', 'ガーターベルト']},
-    { RegExp :/袜/m ,JapaneseTags = ['丝袜', 'タイツ,パンスト', 'ストッキング']},
-    { RegExp :/腿/m ,JapaneseTags = ['魅惑のふともも']},
-    { RegExp :/屁股|臀|屁屁/m ,JapaneseTags = ['尻']},
-    { RegExp :/(足|脚)底/m ,JapaneseTags = ['足裏']},
-    { RegExp :/足|脚|jio/im ,JapaneseTags = ['足']},
-    { RegExp :/胖次|内裤|小裤裤/m ,JapaneseTags = ['ぱんつ', 'パンツ', 'パンティ', 'パンチラ']},
-    { RegExp :/拘|束|捆|绑|缚/m ,JapaneseTags = ['拘束', '緊縛']},
-    { RegExp :/萝莉|幼女|炼铜/m ,JapaneseTags = ['ロリ', '幼女']},
-    { RegExp :/兽耳|兽娘/m ,JapaneseTags = ['獣耳']},
-    { RegExp :/伪娘|女装|铝装|可爱的男|带把/m ,JapaneseTags = ['男の娘', 'ちんちんの付いた美少女']},
-    { RegExp :/(蕾|雷)(姆|母)|rem/im ,JapaneseTags = ['レム(リゼロ)']},
-    { RegExp :/初音|初音未来|miku|hatsunemiku|hatsune miku|公主殿下/im ,JapaneseTags = ['初音ミク']},
-    { RegExp :/(萨|傻|撒)塔(妮|尼)(娅|亚)/m ,JapaneseTags = ['サターニャ', '胡桃沢=サタニキア=マクドウェル']},
-    { RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
-    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
-    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
-    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
-    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
-    //{ RegExp :/狂三|时崎狂三|三三/m ,JapaneseTags = ['時崎狂三']},
-    //在此处上方添加新的Tag！
-    { RegExp :/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im ,JapaneseTags = null},
-];
-
 module.exports = async function (recvObj, client) {
-    // 群黑名单
+    // 群、qq黑名单
     if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6)) {
         const rule = (await knex('rule_list').where({
             type: 'qq',
@@ -351,17 +287,27 @@ module.exports = async function (recvObj, client) {
         burstNum = 3;
     }
 
-    //按照数组顺序贪婪匹配
-    tagDic.forEach(element => {
-        if (element.RegExp.test(recvObj.content)) {
-            PixivPic(recvObj, client, element.JapaneseTags, {
+    // 匹配性癖标签
+    for (const searchTag of tagList.searchTags) {
+        if (new RegExp(searchTag.regExp, 'im').test(recvObj.content)) {
+            PixivPic(recvObj, client, searchTag.rawTag, {
                 autoBurst,
                 burstNum,
                 num
             });
             return true;
         }
-    });
+    }
+
+    // Fallback
+    if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
+        PixivPic(recvObj, client, null, {
+            autoBurst,
+            burstNum,
+            num
+        });
+        return true;
+    }
 
     return false;
 }

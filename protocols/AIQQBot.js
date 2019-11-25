@@ -4,8 +4,7 @@ const uuid = require('uuid/v4');
 const crypto = require('crypto');
 const fs = require('fs');
 
-const rules = JSON.parse(fs.readFileSync('./protocols/QQBot_rules.json', 'utf8'));
-const ruleKeys = Object.keys(rules);
+const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.json', 'utf8'));
 
 module.exports = function (recvObj, client) {
     inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
@@ -15,10 +14,10 @@ module.exports = function (recvObj, client) {
     }
 
     // 拦截规则
-    for (let i = ruleKeys.length - 1; i >= 0; i--) {
-        if (new RegExp(ruleKeys[i], 'im').test(inputText)) {
-            const index = parseInt(Math.random() * rules[ruleKeys[i]].length);
-            let msg = rules[ruleKeys[i]][index];
+    for (let i = localRules.length - 1; i >= 0; i--) {
+        if (new RegExp(localRules[i].regExp, 'im').test(inputText)) {
+            const index = parseInt(Math.random() * localRules[i].msgList.length);
+            let msg = localRules[i].msgList[index];
             msg = msg.replace('emoticons', secret.emoticonsPath);
             client.sendMsg(recvObj, msg);
             return;

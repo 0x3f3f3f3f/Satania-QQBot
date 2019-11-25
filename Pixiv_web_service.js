@@ -234,6 +234,10 @@ app.post('/setUserTag', async (req, res) => {
     });
 });
 
+app.all('*', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+});
+
 module.exports = function () {
     app.listen(port, '127.0.0.1');
 }

@@ -80,7 +80,7 @@ for (const protocolName of fs.readdirSync('./protocols')) {
         protocols[path.basename(protocolName, path.extname(protocolName))] = require(`./protocols/${protocolName}`);
     }
 }
-// 网页服务
+// web服务
 require('./Pixiv_web_service')();
 
 // 协议入口

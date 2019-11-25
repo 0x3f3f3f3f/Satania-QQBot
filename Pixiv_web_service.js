@@ -235,5 +235,5 @@ app.post('/setUserTag', async (req, res) => {
 });
 
 module.exports = function () {
-    app.listen(port);
+    app.listen(port, '127.0.0.1');
 }

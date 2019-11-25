@@ -257,6 +257,23 @@ module.exports = async function (recvObj, client) {
         client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('rating', 'not like', 'r18%').count('* as count'))[0].count + '张');
         return true;
     }
+
+    // 生成web服务的url
+    if (/编辑标签/m.test(recvObj.content)) {
+        const account = 'qq:' + recvObj.qq;
+        if (!(await knex('users').where('account', account))[0]) {
+            await knex('users').insert({
+                account
+            });
+        }
+        const key = Buffer.from(account, 'utf-8').toString('base64');
+        client.sendMsg(recvObj,
+            `[QQ:at=${recvObj.qq}]\r\n` +
+            '请登录：' + encodeURI(`${secret.publicDomainName}/satania/user-tags/login.html?key=${key}`)
+        );
+        return true;
+    }
+
     // 获取数字
     let num; {
         const msg = recvObj.content.replace(/\[.*?\]/g, '').trim();

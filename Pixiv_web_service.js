@@ -262,7 +262,7 @@ app.post('/setUserTag', async (req, res) => {
         }
         if (userTag.account != account) {
             res.json({
-                err: '你不能修其他用户的标签'
+                err: '你不能编辑其他用户的标签'
             });
             return;
         }

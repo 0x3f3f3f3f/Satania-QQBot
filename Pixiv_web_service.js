@@ -34,6 +34,11 @@ const knex = require('knex')({
             table.string('name');
         });
     }
+    if (!(await knex.schema.hasColumn('users', 'group'))) {
+        await knex.schema.table('users', table => {
+            table.string('group');
+        });
+    }
     if (!(await knex.schema.hasColumn('user_tags', 'account'))) {
         await knex.schema.table('user_tags', table => {
             table.string('account').index('account');
@@ -143,7 +148,32 @@ app.post('/login', async (req, res) => {
 });
 
 // 获得所有用户标签
-app.get('/getUserTags', async (req, res) => {
+app.post('/getUserTags', async (req, res) => {
+    if (!_.isString(req.body.userKey)) {
+        res.json({
+            err: true
+        });
+        return;
+    }
+
+    let account;
+    try {
+        account = Buffer.from(req.body.userKey, 'base64').toString('utf8');
+    } catch {
+        res.json({
+            err: '用户密钥错误'
+        });
+        return;
+    }
+
+    const user = (await knex('users').where('account', account))[0];
+    if (_.isEmpty(user)) {
+        res.json({
+            err: '用户未注册'
+        });
+        return;
+    }
+
     const userTags = await knex('user_tags').leftJoin('users', 'user_tags.account', 'users.account')
         .select(
             'user_tags.id as id',
@@ -153,9 +183,16 @@ app.get('/getUserTags', async (req, res) => {
             'user_tags.raw_tags as rawTags',
             'comment'
         );
+    let editableId
+    if (user.group == 'admin') {
+        editableId = await knex('user_tags').select('id');
+    } else {
+        editableId = await knex('user_tags').where('account', account).select('id');
+    }
     res.json({
         result: true,
-        userTags
+        userTags,
+        editableId
     });
 });
 

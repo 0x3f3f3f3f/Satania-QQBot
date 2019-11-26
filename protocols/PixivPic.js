@@ -263,7 +263,8 @@ module.exports = async function (recvObj, client) {
         const account = 'qq:' + recvObj.qq;
         if (!(await knex('users').where('account', account))[0]) {
             await knex('users').insert({
-                account
+                account,
+                group: 'user'
             });
         }
         const key = Buffer.from(account, 'utf-8').toString('base64');

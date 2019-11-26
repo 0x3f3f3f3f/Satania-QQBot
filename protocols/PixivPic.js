@@ -270,11 +270,10 @@ module.exports = async function (recvObj, client) {
             }
             const key = Buffer.from(account, 'utf-8').toString('base64');
             client.sendMsg(recvObj,
-                `[QQ:at=${recvObj.qq}]\r\n` +
                 '请登录：' + encodeURI(`${secret.publicDomainName}/satania/user-tags/login.html?key=${key}`)
             );
         } else {
-            client.sendMsg('哥哥~这个功能包含个人密钥，请和我私聊~');
+            client.sendMsg(recvObj, '哥哥~这个功能包含个人密钥，请和我私聊~');
         }
         return true;
     }

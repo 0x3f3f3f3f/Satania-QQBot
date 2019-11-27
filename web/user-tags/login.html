@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <title>Satania标签自助系统</title>
+
+    <!-- Custom styles for this template -->
+    <link href="css/signin.css" rel="stylesheet">
+</head>
+
+<body class="text-center">
+    <form class="form-signin">
+        <img class="mb-4 rounded" src="logo.jpg" alt="" width="72" height="72">
+
+        <h1 class="h3 mb-3 font-weight-normal">萨塔妮娅标签自助系统</h1>
+
+        <input type="text" id="inputName" class="form-control" placeholder="昵称" required autofocus>
+
+        <button class="btn btn-lg btn-primary btn-block" id='submit' type="button">登录</button>
+        <p class="mt-5 mb-3 text-muted">
+            Powered by<br>
+            黑暗大法师 | Freezer.CH<br>
+            2019
+        </p>
+    </form>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <script>
+        const searchParams = new URLSearchParams(window.location.search);
+
+        $(document).ready(async () => {
+            let res;
+            // 获得用户名
+            try {
+                res = await new Promise((resovle, reject) => {
+                    $.ajax({
+                        url: 'https://sub1.gameoldboy.com/satania/api/getUserName',
+                        method: 'POST',
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            userKey: searchParams.get('key')
+                        }),
+                        success: data => {
+                            resovle(data);
+                        },
+                        error: () => {
+                            reject();
+                        }
+                    });
+                });
+            } catch {
+                alert('网络发生错误');
+                return;
+            }
+            if (res.err == true) {
+                window.location.href = 'https://sub1.gameoldboy.com/404.html';
+                return;
+            }
+            if (res.err) {
+                alert(res.err);
+                return;
+            }
+            if (res.result) $('#inputName').val(res.userName);
+
+            // 点击登录
+            $('#submit').click(async () => {
+                res = null;
+                try {
+                    res = await new Promise((resovle, reject) => {
+                        $.ajax({
+                            url: 'https://sub1.gameoldboy.com/satania/api/login',
+                            method: 'POST',
+                            contentType: "application/json",
+                            data: JSON.stringify({
+                                userKey: searchParams.get('key'),
+                                userName: $('#inputName').val()
+                            }),
+                            success: data => {
+                                resovle(data);
+                            },
+                            error: () => {
+                                reject();
+                            }
+                        });
+                    });
+                } catch {
+                    alert('网络发生错误');
+                    return;
+                }
+                if (res.err == true) {
+                    alert('发生错误');
+                    return;
+                }
+                if (res.err) {
+                    alert(res.err);
+                    return;
+                }
+                if (res.result) window.location.href = 'edit.html?key=cXE6MjM0NTgwNTc=';
+            });
+        });
+    </script>
+</body>
+
+</html>

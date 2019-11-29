@@ -65,7 +65,7 @@
             const body = $(
                 '<div class="row mb-4">' +
                 '<div class="col">' +
-                '<p class="text-muted">匹配规则</p>' +
+                '<p class="mb-1 text-muted">匹配规则</p>' +
                 '<div id="matchButtons"></div>' +
                 `<input type="text" class="form-control" id="matchInput" value="${userTag.match}">` +
                 '</div>' +
@@ -81,13 +81,13 @@
                 '</div>' +
                 '<div class="row mb-4">' +
                 '<div class="col">' +
-                '<p class="text-muted">对应标签</p>' +
+                '<p class="mb-1 text-muted">对应标签</p>' +
                 '<div id="rawTagButtons"></div>' +
                 '</div>' +
                 '</div>' +
                 '<div class="row mb-4">' +
                 '<div class="col">' +
-                '<p class="text-muted">注释</p>' +
+                '<p class="mb-1 text-muted">注释</p>' +
                 '<div class="input-group">' +
                 '<div class="input-group-prepend">' +
                 '<span class="input-group-text">//</span>' +
@@ -115,7 +115,7 @@
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
                             matchButtons.append(
-                                `<span class="border border-info rounded mr-1 mb-1" id="matchButton${i}">${keyword}</span>`
+                                `<span class="border border-info rounded p-4 mr-1 mb-1 text-muted" id="matchButton${i}">${keyword}</span>`
                             );
                         }
                     }
@@ -154,17 +154,17 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<span class="border border-light rounded mr-1 mb-1" id="rawTagButton${i}">OR</span>`
+                                    `<span class="border border-light rounded p-4 mr-1 mb-1 text-muted" id="rawTagButton${i}">OR</span>`
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<span class="border border-light rounded mr-1 mb-1" id="rawTagButton${i}">AND</span>`
+                                    `<span class="border border-light rounded p-4 mr-1 mb-1 text-muted" id="rawTagButton${i}">AND</span>`
                                 );
                                 break;
                             default:
                                 rawTagButtons.append(
-                                    `<span class="border border-info rounded mr-1 mb-1" id="rawTagButton${i}">${tag}</span>`
+                                    `<span class="border border-info rounded p-4 mr-1 mb-1 text-muted" id="rawTagButton${i}">${tag}</span>`
                                 );
                                 break;
                         }

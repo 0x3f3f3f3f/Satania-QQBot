@@ -8,6 +8,7 @@ const childProcess = require('child_process');
 const moment = require('moment');
 const nzhcn = require('nzh/cn');
 const recvType = require('../lib/receiveType');
+const base64url = require('../lib/base64url');
 
 const tagList = JSON.parse(fs.readFileSync('./protocols/Pixiv_tags.json', 'utf8'));
 tagList.searchTags = JSON.parse(fs.readFileSync('./protocols/Pixiv_search_tags.json', 'utf8'));
@@ -294,7 +295,7 @@ module.exports = async function (recvObj, client) {
                     group: 'user'
                 });
             }
-            const key = Buffer.from(account, 'utf-8').toString('base64');
+            const key = base64url.encode(Buffer.from(account, 'utf-8').toString('base64'));
             client.sendMsg(recvObj,
                 '请登录：' + encodeURI(`${secret.publicDomainName}/satania/user-tags/login.html?key=${key}`)
             );

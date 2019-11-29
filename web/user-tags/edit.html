@@ -176,6 +176,8 @@
 
 
         </div>
+
+        <div class="accordion" id="userTagList"></div>
     </div>
 
     <!-- Optional JavaScript -->
@@ -184,42 +186,65 @@
     <script src="js/popper.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
 
+    <!-- 萨塔妮娅API -->
+    <script src="js/satania.api.js"></script>
+
+    <script>
+        function addCard(parent, userTag) {
+            let type;
+            switch (userTag.type) {
+                case 'regexp':
+                    type = '正则';
+                    break;
+                case 'string':
+                    type = '简单';
+                    break;
+                default:
+                    type = '未知'
+                    break;
+            }
+
+            const card = $(
+                '<div class="card">' +
+                `<div class="card-header p-2 collapsed" id="heading${userTag.id}" data-toggle="collapse" data-target="#collapse${userTag.id}" aria-expanded="false" aria-controls="collapse${userTag.id}">` +
+                '<div class="row">' +
+                '<div class="col-6 text-truncate">' +
+                `#${userTag.id}` +
+                `<span class="badge badge-primary">${type}</span>` +
+                (userTag.editable ? '<span class="badge badge-success">可编辑</span>' : '') +
+                `<div class="col text-truncate font-italic" style="color:lightgray;">// ${userTag.comment}</div>` +
+                `<div class="col-1"><span class="badge badge-secondary float-right mt-1">${userTag.userName}</span></div>` +
+                `<div id="collapse${userTag.id}" class="collapse" aria-labelledby="heading${userTag.id}" data-parent="#${parent.attr('id')}">` +
+                '<div class="card-body"></div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+
+            parent.append(card);
+        }
+
+        function updateUserTagsList(userTags) {
+            const userTagList = $('#userTagList');
+            const userTagListChildren = userTagList.children();
+            for (let i = userTagListChildren.length - 1; i >= 0; i--) {
+                userTagListChildren[i].remove();
+            }
+            for (const userTag of userTags) {
+                addCard(userTagList, userTag);
+            }
+        }
+    </script>
+
     <script>
         const searchParams = new URLSearchParams(window.location.search);
 
         $(document).ready(async () => {
-            let res;
-            try {
-                res = await new Promise((resovle, reject) => {
-                    $.ajax({
-                        url: 'https://sub1.gameoldboy.com/satania/api/getUserTags',
-                        method: 'POST',
-                        contentType: "application/json",
-                        data: JSON.stringify({
-                            userKey: searchParams.get('key')
-                        }),
-                        success: data => {
-                            resovle(data);
-                        },
-                        error: () => {
-                            reject();
-                        }
-                    });
-                });
-            } catch {
-                alert('网络发生错误');
-                return;
-            }
-            if (res.err == true) {
-                window.location.href = 'https://sub1.gameoldboy.com/404.html';
-                return;
-            }
-            if (res.err) {
-                alert(res.err);
-                return;
-            }
-
-            console.log(res);
+            // 获得用户标签
+            let response = await SataniaAPI.getUserTags(searchParams.get('key'));
+            updateUserTagsList(response.userTags);
         });
     </script>
 </body>

@@ -206,19 +206,19 @@
 
             const card = $(
                 '<div class="card">' +
-                `<div class="card-header p-2 collapsed" id="heading${userTag.id}" data-toggle="collapse" data-target="#collapse${userTag.id}" aria-expanded="false" aria-controls="collapse${userTag.id}">` +
-                '<div class="row">' +
+                '<div class="card-header">' +
+                `<div class="row  p-2 collapsed" id="heading${userTag.id}" data-toggle="collapse" data-target="#collapse${userTag.id}" aria-expanded="false" aria-controls="collapse${userTag.id}">` +
                 '<div class="col-6 text-truncate">' +
                 `#${userTag.id}` +
                 `<span class="badge badge-primary">${type}</span>` +
                 (userTag.editable ? '<span class="badge badge-success">可编辑</span>' : '') +
+                '</div>' +
                 `<div class="col text-truncate font-italic" style="color:lightgray;">// ${userTag.comment}</div>` +
                 `<div class="col-1"><span class="badge badge-secondary float-right mt-1">${userTag.userName}</span></div>` +
+                '</div>' +
+                '</div>' +
                 `<div id="collapse${userTag.id}" class="collapse" aria-labelledby="heading${userTag.id}" data-parent="#${parent.attr('id')}">` +
                 '<div class="card-body"></div>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
                 '</div>' +
                 '</div>'
             );

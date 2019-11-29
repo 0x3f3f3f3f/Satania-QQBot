@@ -115,7 +115,7 @@
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
                             matchButtons.append(
-                                `<span class="border border-info rounded p-2 mr-1 mb-1 text-muted" id="matchButton${i}">${keyword}</span>`
+                                `<label class="alert alert-info p-2 mr-1 mb-1" id="matchButton${i}">${keyword}</label>`
                             );
                         }
                     }
@@ -154,17 +154,17 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<span class="border border-light rounded p-2 mr-1 mb-1 text-muted" id="rawTagButton${i}">OR</span>`
+                                    `<label class="alert alert-light p-2 mr-1 mb-1" id="rawTagButton${i}">OR</label>`
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<span class="border border-light rounded p-2 mr-1 mb-1 text-muted" id="rawTagButton${i}">AND</span>`
+                                    `<label class="alert alert-light p-2 mr-1 mb-1" id="rawTagButton${i}">AND</label>`
                                 );
                                 break;
                             default:
                                 rawTagButtons.append(
-                                    `<span class="border border-info rounded p-2 mr-1 mb-1 text-muted" id="rawTagButton${i}">${tag}</span>`
+                                    `<label class="alert alert-info p-2 mr-1 mb-1" id="rawTagButton${i}">${tag}</label>`
                                 );
                                 break;
                         }

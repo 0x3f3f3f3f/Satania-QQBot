@@ -163,7 +163,11 @@
             }
             const addCard = createCard(userTagList, {
                 id: 'Add',
+                userName: '',
                 type: 'string',
+                match: '',
+                rawTags: '',
+                comment: ''
             });
             const addCardHeading = addCard.find('#headingAdd');
             addCardHeading.empty();

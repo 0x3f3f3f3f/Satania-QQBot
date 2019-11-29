@@ -5,6 +5,7 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const EventEmitter = require('events');
 const uuid = require('uuid/v4');
+const recvType = require('./lib/receiveType');
 
 // 账号密码
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
@@ -144,10 +145,10 @@ async function onMessage(data) {
         }
     }
 
-    if (recvObj.type == 1 ||
-        recvObj.type == 3 ||
-        recvObj.type == 5 ||
-        recvObj.type == 6) {
+    if (recvObj.type == recvType.friend ||
+        recvObj.type == recvType.groupNonFriend ||
+        recvObj.type == recvType.discussNonFriend ||
+        recvObj.type == recvType.nonFriend) {
         await protocolEntry(recvObj, client);
     }
     // 在群里需要先被at了

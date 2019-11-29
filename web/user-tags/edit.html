@@ -214,7 +214,7 @@
                 (userTag.editable ? '<span class="badge badge-success">可编辑</span> ' : '') +
                 (userTag.type == 'string' ? userTag.match.split(',').join(' ') : userTag.match) +
                 '</div>' +
-                `<div class="col text-truncate font-italic" style="color:lightgray;">// ${userTag.comment}</div>` +
+                `<div class="col text-truncate font-italic" style="color:lightgray;">//${userTag.comment}</div>` +
                 `<div class="col-1"><span class="badge badge-secondary float-right mt-1">${userTag.userName}</span></div>` +
                 '</div>' +
                 '</div>' +
@@ -224,6 +224,88 @@
                 '</div>'
             );
 
+            const body = $(
+                '<div class="row">' +
+                '<div class="col">' +
+                '<label>匹配规则</label><br>' +
+                (userTag.type == 'string' ? '<div id="matchButtons"></div>' :
+                    `<input type="text" class="form-control" id="matchInput" value="${userTag.match}">`) +
+                '<button type="button" class="btn btn-info mb-1" id="matchAddButton">新增...</button>' +
+                '</div>' +
+                '<div class="col-4">' +
+                '<label>匹配类型</label><br>' +
+                '<button class="btn btn-info dropdown-toggle" type="button" id="matchTypeButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                type + '</button>' +
+                '<div class="dropdown-menu" aria-labelledby="matchTypeButton">' +
+                '<button class="dropdown-item" id="string">简单</button>' +
+                '<button class="dropdown-item" id="regexp">正则</button>' +
+                '</div>' +
+                '</div>' +
+                '<br>' +
+                '<div class="col">' +
+                '<label>对应标签</label><br>' +
+                '<div id="rawTagButtons"></div>' +
+                '<button type="button" class="btn btn-info mb-1" id="rawTagAddButton">新增...</button>' +
+                '</div>' +
+                '<br>' +
+                '<div class="row">' +
+                '<div class="col">' +
+                '<label>注释</label><br>' +
+                '<div class="input-group">' +
+                '<div class="input-group-prepend">' +
+                '<span class="input-group-text">//</span>' +
+                '</div>' +
+                `<input type="text" class="form-control" id='commentInput' value="${userTag.comment}">` +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<br>' +
+                '<div class="row">' +
+                '<div class="col text-right">' +
+                '<button type="button" class="btn btn-primary w-25" id="submitButton">提交</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+
+            if (userTag.type == 'string') {
+                const keywords = userTag.match.split(',');
+                const matchButtons = body.find('#matchButtons');
+                for (let i = 0; i < keywords.length; i++) {
+                    const keyword = keywords[i];
+                    matchButtons.append(
+                        `<button type="button" class="btn btn-outline-info mb-1" id="matchButton${i}">${keyword}</button>`
+                    );
+                }
+            }
+
+            {
+                const rawTags = userTag.rawTags.split(',');
+                const rawTagButtons = body.find('#rawTagButtons');
+                for (let i = 0; i < rawTags.length; i++) {
+                    const tag = rawTags[i];
+                    if (tag == '|' || tag == '&') {
+                        switch (tag) {
+                            case '|':
+                                rawTagButtons.append(
+                                    `<button type="button" class="btn btn-light px-2 mb-1 text-decoration-none" id="rawTagButton${i}">OR</button>`
+                                );
+                                break;
+                            case '&':
+                                rawTagButtons.append(
+                                    `<button type="button" class="btn btn-light px-2 mb-1 text-decoration-none" id="rawTagButton${i}">AND</button>`
+                                );
+                                break;
+                        }
+                    } else {
+                        rawTagButtons.append(
+                            `<button type="button" class="btn btn-outline-info mb-1" id="rawTagButton${i}">${tag}</button>`
+                        );
+                    }
+                }
+            }
+
+            card.find('.card-body').append(body);
             parent.append(card);
         }
 

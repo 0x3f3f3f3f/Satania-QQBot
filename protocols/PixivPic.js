@@ -7,6 +7,7 @@ const _ = require('lodash');
 const childProcess = require('child_process');
 const moment = require('moment');
 const nzhcn = require('nzh/cn');
+const recvType = require('../lib/receiveType');
 
 const tagList = JSON.parse(fs.readFileSync('./protocols/Pixiv_tags.json', 'utf8'));
 tagList.searchTags = JSON.parse(fs.readFileSync('./protocols/Pixiv_search_tags.json', 'utf8'));
@@ -131,20 +132,25 @@ async function searchIllust(recvObj, tags, opt) {
         for (const tag of tags) {
             stringQuery += stringQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
         }
-        if (recvObj.type != 1) {
+        if (recvObj.type != recvType.friend) {
             stringQuery = '\`rating\` not like \'r18%\' and ' + stringQuery;
         }
         stringQuery += ')';
         illustsQuery = knex('illusts').whereRaw(stringQuery);
     } else {
-        if (recvObj.type == 1) {
+        if (recvObj.type == recvType.friend) {
             illustsQuery = knex('illusts');
         } else {
             illustsQuery = knex('illusts').where('rating', 'not like', 'r18%')
         }
     }
     if (!opt.resend) {
-        if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && opt.num > 1000) {
+        if ((
+                recvObj.type == recvType.friend ||
+                recvObj.type == recvType.groupNonFriend ||
+                recvObj.type == recvType.discussNonFriend ||
+                recvObj.type == recvType.nonFriend
+            ) && opt.num > 1000) {
             illustsQuery.where('total_bookmarks', '>=', opt.num);
         } else {
             const rand = 1 - Math.pow(1 - Math.random(), 2) * 20000;
@@ -153,7 +159,12 @@ async function searchIllust(recvObj, tags, opt) {
         }
     }
 
-    if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj != '') {
+    if (!(
+            recvObj.type == recvType.friend ||
+            recvObj.type == recvType.groupNonFriend ||
+            recvObj.type == recvType.discussNonFriend ||
+            recvObj.type == recvType.nonFriend
+        ) && recvObj != '') {
         if (opt.resend) {
             illust = (await knex('illusts')
                 .whereExists(
@@ -193,7 +204,12 @@ async function downloadIllust(illust, recvObj, opt) {
     try {
         const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.image_url));
         await pixivImg(illust.image_url, illustPath);
-        if (!opt.resend && !(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) && recvObj.group != '') {
+        if (!opt.resend && !(
+                recvObj.type == recvType.friend ||
+                recvObj.type == recvType.groupNonFriend ||
+                recvObj.type == recvType.discussNonFriend ||
+                recvObj.type == recvType.nonFriend
+            ) && recvObj.group != '') {
             await knex('seen_list').insert({
                 group: recvObj.group,
                 illust_id: illust.id,
@@ -232,7 +248,12 @@ async function downloadIllust(illust, recvObj, opt) {
 
 module.exports = async function (recvObj, client) {
     // 群、qq黑名单
-    if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6)) {
+    if (
+        recvObj.type == recvType.friend ||
+        recvObj.type == recvType.groupNonFriend ||
+        recvObj.type == recvType.discussNonFriend ||
+        recvObj.type == recvType.nonFriend
+    ) {
         const rule = (await knex('rule_list').where({
             type: 'qq',
             name: recvObj.qq,
@@ -260,7 +281,12 @@ module.exports = async function (recvObj, client) {
 
     // 生成web服务的url
     if (/编辑标签/m.test(recvObj.content)) {
-        if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6)) {
+        if (
+            recvObj.type == recvType.friend ||
+            recvObj.type == recvType.groupNonFriend ||
+            recvObj.type == recvType.discussNonFriend ||
+            recvObj.type == recvType.nonFriend
+        ) {
             const account = 'qq:' + recvObj.qq;
             if (!(await knex('users').where('account', account))[0]) {
                 await knex('users').insert({
@@ -299,7 +325,12 @@ module.exports = async function (recvObj, client) {
     // 十连or三连
     let autoBurst = false;
     let burstNum = 0;
-    if ((recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6) &&
+    if ((
+            recvObj.type == recvType.friend ||
+            recvObj.type == recvType.groupNonFriend ||
+            recvObj.type == recvType.discussNonFriend ||
+            recvObj.type == recvType.nonFriend
+        ) &&
         /(十|10)连/m.test(recvObj.content)) {
         autoBurst = true;
         burstNum = 10;
@@ -355,7 +386,12 @@ async function PixivPic(recvObj, client, tags, opt) {
         }
     }
     // 白名单
-    if (!(recvObj.type == 1 || recvObj.type == 3 || recvObj.type == 5 || recvObj.type == 6)) {
+    if (!(
+            recvObj.type == recvType.friend ||
+            recvObj.type == recvType.groupNonFriend ||
+            recvObj.type == recvType.discussNonFriend ||
+            recvObj.type == recvType.nonFriend
+        )) {
         const rule = (await knex('rule_list').where({
             type: 'group',
             name: recvObj.group,

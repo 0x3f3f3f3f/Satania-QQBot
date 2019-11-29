@@ -106,9 +106,9 @@
                 '</div>'
             );
 
-            if (userTag.type == 'string') {
+            const matchButtons = body.find('#matchButtons');
+            if (userTag.type == 'string' & userTag.match != '') {
                 const keywords = userTag.match.split(',');
-                const matchButtons = body.find('#matchButtons');
                 body.find('#matchInput').hide();
                 for (let i = 0; i < keywords.length; i++) {
                     const keyword = keywords[i];
@@ -116,15 +116,15 @@
                         `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
                     );
                 }
-                matchButtons.append(
-                    '<button type="button" class="btn btn-info mb-1" id="matchAddButton">新增...</button>');
             } else {
                 body.find('#matchButtons').hide();
             }
+            matchButtons.append(
+                '<button type="button" class="btn btn-info mb-1" id="matchAddButton">新增...</button>');
 
-            {
+            const rawTagButtons = body.find('#rawTagButtons');
+            if (userTag.rawTags != '') {
                 const rawTags = userTag.rawTags.split(',');
-                const rawTagButtons = body.find('#rawTagButtons');
                 for (let i = 0; i < rawTags.length; i++) {
                     const tag = rawTags[i];
                     if (tag == '|' || tag == '&') {
@@ -146,9 +146,9 @@
                         );
                     }
                 }
-                rawTagButtons.append(
-                    '<button type="button" class="btn btn-info mb-1" id="rawTagAddButton">新增...</button>');
             }
+            rawTagButtons.append(
+                '<button type="button" class="btn btn-info mb-1" id="rawTagAddButton">新增...</button>');
 
             card.find('.card-body').append(body);
             parent.append(card);

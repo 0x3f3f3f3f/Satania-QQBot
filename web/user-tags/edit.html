@@ -174,12 +174,14 @@
                 }
             }
 
+            card.find('.card-body').append(body);
+
             if (userTag.editable) {
                 matchButtons.append(
                     '<button type="button" class="btn btn-info mb-1" id="matchAddButton">新增...</button>');
                 rawTagButtons.append(
                     '<button type="button" class="btn btn-info mb-1" id="rawTagAddButton">新增...</button>');
-                body.append(
+                body.parent().append(
                     '<br>' +
                     '<div class="row">' +
                     '<div class="col text-right">' +
@@ -192,7 +194,6 @@
                 body.find('#commentInput').attr('readonly', true);
             }
 
-            card.find('.card-body').append(body);
             parent.append(card);
             return card;
         }

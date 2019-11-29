@@ -97,60 +97,100 @@
                 `<input type="text" class="form-control" id='commentInput' value="${userTag.comment}">` +
                 '</div>' +
                 '</div>' +
-                '</div>' +
-                '<br>' +
-                '<div class="row">' +
-                '<div class="col text-right">' +
-                '<button type="button" class="btn btn-primary w-25" id="submitButton">提交</button>' +
-                '</div>' +
                 '</div>'
             );
 
             const matchButtons = body.find('#matchButtons');
+            const matchInput = body.find('#matchInput');
             if (userTag.type == 'string') {
-                body.find('#matchInput').hide();
+                matchInput.hide();
                 if (userTag.match != '') {
                     const keywords = userTag.match.split(',');
-                    for (let i = 0; i < keywords.length; i++) {
-                        const keyword = keywords[i];
-                        matchButtons.append(
-                            `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
-                        );
+                    if (userTag.editable) {
+                        for (let i = 0; i < keywords.length; i++) {
+                            const keyword = keywords[i];
+                            matchButtons.append(
+                                `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
+                            );
+                        }
+                    } else {
+                        for (let i = 0; i < keywords.length; i++) {
+                            const keyword = keywords[i];
+                            matchButtons.append(
+                                `<p class="mr-1 mb-1" id="matchButton${i}">${keyword}</p>`
+                            );
+                        }
                     }
                 }
             } else {
-                body.find('#matchButtons').hide();
+                matchButtons.hide();
             }
-            matchButtons.append(
-                '<button type="button" class="btn btn-info mb-1" id="matchAddButton">新增...</button>');
 
             const rawTagButtons = body.find('#rawTagButtons');
             if (userTag.rawTags != '') {
                 const rawTags = userTag.rawTags.split(',');
-                for (let i = 0; i < rawTags.length; i++) {
-                    const tag = rawTags[i];
-                    if (tag == '|' || tag == '&') {
+                if (userTag.editable) {
+                    for (let i = 0; i < rawTags.length; i++) {
+                        const tag = rawTags[i];
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagButton${i}">OR</button>`
+                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">OR</button>`
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagButton${i}">AND</button>`
+                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">AND</button>`
+                                );
+                                break;
+                            default:
+                                rawTagButtons.append(
+                                    `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="rawTagButton${i}">${tag}</button>`
                                 );
                                 break;
                         }
-                    } else {
-                        rawTagButtons.append(
-                            `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="rawTagButton${i}">${tag}</button>`
-                        );
+                    }
+                } else {
+                    for (let i = 0; i < rawTags.length; i++) {
+                        const tag = rawTags[i];
+                        switch (tag) {
+                            case '|':
+                                rawTagButtons.append(
+                                    `<p class="mr-1 mb-1" id="rawTagButton${i}">OR</p>`
+                                );
+                                break;
+                            case '&':
+                                rawTagButtons.append(
+                                    `<p class="mr-1 mb-1" id="rawTagButton${i}">AND</p>`
+                                );
+                                break;
+                            default:
+                                rawTagButtons.append(
+                                    `<p class="mr-1 mb-1" id="rawTagButton${i}">${tag}</p>`
+                                );
+                                break;
+                        }
                     }
                 }
             }
-            rawTagButtons.append(
-                '<button type="button" class="btn btn-info mb-1" id="rawTagAddButton">新增...</button>');
+
+            if (userTag.editable) {
+                matchButtons.append(
+                    '<button type="button" class="btn btn-info mb-1" id="matchAddButton">新增...</button>');
+                rawTagButtons.append(
+                    '<button type="button" class="btn btn-info mb-1" id="rawTagAddButton">新增...</button>');
+                body.append(
+                    '<br>' +
+                    '<div class="row">' +
+                    '<div class="col text-right">' +
+                    '<button type="button" class="btn btn-primary w-25" id="submitButton">提交</button>' +
+                    '</div>' +
+                    '</div>'
+                );
+            } else {
+                matchInput.attr('readonly', true);
+                body.find('#commentInput').attr('readonly', true);
+            }
 
             card.find('.card-body').append(body);
             parent.append(card);
@@ -169,7 +209,8 @@
                 type: 'string',
                 match: '',
                 rawTags: '',
-                comment: ''
+                comment: '',
+                editable: true
             });
             const addCardHeading = addCard.find('#headingAdd');
             addCardHeading.empty();

@@ -52,7 +52,7 @@
                 (userTag.editable ? '<span class="badge badge-success mr-1">可编辑</span>' : '') +
                 (userTag.type == 'string' ? userTag.match.split(',').join(' ') : userTag.match) +
                 '</div>' +
-                `<div class="col text-truncate font-italic" style="color:lightgray;">//${userTag.comment}</div>` +
+                `<div class="col text-truncate font-italic text-muted">//${userTag.comment}</div>` +
                 `<div class="col-1"><span class="badge badge-secondary float-right mt-1">${userTag.userName}</span></div>` +
                 '</div>' +
                 '</div>' +
@@ -63,14 +63,14 @@
             );
 
             const body = $(
-                '<div class="row">' +
+                '<div class="row mb-4">' +
                 '<div class="col">' +
-                '<label>匹配规则</label><br>' +
+                '<p class="text-muted">匹配规则</p>' +
                 '<div id="matchButtons"></div>' +
                 `<input type="text" class="form-control" id="matchInput" value="${userTag.match}">` +
                 '</div>' +
                 '<div class="col-4 text-right">' +
-                '<label>匹配类型</label><br>' +
+                '<p class="text-muted">匹配类型</p>' +
                 '<button class="btn btn-info dropdown-toggle" type="button" id="matchTypeButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                 type + '</button>' +
                 '<div class="dropdown-menu dropdown-menu-right" aria-labelledby="matchTypeButton">' +
@@ -79,17 +79,15 @@
                 '</div>' +
                 '</div>' +
                 '</div>' +
-                '<br>' +
-                '<div class="row">' +
+                '<div class="row mb-4">' +
                 '<div class="col">' +
-                '<label>对应标签</label><br>' +
+                '<p class="text-muted">对应标签</p>' +
                 '<div id="rawTagButtons"></div>' +
                 '</div>' +
                 '</div>' +
-                '<br>' +
-                '<div class="row">' +
+                '<div class="row mb-4">' +
                 '<div class="col">' +
-                '<label>注释</label><br>' +
+                '<p class="text-muted">注释</p>' +
                 '<div class="input-group">' +
                 '<div class="input-group-prepend">' +
                 '<span class="input-group-text">//</span>' +
@@ -110,14 +108,14 @@
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
                             matchButtons.append(
-                                `<button type="button" class="btn btn-info btn-sm mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
+                                `<button type="button" class="btn btn-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
                             );
                         }
                     } else {
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
                             matchButtons.append(
-                                `<span class="badge badge-info mr-1 mb-1" id="matchButton${i}">${keyword}</span>`
+                                `<span class="border border-info rounded mr-1 mb-1" id="matchButton${i}">${keyword}</span>`
                             );
                         }
                     }
@@ -135,17 +133,17 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light btn-sm px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">OR</button>`
+                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">OR</button>`
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light btn-sm px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">AND</button>`
+                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">AND</button>`
                                 );
                                 break;
                             default:
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-info btn-sm mr-1 mb-1" id="rawTagButton${i}">${tag}</button>`
+                                    `<button type="button" class="btn btn-info mr-1 mb-1" id="rawTagButton${i}">${tag}</button>`
                                 );
                                 break;
                         }
@@ -156,17 +154,17 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<span class="badge badge-light mr-1 mb-1" id="rawTagButton${i}">OR</span>`
+                                    `<span class="border border-light rounded mr-1 mb-1" id="rawTagButton${i}">OR</span>`
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<span class="badge badge-light mr-1 mb-1" id="rawTagButton${i}">AND</span>`
+                                    `<span class="border border-light rounded mr-1 mb-1" id="rawTagButton${i}">AND</span>`
                                 );
                                 break;
                             default:
                                 rawTagButtons.append(
-                                    `<span class="badge badge-info mr-1 mb-1" id="rawTagButton${i}">${tag}</span>`
+                                    `<span class="border border-info rounded mr-1 mb-1" id="rawTagButton${i}">${tag}</span>`
                                 );
                                 break;
                         }
@@ -178,13 +176,12 @@
 
             if (userTag.editable) {
                 matchButtons.append(
-                    '<button type="button" class="btn btn-outline-info btn-sm mb-1" id="matchAddButton">新增...</button>'
+                    '<button type="button" class="btn btn-outline-info mb-1" id="matchAddButton">新增...</button>'
                 );
                 rawTagButtons.append(
-                    '<button type="button" class="btn btn-outline-info btn-sm mb-1" id="rawTagAddButton">新增...</button>'
+                    '<button type="button" class="btn btn-outline-info mb-1" id="rawTagAddButton">新增...</button>'
                 );
                 body.parent().append(
-                    '<br>' +
                     '<div class="row">' +
                     '<div class="col text-right">' +
                     '<button type="button" class="btn btn-primary w-25" id="submitButton">提交</button>' +

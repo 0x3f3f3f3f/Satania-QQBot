@@ -1,5 +1,5 @@
 const SataniaAPI = {
-    notFoundUrl = 'https://sub1.gameoldboy.com/404.html',
+    notFoundUrl = '/',
     async _post(url, data) {
         let result = null;
         try {
@@ -22,7 +22,7 @@ const SataniaAPI = {
         return result;
     },
     async getUserName(userKey) {
-        const result = await this._post('https://sub1.gameoldboy.com/satania/api/getUserName', {
+        const result = await this._post('/api/getUserName', {
             userKey
         });
 
@@ -35,7 +35,7 @@ const SataniaAPI = {
         return result;
     },
     async login(userKey, userName) {
-        const result = await this._post('https://sub1.gameoldboy.com/satania/api/login', {
+        const result = await this._post('/api/login', {
             userKey,
             userName
         });
@@ -49,7 +49,7 @@ const SataniaAPI = {
         return result;
     },
     async getUserTags(userKey) {
-        const result = await this._post('https://sub1.gameoldboy.com/satania/api/getUserTags', {
+        const result = await this._post('/api/getUserTags', {
             userKey
         });
 

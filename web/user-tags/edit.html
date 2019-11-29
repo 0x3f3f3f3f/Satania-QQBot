@@ -110,14 +110,14 @@
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
                             matchButtons.append(
-                                `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
+                                `<button type="button" class="btn btn-info btn-sm mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
                             );
                         }
                     } else {
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
                             matchButtons.append(
-                                `<p class="mr-1 mb-1" id="matchButton${i}">${keyword}</p>`
+                                `<span class="badge badge-info mr-1 mb-1" id="matchButton${i}">${keyword}</span>`
                             );
                         }
                     }
@@ -135,17 +135,17 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">OR</button>`
+                                    `<button type="button" class="btn btn-light btn-sm px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">OR</button>`
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">AND</button>`
+                                    `<button type="button" class="btn btn-light btn-sm px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">AND</button>`
                                 );
                                 break;
                             default:
                                 rawTagButtons.append(
-                                    `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="rawTagButton${i}">${tag}</button>`
+                                    `<button type="button" class="btn btn-info btn-sm mr-1 mb-1" id="rawTagButton${i}">${tag}</button>`
                                 );
                                 break;
                         }
@@ -156,17 +156,17 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<p class="mr-1 mb-1" id="rawTagButton${i}">OR</p>`
+                                    `<span class="badge badge-light mr-1 mb-1" id="rawTagButton${i}">OR</span>`
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<p class="mr-1 mb-1" id="rawTagButton${i}">AND</p>`
+                                    `<span class="badge badge-light mr-1 mb-1" id="rawTagButton${i}">AND</span>`
                                 );
                                 break;
                             default:
                                 rawTagButtons.append(
-                                    `<p class="mr-1 mb-1" id="rawTagButton${i}">${tag}</p>`
+                                    `<span class="badge badge-info mr-1 mb-1" id="rawTagButton${i}">${tag}</span>`
                                 );
                                 break;
                         }
@@ -178,9 +178,11 @@
 
             if (userTag.editable) {
                 matchButtons.append(
-                    '<button type="button" class="btn btn-info mb-1" id="matchAddButton">新增...</button>');
+                    '<button type="button" class="btn btn-outline-info btn-sm mb-1" id="matchAddButton">新增...</button>'
+                );
                 rawTagButtons.append(
-                    '<button type="button" class="btn btn-info mb-1" id="rawTagAddButton">新增...</button>');
+                    '<button type="button" class="btn btn-outline-info btn-sm mb-1" id="rawTagAddButton">新增...</button>'
+                );
                 body.parent().append(
                     '<br>' +
                     '<div class="row">' +

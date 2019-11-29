@@ -37,77 +37,22 @@
     <script src="js/popper.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
 
+    <!-- 萨塔妮娅API -->
+    <script src="js/satania.api.js"></script>
+
     <script>
-        const searchParams = new URLSearchParams(window.location.search);
+        const searchParams = new URLSearchParams(location.search);
 
         $(document).ready(async () => {
-            let res;
             // 获得用户名
-            try {
-                res = await new Promise((resovle, reject) => {
-                    $.ajax({
-                        url: 'https://sub1.gameoldboy.com/satania/api/getUserName',
-                        method: 'POST',
-                        contentType: "application/json",
-                        data: JSON.stringify({
-                            userKey: searchParams.get('key')
-                        }),
-                        success: data => {
-                            resovle(data);
-                        },
-                        error: () => {
-                            reject();
-                        }
-                    });
-                });
-            } catch {
-                alert('网络发生错误');
-                return;
-            }
-            if (res.err == true) {
-                window.location.href = 'https://sub1.gameoldboy.com/404.html';
-                return;
-            }
-            if (res.err) {
-                alert(res.err);
-                return;
-            }
-            if (res.result) $('#inputName').val(res.userName);
+            let response = await SataniaAPI.getUserName(searchParams.get('key'));
+            if (response && response.result) $('#inputName').val(response.userName);
 
             // 点击登录
             $('#submit').click(async () => {
-                res = null;
-                try {
-                    res = await new Promise((resovle, reject) => {
-                        $.ajax({
-                            url: 'https://sub1.gameoldboy.com/satania/api/login',
-                            method: 'POST',
-                            contentType: "application/json",
-                            data: JSON.stringify({
-                                userKey: searchParams.get('key'),
-                                userName: $('#inputName').val()
-                            }),
-                            success: data => {
-                                resovle(data);
-                            },
-                            error: () => {
-                                reject();
-                            }
-                        });
-                    });
-                } catch {
-                    alert('网络发生错误');
-                    return;
-                }
-                if (res.err == true) {
-                    alert('发生错误');
-                    return;
-                }
-                if (res.err) {
-                    alert(res.err);
-                    return;
-                }
-                if (res.result) window.location.href = 'edit.html?key=cXE6MjM0NTgwNTc=';
+                response = await SataniaAPI.login(searchParams.get('key'), $('#inputName')
+                    .val());
+                if (response && response.result) location.href = response.nextUrl;
             });
         });
     </script>

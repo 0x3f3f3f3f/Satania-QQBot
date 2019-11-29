@@ -107,14 +107,16 @@
             );
 
             const matchButtons = body.find('#matchButtons');
-            if (userTag.type == 'string' & userTag.match != '') {
-                const keywords = userTag.match.split(',');
+            if (userTag.type == 'string') {
                 body.find('#matchInput').hide();
-                for (let i = 0; i < keywords.length; i++) {
-                    const keyword = keywords[i];
-                    matchButtons.append(
-                        `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
-                    );
+                if (userTag.match != '') {
+                    const keywords = userTag.match.split(',');
+                    for (let i = 0; i < keywords.length; i++) {
+                        const keyword = keywords[i];
+                        matchButtons.append(
+                            `<button type="button" class="btn btn-outline-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
+                        );
+                    }
                 }
             } else {
                 body.find('#matchButtons').hide();

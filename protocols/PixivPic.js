@@ -297,7 +297,7 @@ module.exports = async function (recvObj, client) {
             }
             const key = base64url.encode(Buffer.from(account, 'utf-8').toString('base64'));
             client.sendMsg(recvObj,
-                '请登录：' + encodeURI(`${secret.publicDomainName}/satania/user-tags/login.html?key=${key}`)
+                '请登录：' + encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
             );
         } else {
             client.sendMsg(recvObj, '哥哥~这个功能包含个人密钥，请和我私聊~');

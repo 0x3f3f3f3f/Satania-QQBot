@@ -72,11 +72,11 @@ const port = 33000;
 app.use(express.json());
 
 // 支持跨域
-app.all('*', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
+// app.all('*', (req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Headers', 'Content-Type');
+//     next();
+// });
 
 // 获得用户名
 app.post('/getUserName', async (req, res) => {
@@ -139,6 +139,13 @@ app.post('/login', async (req, res) => {
         return;
     }
 
+    if (/^\s*$/.test(req.body.userName)) {
+        res.json({
+            err: '用户名不能为空'
+        });
+        return;
+    }
+
     user.name = req.body.userName;
     await knex('users').where('account', account).update(user);
     res.json({
@@ -183,16 +190,27 @@ app.post('/getUserTags', async (req, res) => {
             'user_tags.raw_tags as rawTags',
             'comment'
         );
-    let editableId
+
+    let editableList;
     if (user.group == 'admin') {
-        editableId = await knex('user_tags').select('id');
+        editableList = await knex('user_tags').select('id');
     } else {
-        editableId = await knex('user_tags').where('account', account).select('id');
+        editableList = await knex('user_tags').where('account', account).select('id');
     }
+
+    for (const userTag of userTags) {
+        userTag.editable = false;
+        for (const editableTag of editableList) {
+            if (editableTag.id == userTag.id) {
+                userTag.editable = true;
+                break;
+            }
+        }
+    }
+
     res.json({
         result: true,
-        userTags,
-        editableId
+        userTags
     });
 });
 

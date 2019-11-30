@@ -28,7 +28,7 @@
     <script src="js/satania.api.js"></script>
 
     <script>
-        function createCard(parent, userTag) {
+        function addCard(parent, userTag) {
             let type;
             switch (userTag.type) {
                 case 'regexp':
@@ -107,15 +107,17 @@
                     if (userTag.editable) {
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
-                            matchButtons.append(
-                                `<button type="button" class="btn btn-info mr-1 mb-1" id="matchButton${i}">${keyword}</button>`
+                            const btn = $(
+                                `<button type="button" class="btn btn-info mr-1 mb-1">${keyword}</button>`
                             );
+                            btn.click(editMatch);
+                            matchButtons.append(btn);
                         }
                     } else {
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
                             matchButtons.append(
-                                `<label class="alert alert-info px-2 py-1 mr-1 mb-1" id="matchButton${i}">${keyword}</label>`
+                                `<label class="alert alert-info px-2 py-1 mr-1 mb-1">${keyword}</label>`
                             );
                         }
                     }
@@ -131,21 +133,30 @@
                     for (let i = 0; i < rawTags.length; i++) {
                         const tag = rawTags[i];
                         switch (tag) {
-                            case '|':
-                                rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">OR</button>`
+                            case '|': {
+                                const btn = $(
+                                    '<button type="button" class="btn btn-light px-2 mr-1 mb-1" operator="|">OR</button>'
                                 );
-                                break;
-                            case '&':
-                                rawTagButtons.append(
-                                    `<button type="button" class="btn btn-light px-2 mr-1 mb-1 text-decoration-none" id="rawTagOperatorButton${i}">AND</button>`
-                                );
-                                break;
-                            default:
-                                rawTagButtons.append(
-                                    `<button type="button" class="btn btn-info mr-1 mb-1" id="rawTagButton${i}">${tag}</button>`
-                                );
-                                break;
+                                btn.click(changeTagOperator);
+                                rawTagButtons.append(btn);
+                            }
+                            break;
+                        case '&': {
+                            const btn = $(
+                                '<button type="button" class="btn btn-light px-2 mr-1 mb-1" operator="&">AND</button>'
+                            );
+                            btn.click(changeTagOperator);
+                            rawTagButtons.append(btn);
+                        }
+                        break;
+                        default: {
+                            const btn = $(
+                                `<button type="button" class="btn btn-info mr-1 mb-1">${tag}</button>`
+                            );
+                            btn.click(editRawTag);
+                            rawTagButtons.append(btn);
+                        }
+                        break;
                         }
                     }
                 } else {
@@ -154,17 +165,17 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    `<label class="alert alert-light px-1 py-1 mr-1 mb-1" id="rawTagButton${i}">OR</label>`
+                                    '<label class="alert alert-light px-1 py-1 mr-1 mb-1">OR</label>'
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    `<label class="alert alert-light px-1 py-1 mr-1 mb-1" id="rawTagButton${i}">AND</label>`
+                                    '<label class="alert alert-light px-1 py-1 mr-1 mb-1">AND</label>'
                                 );
                                 break;
                             default:
                                 rawTagButtons.append(
-                                    `<label class="alert alert-info px-2 py-1 mr-1 mb-1" id="rawTagButton${i}">${tag}</label>`
+                                    '<label class="alert alert-info px-2 py-1 mr-1 mb-1">${tag}</label>'
                                 );
                                 break;
                         }
@@ -175,19 +186,36 @@
             card.find('.card-body').append(body);
 
             if (userTag.editable) {
-                matchButtons.append(
-                    '<button type="button" class="btn btn-outline-info mb-1" id="matchAddButton">新增...</button>'
-                );
-                rawTagButtons.append(
-                    '<button type="button" class="btn btn-outline-info mb-1" id="rawTagAddButton">新增...</button>'
-                );
-                body.parent().append(
-                    '<div class="row">' +
+                const btn1 = $('<button type="button" class="btn btn-outline-info mb-1">新增...</button>');
+                btn1.click(addMatch);
+                matchButtons.append(btn1);
+                const btn2 = $('<button type="button" class="btn btn-outline-info mb-1">新增...</button>');
+                btn2.click(addRawTag);
+                rawTagButtons.append(btn2);
+                const btn3 = $('<div class="row">' +
                     '<div class="col text-right">' +
-                    '<button type="button" class="btn btn-primary w-25" id="submitButton">提交</button>' +
+                    '<button type="button" class="btn btn-primary w-25">提交</button>' +
                     '</div>' +
-                    '</div>'
-                );
+                    '</div>');
+                btn3.click({
+                    card
+                }, submitUserTag);
+                body.parent().append(btn3);
+
+                const matchTypeButton = body.find('#matchTypeButton');
+                const dropdownMenu = body.find('.dropdown-menu[aria-labelledby="matchTypeButton"]');
+                dropdownMenu.find('#string').click({
+                    type: 'string',
+                    matchTypeButton,
+                    matchButtons,
+                    matchInput
+                }, changeTagType);
+                dropdownMenu.find('#regexp').click({
+                    type: 'regexp',
+                    matchTypeButton,
+                    matchButtons,
+                    matchInput
+                }, changeTagType);
             } else {
                 matchInput.attr('disabled', true);
                 body.find('#matchTypeButton').attr('disabled', true);
@@ -202,9 +230,9 @@
             const userTagList = $('#userTagList');
             userTagList.empty();
             for (const userTag of userTags) {
-                createCard(userTagList, userTag);
+                addCard(userTagList, userTag);
             }
-            const addCard = createCard(userTagList, {
+            const card = addCard(userTagList, {
                 id: 'Add',
                 userName: '',
                 type: 'string',
@@ -213,13 +241,52 @@
                 comment: '',
                 editable: true
             });
-            const addCardHeading = addCard.find('#headingAdd');
-            addCardHeading.empty();
-            addCardHeading.append(
+            const cardHeading = card.find('#headingAdd');
+            cardHeading.empty();
+            cardHeading.append(
                 '<div class="col text-truncate text-right">' +
                 '<button type="button" class="btn btn-primary btn-sm">新增...</button>' +
                 '</div>'
             );
+        }
+
+        function changeTagType(event) {
+            switch (event.data.type) {
+                case 'string':
+                    event.data.matchTypeButton.text('简单');
+                    event.data.matchButtons.show();
+                    event.data.matchInput.hide();
+                    break;
+                case 'regexp':
+                    event.data.matchTypeButton.text('正则');
+                    event.data.matchButtons.hide()
+                    event.data.matchInput.show();
+                    break;
+            }
+        }
+
+        function addMatch() {
+            console.log('addMatch');
+        }
+
+        function editMatch() {
+            console.log($(this).text());
+        }
+
+        function addRawTag() {
+            console.log('addRawTag');
+        }
+
+        function editRawTag() {
+            console.log($(this).text());
+        }
+
+        function changeTagOperator() {
+            console.log($(this).attr('operator'));
+        }
+
+        function submitUserTag(event) {
+            console.log(event.data.card.html());
         }
     </script>
 

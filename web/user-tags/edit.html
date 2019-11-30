@@ -279,20 +279,22 @@
             const btn = $(this);
             btn.hide();
             const input = $(`<input type="text" class="form-control">`);
-            const div = $('<div class="col-5 pl-0 pr-1"></div>');
+            const div = $('<div class="col-6 pl-0 pr-1"></div>');
             div.append(input);
             div.insertBefore(btn);
             input.focus();
-            input.blur(() => {
-                input.val(input.val().replace(/,/g, ''));
-                if (/^\s*$/.test(input.val())) {
-                    div.remove();
-                    btn.show();
-                } else {
-                    const btnNew = addMatchButton(input.val());
-                    btnNew.insertBefore(btn);
-                    div.remove();
-                    btn.show();
+            input.bind('blur keypress', event => {
+                if (event.type == 'blur' || event.keyCode == 13) {
+                    input.val(input.val().replace(/,/g, ''));
+                    if (/^\s*$/.test(input.val())) {
+                        div.remove();
+                        btn.show();
+                    } else {
+                        const btnNew = addMatchButton(input.val());
+                        btnNew.insertBefore(btn);
+                        div.remove();
+                        btn.show();
+                    }
                 }
             });
         }
@@ -302,19 +304,21 @@
             const keyword = btn.text();
             btn.hide();
             const input = $(`<input type="text" class="form-control" value="${keyword}">`);
-            const div = $('<div class="col-5 pl-0 pr-1"></div>');
+            const div = $('<div class="col-6 pl-0 pr-1"></div>');
             div.append(input);
             div.insertBefore(btn);
             input.focus();
-            input.blur(() => {
-                input.val(input.val().replace(/,/g, ''));
-                if (/^\s*$/.test(input.val())) {
-                    div.remove();
-                    btn.remove();
-                } else {
-                    btn.text(input.val());
-                    div.remove();
-                    btn.show();
+            input.bind('blur keypress', event => {
+                if (event.type == 'blur' || event.keyCode == 13) {
+                    input.val(input.val().replace(/,/g, ''));
+                    if (/^\s*$/.test(input.val())) {
+                        div.remove();
+                        btn.remove();
+                    } else {
+                        btn.text(input.val());
+                        div.remove();
+                        btn.show();
+                    }
                 }
             });
         }
@@ -327,18 +331,20 @@
             div.append(input);
             div.insertBefore(btn);
             input.focus();
-            input.blur(() => {
-                input.val(input.val().replace(/,/g, ''));
-                if (/^\s*$/.test(input.val())) {
-                    div.remove();
-                    btn.show();
-                } else {
-                    const operatorNew = addRawTagButton('|');
-                    operatorNew.insertBefore(btn);
-                    const btnNew = addRawTagButton(input.val());
-                    btnNew.insertBefore(btn);
-                    div.remove();
-                    btn.show();
+            input.bind('blur keypress', event => {
+                if (event.type == 'blur' || event.keyCode == 13) {
+                    input.val(input.val().replace(/,/g, ''));
+                    if (/^\s*$/.test(input.val())) {
+                        div.remove();
+                        btn.show();
+                    } else {
+                        const operatorNew = addRawTagButton('|');
+                        operatorNew.insertBefore(btn);
+                        const btnNew = addRawTagButton(input.val());
+                        btnNew.insertBefore(btn);
+                        div.remove();
+                        btn.show();
+                    }
                 }
             });
         }
@@ -352,16 +358,18 @@
             div.append(input);
             div.insertBefore(btn);
             input.focus();
-            input.blur(() => {
-                input.val(input.val().replace(/,/g, ''));
-                if (/^\s*$/.test(input.val())) {
-                    div.remove();
-                    btn.prev().remove();
-                    btn.remove();
-                } else {
-                    btn.text(input.val());
-                    div.remove();
-                    btn.show();
+            input.bind('blur keypress', event => {
+                if (event.type == 'blur' || event.keyCode == 13) {
+                    input.val(input.val().replace(/,/g, ''));
+                    if (/^\s*$/.test(input.val())) {
+                        div.remove();
+                        btn.prev().remove();
+                        btn.remove();
+                    } else {
+                        btn.text(input.val());
+                        div.remove();
+                        btn.show();
+                    }
                 }
             });
         }

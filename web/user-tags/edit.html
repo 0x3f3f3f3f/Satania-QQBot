@@ -66,7 +66,7 @@
                 '<div class="row mb-4">' +
                 '<div class="col">' +
                 '<p class="mb-1">匹配规则</p>' +
-                '<div id="matchButtons"></div>' +
+                '<div class="row mx-0" id="matchButtons"></div>' +
                 `<input type="text" class="form-control" id="matchInput" value="${userTag.match}">` +
                 '</div>' +
                 '<div class="col-4 text-right">' +
@@ -82,7 +82,7 @@
                 '<div class="row mb-4">' +
                 '<div class="col">' +
                 '<p class="mb-1">对应标签</p>' +
-                '<div id="rawTagButtons"></div>' +
+                '<div class="row mx-0" id="rawTagButtons"></div>' +
                 '</div>' +
                 '</div>' +
                 '<div class="row mb-4">' +
@@ -278,8 +278,8 @@
         function addMatch() {
             const btn = $(this);
             btn.hide();
-            const input = $(`<input type="text" class="w-50 form-control">`);
-            const div = $('<div class="col-4"></div>');
+            const input = $(`<input type="text" class="form-control">`);
+            const div = $('<div class="col-5 pl-0 pr-1"></div>');
             div.append(input);
             div.insertBefore(btn);
             input.focus();
@@ -301,8 +301,8 @@
             const btn = $(this);
             const keyword = btn.text();
             btn.hide();
-            const input = $(`<input type="text" form-control" value="${keyword}">`);
-            const div = $('<div class="col-4"></div>');
+            const input = $(`<input type="text" class="form-control" value="${keyword}">`);
+            const div = $('<div class="col-5 pl-0 pr-1"></div>');
             div.append(input);
             div.insertBefore(btn);
             input.focus();
@@ -322,8 +322,8 @@
         function addRawTag() {
             const btn = $(this);
             btn.hide();
-            const input = $(`<input type="text" class="w-50 form-control">`);
-            const div = $('<div class="col-4"></div>');
+            const input = $(`<input type="text" class="form-control">`);
+            const div = $('<div class="col-4 pl-0 pr-1"></div>');
             div.append(input);
             div.insertBefore(btn);
             input.focus();
@@ -347,8 +347,8 @@
             const btn = $(this);
             const tag = btn.text();
             btn.hide();
-            const input = $(`<input type="text" class="w-50 form-control" value="${tag}">`);
-            const div = $('<div class="col-4"></div>');
+            const input = $(`<input type="text" class="form-control" value="${tag}">`);
+            const div = $('<div class="col-4 pl-0 pr-1"></div>');
             div.append(input);
             div.insertBefore(btn);
             input.focus();

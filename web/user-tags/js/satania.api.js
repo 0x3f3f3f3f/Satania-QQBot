@@ -60,5 +60,19 @@ const SataniaAPI = {
         }
 
         return result;
+    },
+    async setUserTag(userKey, userTag) {
+        const result = await this._post('/api/setUserTag', {
+            userKey,
+            userTag
+        });
+
+        if (result.err == true) {
+            alert('发生错误');
+        } else if (result.err) {
+            alert(result.err);
+        }
+
+        return result;
     }
 }

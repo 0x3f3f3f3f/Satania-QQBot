@@ -279,17 +279,19 @@
             const btn = $(this);
             btn.hide();
             const input = $(`<input type="text" class="w-50 form-control">`);
-            input.insertBefore(btn);
+            const div = $('<div class="col-4"></div>');
+            div.append(input);
+            div.insertBefore(btn);
             input.focus();
             input.blur(() => {
                 input.val(input.val().replace(/,/g, ''));
                 if (/^\s*$/.test(input.val())) {
-                    input.remove();
+                    div.remove();
                     btn.show();
                 } else {
                     const btnNew = addMatchButton(input.val());
                     btnNew.insertBefore(btn);
-                    input.remove();
+                    div.remove();
                     btn.show();
                 }
             });
@@ -299,17 +301,19 @@
             const btn = $(this);
             const keyword = btn.text();
             btn.hide();
-            const input = $(`<input type="text" class="w-50 form-control" value="${keyword}">`);
-            input.insertBefore(btn);
+            const input = $(`<input type="text" form-control" value="${keyword}">`);
+            const div = $('<div class="col-4"></div>');
+            div.append(input);
+            div.insertBefore(btn);
             input.focus();
             input.blur(() => {
                 input.val(input.val().replace(/,/g, ''));
                 if (/^\s*$/.test(input.val())) {
-                    input.remove();
+                    div.remove();
                     btn.remove();
                 } else {
                     btn.text(input.val());
-                    input.remove();
+                    div.remove();
                     btn.show();
                 }
             });
@@ -319,19 +323,21 @@
             const btn = $(this);
             btn.hide();
             const input = $(`<input type="text" class="w-50 form-control">`);
-            input.insertBefore(btn);
+            const div = $('<div class="col-4"></div>');
+            div.append(input);
+            div.insertBefore(btn);
             input.focus();
             input.blur(() => {
                 input.val(input.val().replace(/,/g, ''));
                 if (/^\s*$/.test(input.val())) {
-                    input.remove();
+                    div.remove();
                     btn.show();
                 } else {
                     const operatorNew = addRawTagButton('|');
                     operatorNew.insertBefore(btn);
                     const btnNew = addRawTagButton(input.val());
                     btnNew.insertBefore(btn);
-                    input.remove();
+                    div.remove();
                     btn.show();
                 }
             });
@@ -342,17 +348,19 @@
             const tag = btn.text();
             btn.hide();
             const input = $(`<input type="text" class="w-50 form-control" value="${tag}">`);
-            input.insertBefore(btn);
+            const div = $('<div class="col-4"></div>');
+            div.append(input);
+            div.insertBefore(btn);
             input.focus();
             input.blur(() => {
                 input.val(input.val().replace(/,/g, ''));
                 if (/^\s*$/.test(input.val())) {
-                    input.remove();
+                    div.remove();
                     btn.prev().remove();
                     btn.remove();
                 } else {
                     btn.text(input.val());
-                    input.remove();
+                    div.remove();
                     btn.show();
                 }
             });
@@ -366,7 +374,7 @@
                     btn.text('与');
                     break;
                 case '&':
-                    btn.attr('operator', 'I');
+                    btn.attr('operator', '|');
                     btn.text('或');
                     break;
             }

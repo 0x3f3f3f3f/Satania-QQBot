@@ -100,6 +100,9 @@
 
             const matchButtons = body.find('#matchButtons');
             const matchInput = body.find('#matchInput');
+            matchInput.blur(() => {
+                matchInput.val(matchInput.val().replace(/,/g, ''));
+            });
             if (userTag.type == 'string') {
                 matchInput.hide();
                 if (userTag.match != '') {
@@ -107,10 +110,7 @@
                     if (userTag.editable) {
                         for (let i = 0; i < keywords.length; i++) {
                             const keyword = keywords[i];
-                            const btn = $(
-                                `<button type="button" class="btn btn-info mr-1 mb-1">${keyword}</button>`
-                            );
-                            btn.click(editMatch);
+                            const btn = addMatchButton(keyword);
                             matchButtons.append(btn);
                         }
                     } else {
@@ -132,32 +132,8 @@
                 if (userTag.editable) {
                     for (let i = 0; i < rawTags.length; i++) {
                         const tag = rawTags[i];
-                        switch (tag) {
-                            case '|': {
-                                const btn = $(
-                                    '<button type="button" class="btn btn-light px-2 mr-1 mb-1" operator="|">OR</button>'
-                                );
-                                btn.click(changeTagOperator);
-                                rawTagButtons.append(btn);
-                            }
-                            break;
-                        case '&': {
-                            const btn = $(
-                                '<button type="button" class="btn btn-light px-2 mr-1 mb-1" operator="&">AND</button>'
-                            );
-                            btn.click(changeTagOperator);
-                            rawTagButtons.append(btn);
-                        }
-                        break;
-                        default: {
-                            const btn = $(
-                                `<button type="button" class="btn btn-info mr-1 mb-1">${tag}</button>`
-                            );
-                            btn.click(editRawTag);
-                            rawTagButtons.append(btn);
-                        }
-                        break;
-                        }
+                        const btn = addRawTagButton(tag);
+                        rawTagButtons.append(btn);
                     }
                 } else {
                     for (let i = 0; i < rawTags.length; i++) {
@@ -165,12 +141,12 @@
                         switch (tag) {
                             case '|':
                                 rawTagButtons.append(
-                                    '<label class="alert alert-light px-1 py-1 mr-1 mb-1">OR</label>'
+                                    '<label class="alert alert-light px-1 py-1 mr-1 mb-1">或</label>'
                                 );
                                 break;
                             case '&':
                                 rawTagButtons.append(
-                                    '<label class="alert alert-light px-1 py-1 mr-1 mb-1">AND</label>'
+                                    '<label class="alert alert-light px-1 py-1 mr-1 mb-1">与</label>'
                                 );
                                 break;
                             default:
@@ -251,6 +227,39 @@
             );
         }
 
+        function addMatchButton(keyword) {
+            const btn = $(
+                `<button type="button" class="btn btn-info mr-1 mb-1">${keyword}</button>`
+            );
+            btn.click(editMatch);
+            return btn;
+        }
+
+        function addRawTagButton(tag) {
+            let btn;
+            switch (tag) {
+                case '|':
+                    btn = $(
+                        '<button type="button" class="btn btn-light px-2 mr-1 mb-1" operator="|">或</button>'
+                    );
+                    btn.click(changeTagOperator);
+                    break;
+                case '&':
+                    btn = $(
+                        '<button type="button" class="btn btn-light px-2 mr-1 mb-1" operator="&">与</button>'
+                    );
+                    btn.click(changeTagOperator);
+                    break;
+                default:
+                    btn = $(
+                        `<button type="button" class="btn btn-info mr-1 mb-1">${tag}</button>`
+                    );
+                    btn.click(editRawTag);
+                    break;
+            }
+            return btn;
+        }
+
         function changeTagType(event) {
             switch (event.data.type) {
                 case 'string':
@@ -267,19 +276,36 @@
         }
 
         function addMatch() {
-            console.log('addMatch');
-        }
-
-        function editMatch() {
             const btn = $(this);
-            const text = btn.text();
             btn.hide();
-            const input = $(`<input type="text" class="form-control" value="${text}">`);
-            input.insertAfter(btn);
+            const input = $(`<input type="text" class="w-50 form-control">`);
+            input.insertBefore(btn);
             input.focus();
             input.blur(() => {
                 input.val(input.val().replace(/,/g, ''));
                 if (/^\s*$/.test(input.val())) {
+                    input.remove();
+                    btn.show();
+                } else {
+                    const btnNew = addMatchButton(input.val());
+                    btnNew.insertBefore(btn);
+                    input.remove();
+                    btn.show();
+                }
+            });
+        }
+
+        function editMatch() {
+            const btn = $(this);
+            const keyword = btn.text();
+            btn.hide();
+            const input = $(`<input type="text" class="w-50 form-control" value="${keyword}">`);
+            input.insertBefore(btn);
+            input.focus();
+            input.blur(() => {
+                input.val(input.val().replace(/,/g, ''));
+                if (/^\s*$/.test(input.val())) {
+                    input.remove();
                     btn.remove();
                 } else {
                     btn.text(input.val());
@@ -290,15 +316,60 @@
         }
 
         function addRawTag() {
-            console.log('addRawTag');
+            const btn = $(this);
+            btn.hide();
+            const input = $(`<input type="text" class="w-50 form-control">`);
+            input.insertBefore(btn);
+            input.focus();
+            input.blur(() => {
+                input.val(input.val().replace(/,/g, ''));
+                if (/^\s*$/.test(input.val())) {
+                    input.remove();
+                    btn.show();
+                } else {
+                    const operatorNew = addRawTagButton('|');
+                    operatorNew.insertBefore(btn);
+                    const btnNew = addRawTagButton(input.val());
+                    btnNew.insertBefore(btn);
+                    input.remove();
+                    btn.show();
+                }
+            });
         }
 
         function editRawTag() {
-            console.log($(this).text());
+            const btn = $(this);
+            const tag = btn.text();
+            btn.hide();
+            const input = $(`<input type="text" class="w-50 form-control" value="${tag}">`);
+            input.insertBefore(btn);
+            input.focus();
+            input.blur(() => {
+                input.val(input.val().replace(/,/g, ''));
+                if (/^\s*$/.test(input.val())) {
+                    input.remove();
+                    btn.prev().remove();
+                    btn.remove();
+                } else {
+                    btn.text(input.val());
+                    input.remove();
+                    btn.show();
+                }
+            });
         }
 
         function changeTagOperator() {
-            console.log($(this).attr('operator'));
+            const btn = $(this);
+            switch (btn.attr('operator')) {
+                case '|':
+                    btn.attr('operator', '&');
+                    btn.text('与');
+                    break;
+                case '&':
+                    btn.attr('operator', 'I');
+                    btn.text('或');
+                    break;
+            }
         }
 
         function submitUserTag(event) {

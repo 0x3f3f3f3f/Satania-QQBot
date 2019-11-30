@@ -198,6 +198,7 @@
                     '</div>' +
                     '</div>');
                 btn3.click({
+                    id: userTag.id,
                     card
                 }, submitUserTag);
                 body.parent().append(btn3);
@@ -270,7 +271,22 @@
         }
 
         function editMatch() {
-            console.log($(this).text());
+            const btn = $(this);
+            const text = btn.text();
+            btn.hide();
+            const input = $(`<input type="text" class="form-control" value="${text}">`);
+            input.insertAfter(btn);
+            input.focus();
+            input.blur(() => {
+                input.val(input.val().replace(/,/g, ''));
+                if (/^\s*$/.test(input.val())) {
+                    btn.remove();
+                } else {
+                    btn.text(input.val());
+                    input.remove();
+                    btn.show();
+                }
+            });
         }
 
         function addRawTag() {
@@ -286,7 +302,7 @@
         }
 
         function submitUserTag(event) {
-            console.log(event.data.card.html());
+            console.log(event.data.id);
         }
     </script>
 

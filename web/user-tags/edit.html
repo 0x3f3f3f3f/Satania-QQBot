@@ -389,7 +389,11 @@
                     input.val(input.val().replace(/,/g, ''));
                     if (/^\s*$/.test(input.val())) {
                         div.remove();
-                        btn.prev().remove();
+                        if (btn.prev().length == 0) {
+                            btn.next().remove();
+                        } else {
+                            btn.prev().remove();
+                        }
                         btn.remove();
                     } else {
                         btn.text(input.val());
@@ -448,7 +452,7 @@
                 const rawTagBtn = $(rawTagButtons[i]);
                 let tag = '';
                 if (rawTagBtn.attr('operator')) {
-                    tag = rawTagBtn.attr('operator');
+                    tag = rawTags != '' ? rawTagBtn.attr('operator') : '';
                 } else {
                     tag = rawTagBtn.text();
                 }

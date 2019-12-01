@@ -80,7 +80,7 @@ app.use(express.json());
 
 // 获得用户名
 app.post('/getUserName', async (req, res) => {
-    if (!_.isString(req.body.userKey)) {
+    if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey))) {
         res.json({
             err: true
         });
@@ -113,7 +113,7 @@ app.post('/getUserName', async (req, res) => {
 
 // 登录
 app.post('/login', async (req, res) => {
-    if (!_.isString(req.body.userKey) ||
+    if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey)) ||
         !_.isString(req.body.userName)) {
         res.json({
             err: '参数不正确'
@@ -156,7 +156,7 @@ app.post('/login', async (req, res) => {
 
 // 获得所有用户标签
 app.post('/getUserTags', async (req, res) => {
-    if (!_.isString(req.body.userKey)) {
+    if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey))) {
         res.json({
             err: true
         });
@@ -216,7 +216,7 @@ app.post('/getUserTags', async (req, res) => {
 
 // 用户编辑标签
 app.post('/setUserTag', async (req, res) => {
-    if (!_.isString(req.body.userKey) ||
+    if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey)) ||
         (_.isObject(req.body.userTag) && (
             !_.isString(req.body.userTag.type) ||
             !_.isString(req.body.userTag.match) ||
@@ -258,6 +258,14 @@ app.post('/setUserTag', async (req, res) => {
                 err: '用户标签类型错误'
             });
             return;
+    }
+
+    if (/^\s*$/.test(req.body.userTag.match) ||
+        /^\s*$/.test(req.body.userTag.rawTags)) {
+        res.json({
+            err: '规则或标签为空'
+        });
+        return;
     }
 
     if (!_.isNumber(req.body.userTag.id)) {

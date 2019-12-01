@@ -174,7 +174,7 @@
                 rawTagButtons.append(btn2);
                 const div = $('<div class="row">' +
                     '<div class="col text-right">' +
-                    '<button type="button" class="btn btn-primary w-25" id="submit">请稍后...</button>' +
+                    '<button type="button" class="btn btn-primary w-50" id="submit">请稍后...</button>' +
                     '</div>' +
                     '</div>');
                 const btn3 = div.find('#submit');
@@ -461,7 +461,7 @@
             if (response.result) {
                 btnClass = 'btn-success';
                 btn.toggleClass(btnClass);
-                btn.text('提交成功');
+                btn.text('成功');
                 currentID = id;
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 response = await SataniaAPI.getUserTags(searchParams.get('key'));
@@ -470,7 +470,7 @@
             } else {
                 btnClass = 'btn-danger';
                 btn.toggleClass(btnClass);
-                btn.text('提交失败');
+                btn.text('失败');
             }
 
             await new Promise(resolve => setTimeout(resolve, 5000));

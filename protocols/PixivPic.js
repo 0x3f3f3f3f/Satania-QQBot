@@ -435,7 +435,15 @@ async function PixivPic(recvObj, client, tags, opt) {
     } catch {}
 
     if (illustPath) {
-        illustCharge[recvObj.group].count--;
+        // 群聊才减充能
+        if (!(
+                recvObj.type == recvType.friend ||
+                recvObj.type == recvType.groupNonFriend ||
+                recvObj.type == recvType.discussNonFriend ||
+                recvObj.type == recvType.nonFriend
+            ) && !opt.resend) {
+            illustCharge[recvObj.group].count--;
+        }
         client.sendMsg(recvObj, `[QQ:pic=${illustPath}]`);
     } else {
         client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);

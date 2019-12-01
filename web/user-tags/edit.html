@@ -230,6 +230,7 @@
             }
             const card = addCard(userTagList, {
                 id: -1,
+                enabled: true,
                 userName: '',
                 type: 'string',
                 match: '',
@@ -241,9 +242,16 @@
             cardHeading.empty();
             cardHeading.append(
                 '<div class="col text-truncate text-right">' +
-                '<button type="button" class="btn btn-primary btn-sm">新增...</button>' +
+                '<button type="button" class="btn btn-primary btn-sm" id="newUserTag">新增...</button>' +
                 '</div>'
             );
+            cardHeading.find('#newUserTag').click(() => {
+                setTimeout(() => {
+                    $('html, body').animate({
+                        scrollTop: $(document).height()
+                    }, 'slow');
+                }, 10);
+            });
         }
 
         function addMatchButton(keyword) {

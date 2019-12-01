@@ -39,6 +39,11 @@ const knex = require('knex')({
             table.string('group');
         });
     }
+    if (!(await knex.schema.hasColumn('user_tags', 'enabled'))) {
+        await knex.schema.table('user_tags', table => {
+            table.boolean('enabled').index('enabled').defaultTo(true);
+        });
+    }
     if (!(await knex.schema.hasColumn('user_tags', 'account'))) {
         await knex.schema.table('user_tags', table => {
             table.string('account').index('account');
@@ -183,6 +188,7 @@ app.post('/getUserTags', async (req, res) => {
 
     const userTags = await knex('user_tags').leftJoin('users', 'user_tags.account', 'users.account')
         .select(
+            'enabled',
             'user_tags.id as id',
             'users.name as userName',
             'type',
@@ -219,6 +225,7 @@ app.post('/getUserTags', async (req, res) => {
 app.post('/setUserTag', async (req, res) => {
     if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey)) ||
         (_.isObject(req.body.userTag) && (
+            !_.isBoolean(req.body.userTag.enabled) ||
             !_.isString(req.body.userTag.type) ||
             !_.isString(req.body.userTag.match) ||
             !_.isString(req.body.userTag.rawTags) ||
@@ -239,7 +246,8 @@ app.post('/setUserTag', async (req, res) => {
         return;
     }
 
-    if (_.isEmpty((await knex('users').where('account', account))[0])) {
+    const user = (await knex('users').where('account', account))[0];
+    if (_.isEmpty(user)) {
         res.json({
             err: '用户未注册'
         });
@@ -276,6 +284,7 @@ app.post('/setUserTag', async (req, res) => {
     if (!_.isNumber(req.body.userTag.id)) {
         // 新建
         await knex('user_tags').insert({
+            enabled: req.body.userTag.enabled,
             account,
             type,
             match: req.body.userTag.match,
@@ -291,13 +300,14 @@ app.post('/setUserTag', async (req, res) => {
             });
             return;
         }
-        if (userTag.account != account) {
+        if (user.group != 'admin' && userTag.account != account) {
             res.json({
                 err: '你不能编辑其他用户的标签'
             });
             return;
         }
         await knex('user_tags').where('id', req.body.userTag.id).update({
+            enabled: req.body.userTag.enabled,
             type,
             match: req.body.userTag.match,
             raw_tags: req.body.userTag.rawTags,

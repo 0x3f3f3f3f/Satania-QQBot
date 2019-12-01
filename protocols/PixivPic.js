@@ -350,7 +350,7 @@ module.exports = async function (recvObj, client) {
     }
 
     // 匹配性癖标签
-    const userTags = await knex('user_tags').select('type', 'match', 'raw_tags as rawTags');
+    const userTags = await knex('user_tags').where('enabled', true).select('type', 'match', 'raw_tags as rawTags');
     for (const userTag of userTags) {
         let regExp;
         if (userTag.type == 'regexp') {

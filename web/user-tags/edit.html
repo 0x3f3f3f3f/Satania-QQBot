@@ -49,8 +49,10 @@
                 `<div class="row${currentID!=userTag.id?' collapsed':''}" id="heading${userTag.id}" data-toggle="collapse" data-target="#collapse${userTag.id}" aria-expanded="${currentID!=userTag.id?'false':'true'}" aria-controls="collapse${userTag.id}">` +
                 '<div class="col-6 text-truncate">' +
                 `#${userTag.id} ` +
-                (userTag.type == 'string' ? `<span class="badge badge-primary mr-1">${type}</span>` :
-                    `<span class="badge badge-info mr-1">${type}</span>`) +
+                (userTag.enabled ? (userTag.type == 'string' ?
+                        `<span class="badge badge-primary mr-1">${type}</span>` :
+                        `<span class="badge badge-info mr-1">${type}</span>`) :
+                    '<span class="badge badge-secondary mr-1">失效</span>') +
                 (userTag.editable ? '<span class="badge badge-success mr-1">可编辑</span>' : '') +
                 (userTag.type == 'string' ? userTag.match.split(',').join(' ') : userTag.match) +
                 '</div>' +
@@ -174,7 +176,13 @@
                 btn2.click(addRawTag);
                 rawTagButtons.append(btn2);
                 const div = $('<div class="row">' +
-                    '<div class="col text-right">' +
+                    '<div class="col-6">' +
+                    '<div class="custom-control custom-switch">' +
+                    `<input type="checkbox" class="custom-control-input" id="userTagEnabled${userTag.id}"${userTag.enabled?' checked':''}>` +
+                    `<label class="custom-control-label" for="userTagEnabled${userTag.id}">启用这条规则</label>` +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="col-6 text-right">' +
                     '<button type="button" class="btn btn-primary w-50" id="submit">请稍后...</button>' +
                     '</div>' +
                     '</div>');
@@ -413,6 +421,8 @@
             const id = event.data.id;
             const card = event.data.card;
 
+            const enabled = card.find(`#userTagEnabled${id}`).is(':checked');
+
             let match = '';
             const type = card.find('#matchTypeButton').attr('match-type');
             switch (type) {
@@ -442,6 +452,7 @@
             }
 
             const userTag = {
+                enabled,
                 type,
                 match,
                 rawTags,

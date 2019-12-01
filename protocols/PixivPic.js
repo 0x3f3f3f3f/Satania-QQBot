@@ -352,7 +352,8 @@ module.exports = async function (recvObj, client) {
 
     // 匹配性癖标签
     const userTags = await knex('user_tags').where('enabled', true).select('type', 'match', 'raw_tags as rawTags');
-    for (const userTag of userTags) {
+    for (let i = userTags.length - 1; i >= 0; i--) {
+        const userTag = userTags[i];
         let regExp;
         if (userTag.type == 'regexp') {
             regExp = new RegExp(userTag.match, 'im');

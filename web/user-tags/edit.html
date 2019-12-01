@@ -182,7 +182,7 @@
                 setTimeout(() => {
                     btn3.text('提交');
                     btn3.attr('disabled', false);
-                }, 5000);
+                }, 3000);
                 body.parent().append(div);
 
                 const matchTypeButton = body.find('#matchTypeButton');
@@ -231,12 +231,6 @@
                 '<button type="button" class="btn btn-primary btn-sm">新增...</button>' +
                 '</div>'
             );
-
-            if (currentID != null) {
-                $('html, body').animate({
-                    scrollTop: userTagList.find(`#heading${currentID}`).position().top
-                }, 'fast');
-            }
         }
 
         function addMatchButton(keyword) {

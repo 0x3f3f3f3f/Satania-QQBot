@@ -11,7 +11,6 @@ const recvType = require('../lib/receiveType');
 const base64url = require('../lib/base64url');
 
 const tagList = JSON.parse(fs.readFileSync('./protocols/Pixiv_tags.json', 'utf8'));
-tagList.searchTags = JSON.parse(fs.readFileSync('./protocols/Pixiv_search_tags.json', 'utf8'));
 
 // 连接数据库
 const knex = require('knex')({
@@ -131,7 +130,17 @@ async function searchIllust(recvObj, tags, opt) {
     if (tags) {
         let stringQuery = '';
         for (const tag of tags) {
-            stringQuery += stringQuery ? ` or \`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
+            switch (tag) {
+                case '|':
+                    stringQuery += ' or ';
+                    break;
+                case '&':
+                    stringQuery += ' and ';
+                    break;
+                default:
+                    stringQuery += stringQuery ? `\`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
+                    break;
+            }
         }
         if (recvObj.type != recvType.friend) {
             stringQuery = '\`rating\` not like \'r18%\' and ' + stringQuery;
@@ -341,9 +350,16 @@ module.exports = async function (recvObj, client) {
     }
 
     // 匹配性癖标签
-    for (const searchTag of tagList.searchTags) {
-        if (new RegExp(searchTag.regExp, 'im').test(recvObj.content)) {
-            PixivPic(recvObj, client, searchTag.rawTag, {
+    const userTags = await knex('user_tags').select('type', 'match', 'raw_tags as rawTags');
+    for (const userTag of userTags) {
+        let regExp;
+        if (userTag.type == 'regexp') {
+            regExp = new RegExp(userTag.match, 'im');
+        } else {
+            regExp = new RegExp(userTag.match.split(',').join('|'), 'im')
+        }
+        if (regExp.test(recvObj.content)) {
+            PixivPic(recvObj, client, userTag.rawTags.split(','), {
                 autoBurst,
                 burstNum,
                 num

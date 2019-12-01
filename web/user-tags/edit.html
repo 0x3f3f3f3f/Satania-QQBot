@@ -459,6 +459,7 @@
 
             await new Promise(resolve => setTimeout(resolve, 5000));
             btn.toggleClass(btnClass);
+            btn.attr('disabled', false);
             btn.text('提交');
         }
     </script>

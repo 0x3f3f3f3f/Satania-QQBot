@@ -17,6 +17,7 @@
     <div class="container">
         <div class="accordion" id="userTagList">
         </div>
+        <div style="padding-bottom: 50%;"></div>
     </div>
 
     <!-- Optional JavaScript -->
@@ -245,13 +246,6 @@
                 '<button type="button" class="btn btn-primary btn-sm" id="newUserTag">新增...</button>' +
                 '</div>'
             );
-            cardHeading.find('#newUserTag').click(() => {
-                setTimeout(() => {
-                    $('html, body').animate({
-                        scrollTop: $(document).height()
-                    }, 'slow');
-                }, 10);
-            });
         }
 
         function addMatchButton(keyword) {

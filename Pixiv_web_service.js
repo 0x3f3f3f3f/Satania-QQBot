@@ -188,7 +188,8 @@ app.post('/getUserTags', async (req, res) => {
             'type',
             'match',
             'user_tags.raw_tags as rawTags',
-            'comment'
+            'comment',
+            'group'
         );
 
     let editableList;

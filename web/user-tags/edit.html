@@ -48,12 +48,16 @@
                 `<div class="row${currentID!=userTag.id?' collapsed':''}" id="heading${userTag.id}" data-toggle="collapse" data-target="#collapse${userTag.id}" aria-expanded="${currentID!=userTag.id?'false':'true'}" aria-controls="collapse${userTag.id}">` +
                 '<div class="col-6 text-truncate">' +
                 `#${userTag.id} ` +
-                `<span class="badge badge-primary mr-1">${type}</span>` +
+                (userTag.type == 'string' ? `<span class="badge badge-primary mr-1">${type}</span>` :
+                    `<span class="badge badge-info mr-1">${type}</span>`) +
                 (userTag.editable ? '<span class="badge badge-success mr-1">可编辑</span>' : '') +
                 (userTag.type == 'string' ? userTag.match.split(',').join(' ') : userTag.match) +
                 '</div>' +
-                `<div class="col text-truncate font-italic text-muted">${userTag.comment!=''?'//'+userTag.comment:''}</div>` +
-                `<div class="col-1"><span class="badge badge-secondary float-right mt-1">${userTag.userName}</span></div>` +
+                `<div class="col text-truncate font-italic" style="color: lightgray;">${userTag.comment!=''?'//'+userTag.comment:''}</div>` +
+                (userTag.group == 'admin' ?
+                    `<div class="col-1"><span class="badge badge-dark float-right mt-1">${userTag.userName}</span></div>` :
+                    `<div class="col-1"><span class="badge badge-secondary float-right mt-1">${userTag.userName}</span></div>`
+                ) +
                 '</div>' +
                 '</div>' +
                 `<div id="collapse${userTag.id}" class="collapse${currentID==userTag.id?' show':''}" aria-labelledby="heading${userTag.id}" data-parent="#${parent.attr('id')}">` +

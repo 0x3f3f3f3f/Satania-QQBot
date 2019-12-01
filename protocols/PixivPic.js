@@ -80,6 +80,11 @@ async function initDatabase() {
             table.string('tag');
         });
     }
+    if (!(await knex.schema.hasColumn('inside_tags', 'comment'))) {
+        await knex.schema.table('inside_tags', table => {
+            table.string('comment').defaultTo('');
+        });
+    }
 }
 
 let isInitialized = false;

@@ -218,10 +218,10 @@ app.post('/getUserTags', async (req, res) => {
 app.post('/setUserTag', async (req, res) => {
     if (!_.isString(req.body.userKey) ||
         (_.isObject(req.body.userTag) && (
-            !_.string(req.body.userTag.type) ||
-            !_.string(req.body.userTag.match) ||
-            !_.string(req.body.userTag.rawTags) ||
-            !_.string(req.body.userTag.comment)))) {
+            !_.isString(req.body.userTag.type) ||
+            !_.isString(req.body.userTag.match) ||
+            !_.isString(req.body.userTag.rawTags) ||
+            !_.isString(req.body.userTag.comment)))) {
         res.json({
             err: '参数不正确'
         });

@@ -13,11 +13,13 @@
     <title>Satania标签自助系统</title>
 </head>
 
-<body style="background-color: #f5f5f5;padding-top: 40px; padding-bottom: 40px;">
+<body style="background-color: #f5f5f5;">
     <div class="container">
         <div class="accordion" id="userTagList">
         </div>
-        <div style="padding-bottom: 50%;"></div>
+        <div class="row">
+            <div class="col" style="padding-bottom: 50%;"></div>
+        </div>
     </div>
 
     <!-- Optional JavaScript -->
@@ -502,6 +504,34 @@
         $(document).ready(async () => {
             let response = await SataniaAPI.getUserTags(searchParams.get('key'));
             updateUserTagsList(response.userTags);
+
+            const userTagList = $('#userTagList');
+            const btnTop = $(
+                '<div class="row">' +
+                '<div class="col text-center">' +
+                '<button class="btn btn-link text-decoration-none" id="go-page-bottom">去底部</button>' +
+                '</div>' +
+                '</div>'
+            );
+            btnTop.find('#go-page-bottom').click(() => {
+                $('html, body').animate({
+                    scrollTop: $(document).height()
+                }, 'slow');
+            });
+            const btnBottom = $(
+                '<div class="row">' +
+                '<div class="col text-center">' +
+                '<button class="btn btn-link text-decoration-none" id="go-page-top">去顶部</button>' +
+                '</div>' +
+                '</div>'
+            );
+            btnBottom.find('#go-page-top').click(() => {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 'slow');
+            });
+            btnTop.insertBefore(userTagList);
+            btnBottom.insertAfter(userTagList);
         });
     </script>
 </body>

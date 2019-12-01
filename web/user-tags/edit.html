@@ -178,6 +178,10 @@
                     id: userTag.id,
                     card
                 }, submitUserTag);
+                btn3.attr('disabled', true);
+                setTimeout(() => {
+                    btn3.attr('disabled', false);
+                }, 5000);
                 body.parent().append(div);
 
                 const matchTypeButton = body.find('#matchTypeButton');
@@ -456,7 +460,11 @@
 
             let btnClass;
             if (response.result) {
+                btnClass = 'btn-success';
+                btn.toggleClass(btnClass);
+                btn.text('提交成功');
                 currentID = id;
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 response = await SataniaAPI.getUserTags(searchParams.get('key'));
                 updateUserTagsList(response.userTags);
                 return;
@@ -479,7 +487,6 @@
         let currentID = null;
 
         $(document).ready(async () => {
-            // 获得用户标签
             let response = await SataniaAPI.getUserTags(searchParams.get('key'));
             updateUserTagsList(response.userTags);
         });

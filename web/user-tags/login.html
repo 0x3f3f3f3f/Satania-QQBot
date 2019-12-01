@@ -44,11 +44,9 @@
         const searchParams = new URLSearchParams(location.search);
 
         $(document).ready(async () => {
-            // 获得用户名
             let response = await SataniaAPI.getUserName(searchParams.get('key'));
             if (response && response.result) $('#inputName').val(response.userName);
 
-            // 点击登录
             $('#submit').click(async () => {
                 response = await SataniaAPI.login(searchParams.get('key'), $('#inputName')
                     .val());

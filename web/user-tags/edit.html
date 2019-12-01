@@ -170,7 +170,7 @@
                 rawTagButtons.append(btn2);
                 const div = $('<div class="row">' +
                     '<div class="col text-right">' +
-                    '<button type="button" class="btn btn-primary w-25" id="submit">提交</button>' +
+                    '<button type="button" class="btn btn-primary w-25" id="submit">请稍后...</button>' +
                     '</div>' +
                     '</div>');
                 const btn3 = div.find('#submit');
@@ -180,6 +180,7 @@
                 }, submitUserTag);
                 btn3.attr('disabled', true);
                 setTimeout(() => {
+                    btn3.text('提交');
                     btn3.attr('disabled', false);
                 }, 5000);
                 body.parent().append(div);

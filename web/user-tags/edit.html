@@ -9,6 +9,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
 
+    <link rel="shortcut icon" href="favicon.ico">
     <title>Satania标签自助系统</title>
 </head>
 
@@ -461,7 +462,7 @@
             if (response.result) {
                 btnClass = 'btn-success';
                 btn.toggleClass(btnClass);
-                btn.text('成功');
+                btn.text('提交成功');
                 currentID = id;
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 response = await SataniaAPI.getUserTags(searchParams.get('key'));
@@ -470,7 +471,7 @@
             } else {
                 btnClass = 'btn-danger';
                 btn.toggleClass(btnClass);
-                btn.text('失败');
+                btn.text('提交失败');
             }
 
             await new Promise(resolve => setTimeout(resolve, 5000));

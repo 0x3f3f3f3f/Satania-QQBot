@@ -45,7 +45,7 @@
             const card = $(
                 '<div class="card">' +
                 '<div class="card-header p-2">' +
-                `<div class="row collapsed" id="heading${userTag.id}" data-toggle="collapse" data-target="#collapse${userTag.id}" aria-expanded="false" aria-controls="collapse${userTag.id}">` +
+                `<div class="row${currentID!=userTag.id?' collapsed':''}" id="heading${userTag.id}" data-toggle="collapse" data-target="#collapse${userTag.id}" aria-expanded="${currentID!=userTag.id?'false':'true'}" aria-controls="collapse${userTag.id}">` +
                 '<div class="col-6 text-truncate">' +
                 `#${userTag.id} ` +
                 `<span class="badge badge-primary mr-1">${type}</span>` +
@@ -226,6 +226,12 @@
                 '<button type="button" class="btn btn-primary btn-sm">新增...</button>' +
                 '</div>'
             );
+
+            if (currentID != null) {
+                $('html, body').animate({
+                    scrollTop: userTagList.find(`#heading${currentID}`).position().top
+                }, 'fast');
+            }
         }
 
         function addMatchButton(keyword) {
@@ -340,8 +346,10 @@
                         div.remove();
                         btn.show();
                     } else {
-                        const operatorNew = addRawTagButton('|');
-                        operatorNew.insertBefore(btn);
+                        if (btn.parent().children().length > 2) {
+                            const operatorNew = addRawTagButton('|');
+                            operatorNew.insertBefore(btn);
+                        }
                         const btnNew = addRawTagButton(input.val());
                         btnNew.insertBefore(btn);
                         div.remove();
@@ -448,9 +456,10 @@
 
             let btnClass;
             if (response.result) {
-                btnClass = 'btn-success';
-                btn.toggleClass(btnClass);
-                btn.text('提交成功');
+                currentID = id;
+                response = await SataniaAPI.getUserTags(searchParams.get('key'));
+                updateUserTagsList(response.userTags);
+                return;
             } else {
                 btnClass = 'btn-danger';
                 btn.toggleClass(btnClass);
@@ -466,6 +475,8 @@
 
     <script>
         const searchParams = new URLSearchParams(window.location.search);
+
+        let currentID = null;
 
         $(document).ready(async () => {
             // 获得用户标签

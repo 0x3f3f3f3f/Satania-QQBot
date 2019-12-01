@@ -268,6 +268,10 @@ app.post('/setUserTag', async (req, res) => {
         return;
     }
 
+    if (/^\s*$/.test(req.body.userTag.comment)) {
+        req.body.userTag.comment = '';
+    }
+
     if (!_.isNumber(req.body.userTag.id)) {
         // 新建
         await knex('user_tags').insert({

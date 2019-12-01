@@ -52,7 +52,7 @@
                 (userTag.editable ? '<span class="badge badge-success mr-1">可编辑</span>' : '') +
                 (userTag.type == 'string' ? userTag.match.split(',').join(' ') : userTag.match) +
                 '</div>' +
-                `<div class="col text-truncate font-italic text-muted">//${userTag.comment}</div>` +
+                `<div class="col text-truncate font-italic text-muted">${userTag.comment!=''?'//'+userTag.comment:''}</div>` +
                 `<div class="col-1"><span class="badge badge-secondary float-right mt-1">${userTag.userName}</span></div>` +
                 '</div>' +
                 '</div>' +

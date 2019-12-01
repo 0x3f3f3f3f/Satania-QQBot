@@ -34,6 +34,11 @@ async function initDatabase() {
             table.increments('id').primary();
         });
     }
+    if (!(await knex.schema.hasTable('inside_tags'))) {
+        await knex.schema.createTable('inside_tags', table => {
+            table.increments('id').primary();
+        });
+    }
 
     if (!(await knex.schema.hasColumn('seen_list', 'group'))) {
         await knex.schema.table('seen_list', table => {
@@ -63,6 +68,16 @@ async function initDatabase() {
     if (!(await knex.schema.hasColumn('rule_list', 'rule'))) {
         await knex.schema.table('rule_list', table => {
             table.string('rule').index('rule');
+        });
+    }
+    if (!(await knex.schema.hasColumn('inside_tags', 'type'))) {
+        await knex.schema.table('inside_tags', table => {
+            table.string('type').index('type');
+        });
+    }
+    if (!(await knex.schema.hasColumn('inside_tags', 'tag'))) {
+        await knex.schema.table('inside_tags', table => {
+            table.string('tag');
         });
     }
 }

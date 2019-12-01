@@ -10,8 +10,6 @@ const nzhcn = require('nzh/cn');
 const recvType = require('../lib/receiveType');
 const base64url = require('../lib/base64url');
 
-const tagList = JSON.parse(fs.readFileSync('./protocols/Pixiv_tags.json', 'utf8'));
-
 // 连接数据库
 const knex = require('knex')({
     client: 'mysql2',
@@ -87,12 +85,16 @@ async function initDatabase() {
     }
 }
 
+const tagList = {};
+
 let isInitialized = false;
 
 (async function () {
     cleanUp();
     // 初始化数据库
     await initDatabase();
+    // 拿到内部标签
+    await getInsideTags();
 
     isInitialized = true;
 })();
@@ -139,8 +141,17 @@ function replaceRegexpChar(tag) {
     return tag.replace(/(?=[\(\)\=])/g, '\\');
 }
 
-function updateIllusts() {
-    childProcess.fork('Pixiv_database.js', [tagList.sexTags.join() + ',' + tagList.charTags.join(), 'day', 0, 0, 7]);
+async function getInsideTags() {
+    const insideTags = await knex('inside_tags').select('type', 'tag');
+    for (const insideTag of insideTags) {
+        if (!_.isArray(tagList[insideTag.type])) tagList[insideTag.type] = [];
+        tagList[insideTag.type].push(insideTag.tag);
+    }
+}
+
+async function updateIllusts() {
+    await getInsideTags();
+    childProcess.fork('Pixiv_database.js', [tagList.sex.join() + ',' + tagList.char.join(), 'day', 0, 0, 7]);
 }
 
 async function searchIllust(recvObj, tags, opt) {
@@ -223,7 +234,7 @@ async function searchIllust(recvObj, tags, opt) {
     console.log('PixivPic:', illust.id, illust.title, moment(illust.create_date).format('YYYY-MM-DD, H:mm:ss'));
 
     // 没给标签也没有命中性癖标签，需要重新找一次
-    if (!tags && !(new RegExp(tagList.sexTags.join('|')).test(illust.tags))) {
+    if (!tags && !(new RegExp(tagList.sex.join('|')).test(illust.tags))) {
         return searchIllust(recvObj, tags, opt);
     }
 

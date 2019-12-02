@@ -15,13 +15,13 @@ const knex = require('knex')({
 });
 
 async function insert(srcID, dstID) {
-    const src = await knex('user_tags').where('id', srcID);
+    const src = (await knex('user_tags').where('id', srcID))[0];
     await del(srcID);
     let index = dstID;
-    let temp = await knex('user_tags').where('id', index);
+    let temp = (await knex('user_tags').where('id', index))[0];
     for (;;) {
         index++;
-        const temp2 = await knex('user_tags').where('id', index);
+        const temp2 = (await knex('user_tags').where('id', index))[0];
         if (!_.isEmpty(temp2)) {
             delete temp.id;
             await knex('user_tags').where('id', index).update(temp);

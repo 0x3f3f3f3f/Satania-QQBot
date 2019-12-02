@@ -151,7 +151,8 @@ async function getInsideTags() {
 
 async function updateIllusts() {
     await getInsideTags();
-    childProcess.fork('Pixiv_database.js', [tagList.sex.join() + ',' + tagList.char.join(), 'day', 0, 0, 7]);
+    childProcess.fork('Pixiv_database.js', [tagList.sex.join(), 'day_sex', 0, 0, 7]);
+    childProcess.fork('Pixiv_database.js', [tagList.char.join(), 'day_char', 0, 0, 7]);
 }
 
 async function searchIllust(recvObj, tags, opt) {

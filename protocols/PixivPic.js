@@ -277,7 +277,7 @@ async function downloadIllust(illust, recvObj, opt) {
                 top: y < 0 ? 0 : y
             }])
             .jpeg({
-                quality: 100,
+                quality: 92,
                 chromaSubsampling: '4:4:4'
             })
             .toBuffer();

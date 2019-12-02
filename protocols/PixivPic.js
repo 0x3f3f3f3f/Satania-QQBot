@@ -420,7 +420,7 @@ async function PixivPic(recvObj, client, tags, opt) {
     if (opt.autoBurst) {
         opt.autoBurst = false;
         for (let i = 0; i < opt.burstNum; i++) {
-            await PixivPic(recvObj, client, tags, opt);
+            PixivPic(recvObj, client, tags, opt);
         }
         return;
     }

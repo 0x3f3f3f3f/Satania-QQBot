@@ -21,14 +21,13 @@ async function insert(srcID, dstID) {
     let temp = await knex('user_tags').where('id', index);
     for (;;) {
         index++;
-        try {
-            const temp2 = await knex('user_tags').where('id', index);
-            delete temp.id;
-            await knex('user_tags').where('id', index).update(temp);
+        const temp2 = await knex('user_tags').where('id', index);
+        delete temp.id;
+        if (await knex('user_tags').where('id', index).update(temp)) {
             temp = temp2;
-        } catch {
+        } else {
             delete temp.id;
-            await knex('user_tags').insert(temp);
+            await knex('user_tags').where('id', index).insert(temp);
             break;
         }
     }
@@ -41,9 +40,7 @@ async function del(id) {
     let index = id;
     for (;;) {
         index++;
-        try {
-            await knex('user_tags').where('id', index).update('id', index - 1);
-        } catch {
+        if (!(await knex('user_tags').where('id', index).update('id', index - 1))) {
             break;
         }
     }

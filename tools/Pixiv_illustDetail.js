@@ -2,7 +2,7 @@ const fs = require('fs');
 const PixivAppApi = require('pixiv-app-api');
 const _ = require('lodash');
 
-const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
+const secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
 
 let pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword, {
     camelcaseKeys: true

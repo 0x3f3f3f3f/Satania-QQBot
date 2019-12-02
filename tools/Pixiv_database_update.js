@@ -4,7 +4,7 @@ const _ = require('lodash');
 require('colors');
 const EventEmitter = require('events');
 
-const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
+const secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
 
 const pixivClients = [];
 for (const account of secret.PixivAPIAccounts) {

@@ -1,5 +1,6 @@
 const _ = require('lodash');
 require('colors');
+const fs = require('fs');
 
 const secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
 

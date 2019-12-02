@@ -22,12 +22,13 @@ async function insert(srcID, dstID) {
     for (;;) {
         index++;
         const temp2 = await knex('user_tags').where('id', index);
-        delete temp.id;
-        if (await knex('user_tags').where('id', index).update(temp)) {
+        if (!_.isEmpty(temp2)) {
+            delete temp.id;
+            await knex('user_tags').where('id', index).update(temp);
             temp = temp2;
         } else {
-            delete temp.id;
-            await knex('user_tags').where('id', index).insert(temp);
+            temp.id = index;
+            await knex('user_tags').insert(temp);
             break;
         }
     }

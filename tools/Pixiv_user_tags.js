@@ -51,23 +51,27 @@ async function del(id) {
 
 const argID1 = parseInt(process.argv[3]);
 const argID2 = parseInt(process.argv[4]);
-switch (process.argv[2]) {
-    case 'i':
-        if (_.isNaN(argID1) ||
-            _.isNaN(argID2)) {
+
+(async function () {
+    switch (process.argv[2]) {
+        case 'i':
+            if (_.isNaN(argID1) ||
+                _.isNaN(argID2)) {
+                console.log('Arguments input is incorrect!'.red.bold);
+                break;
+            }
+            await insert(argID1, argID2);
+            break;
+        case 'd':
+            if (_.isNaN(argID1)) {
+                console.log('Arguments input is incorrect!'.red.bold);
+                break;
+            }
+            await del(argID1);
+            break;
+        default:
             console.log('Arguments input is incorrect!'.red.bold);
-            return;
-        }
-        insert(argID1, argID2);
-        break;
-    case 'd':
-        if (_.isNaN(argID1)) {
-            console.log('Arguments input is incorrect!'.red.bold);
-            return;
-        }
-        del(argID1);
-        break;
-    default:
-        console.log('Arguments input is incorrect!'.red.bold);
-        return;
-}
+            break;
+    }
+    process.exit();
+})();

@@ -276,7 +276,9 @@ async function searchIllust(recvObj, tags, opt) {
         ) && recvObj.group != '') {
         const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
         for (const seen of seenList) {
-            selected.splice(selectedIndex[seen.id], 1);
+            if (!_.isUndefined(selectedIndex[seen.id])) {
+                selected.splice(selectedIndex[seen.id], 1);
+            }
         }
     }
 

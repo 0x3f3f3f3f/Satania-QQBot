@@ -250,7 +250,7 @@ async function searchIllust(recvObj, tags, opt) {
         for (const illust of illusts) {
             if (illust.b < bookmarks) continue;
             if (isSafe && illust.r != 'safe') continue;
-            if (!tags && !(regExp.test(illust.t))) {
+            if (regExp.test(illust.t)) {
                 selected.push(illustsIndex[illust.id]);
                 selectedIndex[illust.id] = selected.length - 1;
             }

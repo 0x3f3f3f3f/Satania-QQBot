@@ -110,6 +110,9 @@ let curHours = moment().hours();
 const illustMaxCharge = 5;
 const illustCD = 120;
 const illustCharge = {};
+const illustBlockMaxCharge = 100;
+const illustBlockCD = 3600;
+const illustBlock = {};
 const timer = setInterval(() => {
     const curMoment = moment();
     if (curHours != curMoment.hours()) {
@@ -126,9 +129,19 @@ const timer = setInterval(() => {
         const charge = illustCharge[groupId];
         if (charge.count < illustMaxCharge) {
             charge.cd--;
-            if (charge.cd == 0) {
+            if (charge.cd <= 0) {
                 charge.cd = illustCD;
                 charge.count++;
+            }
+        }
+    }
+    // 自动ban
+    for (const qq in illustBlock) {
+        const charge = illustBlock[qq];
+        if (charge.count < illustBlockMaxCharge) {
+            charge.cd--;
+            if (charge.cd <= 0) {
+                delete illustBlock[qq];
             }
         }
     }
@@ -355,7 +368,8 @@ module.exports = async function (recvObj, client) {
             rule: 'block'
         }))[0];
         if (rule && rule.name == recvObj.qq.toString()) {
-            return false;
+            client.sendMsg(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
+            return true;
         }
     } else {
         const rule = (await knex('rule_list').where({
@@ -480,6 +494,28 @@ async function PixivPic(recvObj, client, tags, opt) {
 
     if (!isInitialized) {
         client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
+        return;
+    }
+
+    if (!illustBlock[recvObj.qq]) {
+        illustBlock[recvObj.qq] = {
+            count: illustBlockMaxCharge,
+            cd: illustBlockCD
+        }
+    }
+
+    illustBlock[recvObj.qq].count--;
+    if (illustBlock[recvObj.qq].count <= 0) {
+        if (!(await knex('rule_list').where('type', 'qq').andWhere('name', recvObj.qq))[0]) {
+            await knex('rule_list').insert({
+                type: 'qq',
+                name: recvObj.qq,
+                rule: 'block'
+            });
+        } else {
+            await knex('rule_list').where('type', 'qq').andWhere('name', recvObj.qq).update('rule', 'block');
+        }
+        delete illustBlock[recvObj.qq];
         return;
     }
 

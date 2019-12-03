@@ -86,6 +86,8 @@ async function initDatabase() {
 }
 
 const tagList = {};
+let illusts = [];
+let illustsIndex = {};
 
 let isInitialized = false;
 
@@ -95,6 +97,8 @@ let isInitialized = false;
     await initDatabase();
     // 拿到内部标签
     await getInsideTags();
+    // 把数据库灌入内存
+    await getIllusts();
 
     isInitialized = true;
 })();
@@ -149,55 +153,118 @@ async function getInsideTags() {
     }
 }
 
+async function getIllusts() {
+    illusts = await knex('illusts').select('id', 'title as ti', 'image_url as url', 'rating as r', 'tags as t', 'create_date as d', 'total_bookmarks as b').orderBy('id', 'asc');
+    illustsIndex = {};
+    for (let i = 0; i < illusts.length; i++) {
+        illustsIndex[illusts[i].id] = i;
+    }
+}
+
 async function updateIllusts() {
     await getInsideTags();
-    childProcess.fork('Pixiv_database.js', [tagList.sex.join(), 'day_sex', 0, 0, 7]);
-    childProcess.fork('Pixiv_database.js', [tagList.char.join(), 'day_char', 0, 0, 7]);
+    const js1 = childProcess.fork('Pixiv_database.js', [tagList.sex.join(), 'day_sex', 0, 0, 7]);
+    const js2 = childProcess.fork('Pixiv_database.js', [tagList.char.join(), 'day_char', 0, 0, 7]);
+    await Promise.all([
+        new Promise(resolve => js1.on('close', resolve)),
+        new Promise(resolve => js2.on('close', resolve))
+    ]);
+    await getIllusts();
 }
 
 async function searchIllust(recvObj, tags, opt) {
-    let illustsQuery;
-    let illust;
+    const selected = [];
+    const selectedIndex = {};
+    let startTime = Date.now();
 
-    if (tags) {
-        let stringQuery = '';
-        for (const tag of tags) {
+    let bookmarks = 1000;
+    if ((
+            recvObj.type == recvType.friend ||
+            recvObj.type == recvType.groupNonFriend ||
+            recvObj.type == recvType.discussNonFriend ||
+            recvObj.type == recvType.nonFriend
+        ) && opt.num > bookmarks) {
+        bookmarks = opt.num;
+    } else {
+        const rand = (1 - Math.pow(1 - Math.random(), 2)) * 20000;
+        if (rand > bookmarks) {
+            bookmarks = rand;
+        }
+    }
+    const isSafe = recvObj.type != recvType.friend;
+
+    function selectTags() {
+        let opAnd = [];
+        const opOr = [];
+        for (let i = 0; i < tags.length; i++) {
+            const tag = tags[i];
             switch (tag) {
                 case '|':
-                    stringQuery += ' or ';
+                    opOr.push(opAnd);
+                    opAnd = [];
                     break;
                 case '&':
-                    stringQuery += ' and ';
                     break;
                 default:
-                    stringQuery += stringQuery ? `\`tags\` like \'%${tag}%\'` : `(\`tags\` like \'%${tag}%\'`;
+                    opAnd.push(tag);
                     break;
             }
         }
-        if (recvObj.type != recvType.friend) {
-            stringQuery = '\`rating\` not like \'r18%\' and ' + stringQuery;
-        }
-        stringQuery += ')';
-        illustsQuery = knex('illusts').whereRaw(stringQuery);
-    } else {
-        if (recvObj.type == recvType.friend) {
-            illustsQuery = knex('illusts');
-        } else {
-            illustsQuery = knex('illusts').where('rating', 'not like', 'r18%')
+        opOr.push(opAnd);
+
+        for (const illust of illusts) {
+            if (illust.b < bookmarks) continue;
+            if (isSafe && illust.r != 'safe') continue;
+            for (const inAnd of opOr) {
+                let lastBool = true;
+                for (const and of inAnd) {
+                    if (illust.t.indexOf(and) == -1) {
+                        lastBool = false;
+                        break;
+                    }
+                }
+                if (lastBool) {
+                    selected.push(illustsIndex[illust.id]);
+                    selectedIndex[illust.id] = selected.length - 1;
+                    break;
+                }
+            }
         }
     }
-    if (!opt.resend) {
-        if ((
+
+    function selectAll() {
+        const regExp = new RegExp(tagList.sex.join('|'), 'im');
+        for (const illust of illusts) {
+            if (illust.b < bookmarks) continue;
+            if (isSafe && illust.r != 'safe') continue;
+            if (!tags && !(regExp.test(illust.t))) {
+                selected.push(illustsIndex[illust.id]);
+                selectedIndex[illust.id] = selected.length - 1;
+            }
+        }
+    }
+
+    if (opt.resend) {
+        if (!(
                 recvObj.type == recvType.friend ||
                 recvObj.type == recvType.groupNonFriend ||
                 recvObj.type == recvType.discussNonFriend ||
                 recvObj.type == recvType.nonFriend
-            ) && opt.num > 1000) {
-            illustsQuery.where('total_bookmarks', '>=', opt.num);
+            ) && recvObj.group != '') {
+            const seen = (await knex('seen_list').where('group', recvObj.group).select('id', 'illust_id').orderBy('id', 'desc').limit(1).offset(opt.num - 1))[0];
+            if (!_.isEmpty(seen)) {
+                return illusts[illustsIndex[seen.illust_id]];
+            } else {
+                return null;
+            }
         } else {
-            const rand = 1 - Math.pow(1 - Math.random(), 2) * 20000;
-            if (rand > 1000)
-                illustsQuery.where('total_bookmarks', '>=', rand);
+            selectAll();
+        }
+    } else {
+        if (tags) {
+            selectTags();
+        } else {
+            selectAll();
         }
     }
 
@@ -206,46 +273,30 @@ async function searchIllust(recvObj, tags, opt) {
             recvObj.type == recvType.groupNonFriend ||
             recvObj.type == recvType.discussNonFriend ||
             recvObj.type == recvType.nonFriend
-        ) && recvObj != '') {
-        if (opt.resend) {
-            illust = (await knex('illusts')
-                .whereExists(
-                    knex.from(knex('seen_list').where('group', recvObj.group).orderBy('id', 'desc').limit(1).offset(opt.num - 1).as('seen'))
-                    .whereRaw('illusts.id = seen.illust_id')
-                ))[0];
-        } else {
-            illustsQuery.as('illusts');
-            const curQuery = knex.from(illustsQuery)
-                .whereNotIn(
-                    'id',
-                    knex.select('illust_id as id').from('seen_list').where('group', recvObj.group)
-                )
-            const count = (await curQuery.clone().count('* as count'))[0].count;
-            const rand = 1 - Math.pow(1 - Math.random(), 2);
-            illust = (await curQuery.limit(1).offset(parseInt(rand * count)))[0];
+        ) && recvObj.group != '') {
+        const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
+        for (const seen of seenList) {
+            selected.splice(selectedIndex[seen.id], 1);
         }
-    } else {
-        const count = (await illustsQuery.clone().count('* as count'))[0].count;
-        const rand = 1 - Math.pow(1 - Math.random(), 2);
-        illust = (await illustsQuery.limit(1).offset(parseInt(rand * count)))[0];
     }
+
+    const count = selected.length;
+    const rand = (1 - Math.pow(1 - Math.random(), 2)) * count;
+    const illust = illusts[selected[parseInt(rand)]];
+
+    console.log('Query time:', (Date.now() - startTime) + 'ms');
 
     if (!illust) return null;
 
-    console.log('PixivPic:', illust.id, illust.title, moment(illust.create_date).format('YYYY-MM-DD, H:mm:ss'));
-
-    // 没给标签也没有命中性癖标签，需要重新找一次
-    if (!tags && !(new RegExp(tagList.sex.join('|')).test(illust.tags))) {
-        return searchIllust(recvObj, tags, opt);
-    }
+    console.log('PixivPic:', illust.id, illust.ti, moment(illust.d).format('YYYY-MM-DD, H:mm:ss'));
 
     return illust;
 }
 
 async function downloadIllust(illust, recvObj, opt) {
     try {
-        const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.image_url));
-        await pixivImg(illust.image_url, illustPath);
+        const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.url));
+        await pixivImg(illust.url, illustPath);
         if (!opt.resend && !(
                 recvObj.type == recvType.friend ||
                 recvObj.type == recvType.groupNonFriend ||

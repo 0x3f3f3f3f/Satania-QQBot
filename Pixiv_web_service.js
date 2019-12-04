@@ -276,6 +276,20 @@ app.post('/setUserTag', async (req, res) => {
         });
         return;
     }
+    const rawTags = req.body.userTag.rawTags.split(',');
+    for (;;) {
+        let needTrim = false;
+        if (rawTags[0] == '|' || rawTags[0] == '&') {
+            needTrim = true;
+            rawTags.shift();
+        }
+        if (rawTags[rawTags.length - 1] == '|' ||
+            rawTags[rawTags.length - 1] == '&') {
+            needTrim = true;
+            rawTags.pop();
+        }
+        if (!needTrim) break;
+    }
 
     if (/^\s*$/.test(req.body.userTag.comment)) {
         req.body.userTag.comment = '';
@@ -288,7 +302,7 @@ app.post('/setUserTag', async (req, res) => {
             account,
             type,
             match: req.body.userTag.match,
-            raw_tags: req.body.userTag.rawTags,
+            raw_tags: rawTags.join(),
             comment: req.body.userTag.comment
         });
     } else {
@@ -310,7 +324,7 @@ app.post('/setUserTag', async (req, res) => {
             enabled: req.body.userTag.enabled,
             type,
             match: req.body.userTag.match,
-            raw_tags: req.body.userTag.rawTags,
+            raw_tags: rawTags.join(),
             comment: req.body.userTag.comment
         });
     }

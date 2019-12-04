@@ -205,26 +205,28 @@ async function searchIllust(recvObj, tags, opt) {
         }
     }
     const isSafe = recvObj.type != recvType.friend;
+    let opAnd = [];
+    const opOr = [];
+    let regExp;
 
     function selectTags() {
-        let opAnd = [];
-        const opOr = [];
-        for (let i = 0; i < tags.length; i++) {
-            const tag = tags[i];
-            switch (tag) {
-                case '|':
-                    opOr.push(opAnd);
-                    opAnd = [];
-                    break;
-                case '&':
-                    break;
-                default:
-                    opAnd.push(tag);
-                    break;
+        if (_.isEmpty(opOr)) {
+            for (let i = 0; i < tags.length; i++) {
+                const tag = tags[i];
+                switch (tag) {
+                    case '|':
+                        opOr.push(opAnd);
+                        opAnd = [];
+                        break;
+                    case '&':
+                        break;
+                    default:
+                        opAnd.push(tag);
+                        break;
+                }
             }
+            opOr.push(opAnd);
         }
-        opOr.push(opAnd);
-
         for (const illust of illusts) {
             if (illust.b < bookmarks) continue;
             if (isSafe && illust.r != 'safe') continue;
@@ -246,7 +248,7 @@ async function searchIllust(recvObj, tags, opt) {
     }
 
     function selectAll() {
-        const regExp = new RegExp(tagList.sex.join('|'), 'im');
+        if (!regExp) regExp = new RegExp(replaceRegexpChar(tagList.sex.join('|')), 'i');
         for (const illust of illusts) {
             if (illust.b < bookmarks) continue;
             if (isSafe && illust.r != 'safe') continue;
@@ -281,19 +283,33 @@ async function searchIllust(recvObj, tags, opt) {
         }
     }
 
-    if (!(
-            recvObj.type == recvType.friend ||
-            recvObj.type == recvType.groupNonFriend ||
-            recvObj.type == recvType.discussNonFriend ||
-            recvObj.type == recvType.nonFriend
-        ) && recvObj.group != '') {
-        const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
-        for (const seen of seenList) {
-            if (!_.isUndefined(selectedIndex[seen.id])) {
-                selected.splice(selectedIndex[seen.id], 1);
+    async function rmSeen() {
+        if (!(
+                recvObj.type == recvType.friend ||
+                recvObj.type == recvType.groupNonFriend ||
+                recvObj.type == recvType.discussNonFriend ||
+                recvObj.type == recvType.nonFriend
+            ) && recvObj.group != '') {
+            const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
+            for (const seen of seenList) {
+                if (!_.isUndefined(selectedIndex[seen.id])) {
+                    selected.splice(selectedIndex[seen.id], 1);
+                    delete selectedIndex[seen.id];
+                }
+            }
+            if (_.isEmpty(selected) && bookmarks > 1000) {
+                bookmarks = 1000;
+                if (tags) {
+                    selectTags();
+                    rmSeen();
+                } else {
+                    selectAll();
+                    rmSeen();
+                }
             }
         }
     }
+    await rmSeen();
 
     const count = selected.length;
     const rand = (1 - Math.pow(1 - Math.random(), 2)) * count;
@@ -303,7 +319,7 @@ async function searchIllust(recvObj, tags, opt) {
 
     if (!illust) return null;
 
-    console.log('PixivPic:', illust.id, illust.ti, moment(illust.d).format('YYYY-MM-DD, H:mm:ss'));
+    console.log('PixivPic:', illust.id, illust.ti, `bookmarks: ${illust.b}>${parseInt(bookmarks)}`, moment(illust.d).format('YYYY-MM-DD, H:mm:ss'));
 
     return illust;
 }
@@ -384,7 +400,7 @@ module.exports = async function (recvObj, client) {
 
     // 色图计数
     if (/((色|涩|瑟)图|图库)计数|总(数|计)/m.test(recvObj.content)) {
-        client.sendMsg(recvObj, '图库总计: ' + (await knex('illusts').where('rating', 'not like', 'r18%').count('* as count'))[0].count + '张');
+        client.sendMsg(recvObj, '图库总计: ' + illusts.length + '张');
         return true;
     }
 

@@ -452,7 +452,7 @@
                 const rawTagBtn = $(rawTagButtons[i]);
                 let tag = '';
                 if (rawTagBtn.attr('operator')) {
-                    tag = rawTags != '' ? rawTagBtn.attr('operator') : '';
+                    tag = rawTagBtn.attr('operator');
                 } else {
                     tag = rawTagBtn.text();
                 }

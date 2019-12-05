@@ -161,29 +161,31 @@ app.post('/login', async (req, res) => {
 
 // 获得所有用户标签
 app.post('/getUserTags', async (req, res) => {
-    if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey))) {
-        res.json({
-            err: true
-        });
-        return;
-    }
+    // if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey))) {
+    //     res.json({
+    //         err: true
+    //     });
+    //     return;
+    // }
 
     let account;
     try {
         account = Buffer.from(req.body.userKey, 'base64').toString('utf8');
     } catch {
-        res.json({
-            err: '用户密钥错误'
-        });
-        return;
+        // res.json({
+        //     err: '用户密钥错误'
+        // });
+        // return;
+        account = '';
     }
 
-    const user = (await knex('users').where('account', account))[0];
+    let user = (await knex('users').where('account', account))[0];
     if (_.isEmpty(user)) {
-        res.json({
-            err: '用户未注册'
-        });
-        return;
+        // res.json({
+        //     err: '用户未注册'
+        // });
+        // return;
+        user = {};
     }
 
     const userTags = await knex('user_tags').leftJoin('users', 'user_tags.account', 'users.account')
@@ -213,6 +215,24 @@ app.post('/getUserTags', async (req, res) => {
                 break;
             }
         }
+    }
+
+    if (!_.isEmpty(user)) {
+        userTags.push({
+            id: -1,
+            enabled: true,
+            userName: '',
+            type: 'string',
+            match: '',
+            rawTags: '',
+            comment: '',
+            editable: true
+        });
+    } else {
+        userTags.push({
+            id: -1,
+            editable: false
+        });
     }
 
     res.json({

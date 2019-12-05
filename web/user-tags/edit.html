@@ -228,26 +228,23 @@
         function updateUserTagsList(userTags) {
             const userTagList = $('#userTagList');
             userTagList.empty();
-            for (const userTag of userTags) {
-                addCard(userTagList, userTag);
+            for (let i = 0; i < userTags.length; i++) {
+                const userTag = userTags[i];
+                if (i < userTags.length - 1) {
+                    addCard(userTagList, userTag);
+                } else {
+                    if (userTag.editable) {
+                        const card = addCard(userTagList, userTag);
+                        const cardHeading = card.find('#heading-1');
+                        cardHeading.empty();
+                        cardHeading.append(
+                            '<div class="col text-truncate text-right">' +
+                            '<button type="button" class="btn btn-primary btn-sm" id="newUserTag">新增...</button>' +
+                            '</div>'
+                        );
+                    }
+                }
             }
-            const card = addCard(userTagList, {
-                id: -1,
-                enabled: true,
-                userName: '',
-                type: 'string',
-                match: '',
-                rawTags: '',
-                comment: '',
-                editable: true
-            });
-            const cardHeading = card.find('#heading-1');
-            cardHeading.empty();
-            cardHeading.append(
-                '<div class="col text-truncate text-right">' +
-                '<button type="button" class="btn btn-primary btn-sm" id="newUserTag">新增...</button>' +
-                '</div>'
-            );
         }
 
         function addMatchButton(keyword) {

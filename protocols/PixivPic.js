@@ -425,7 +425,9 @@ module.exports = async function (recvObj, client) {
             );
         } else {
             client.sendMsg(recvObj, '欧尼酱~请按下图方法与我私聊获得链接~\r\n' +
-                `[QQ:pic=${secret.emoticonsPath}\\user_tags_help.jpg]`);
+                `[QQ:pic=${secret.emoticonsPath}\\user_tags_help.jpg]\r\n` +
+                '规则预览：\r\n' +
+                encodeURI(`${secret.publicDomainName}/user-tags/edit.html`));
         }
         return true;
     }

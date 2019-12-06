@@ -410,7 +410,7 @@ module.exports = async function (recvObj, client) {
     }
 
     // 生成web服务的url
-    if (/编辑标签/m.test(recvObj.content)) {
+    if (/(编辑|加|增)标签|标签(编辑|.*?加|.*?增)/m.test(recvObj.content)) {
         if (
             recvObj.type == recvType.friend ||
             recvObj.type == recvType.groupNonFriend ||

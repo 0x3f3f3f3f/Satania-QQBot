@@ -38,4 +38,9 @@
     "msgList": [
         "当然是天使的走狗！"
     ]
+}, {
+    "regExp": "老婆",
+    "msgList": [
+        "[QQ:pic=emoticons\\call_waifu.jpg]"
+    ]
 }]

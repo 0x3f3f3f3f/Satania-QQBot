@@ -259,6 +259,23 @@ async function searchIllust(recvObj, tags, opt) {
         }
     }
 
+    async function rmSeen() {
+        if (!(
+                recvObj.type == recvType.friend ||
+                recvObj.type == recvType.groupNonFriend ||
+                recvObj.type == recvType.discussNonFriend ||
+                recvObj.type == recvType.nonFriend
+            ) && recvObj.group != '') {
+            const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
+            for (const seen of seenList) {
+                if (!_.isUndefined(selectedIndex[seen.id])) {
+                    selected.splice(selectedIndex[seen.id], 1);
+                    delete selectedIndex[seen.id];
+                }
+            }
+        }
+    }
+
     if (opt.resend) {
         if (!(
                 recvObj.type == recvType.friend ||
@@ -278,42 +295,30 @@ async function searchIllust(recvObj, tags, opt) {
     } else {
         if (tags) {
             selectTags();
+            await rmSeen();
         } else {
             selectAll();
+            await rmSeen();
         }
     }
 
-    async function rmSeen() {
-        if (!(
-                recvObj.type == recvType.friend ||
-                recvObj.type == recvType.groupNonFriend ||
-                recvObj.type == recvType.discussNonFriend ||
-                recvObj.type == recvType.nonFriend
-            ) && recvObj.group != '') {
-            const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
-            for (const seen of seenList) {
-                if (!_.isUndefined(selectedIndex[seen.id])) {
-                    selected.splice(selectedIndex[seen.id], 1);
-                    delete selectedIndex[seen.id];
-                }
-            }
-            if (_.isEmpty(selected) && bookmarks > 1000) {
-                bookmarks = 1000;
-                if (tags) {
-                    selectTags();
-                    rmSeen();
-                } else {
-                    selectAll();
-                    rmSeen();
-                }
-            }
+    if (_.isEmpty(selected) && bookmarks > 1000) {
+        bookmarks = 1000;
+        if (tags) {
+            selectTags();
+            await rmSeen();
+        } else {
+            selectAll();
+            await rmSeen();
         }
     }
-    await rmSeen();
 
-    const count = selected.length;
-    const rand = (1 - Math.pow(1 - Math.random(), 2)) * count;
-    const illust = illusts[selected[parseInt(rand)]];
+    let illust;
+    if (!_.isEmpty(selected)) {
+        const count = selected.length;
+        const rand = (1 - Math.pow(1 - Math.random(), 2)) * count;
+        illust = illusts[selected[parseInt(rand)]];
+    }
 
     console.log('Query time:', (Date.now() - startTime) + 'ms');
 

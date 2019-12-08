@@ -155,7 +155,15 @@ function cleanUp() {
 }
 
 function replaceRegexpChar(tag) {
-    return tag.replace(/(?=[\(\)\=])/g, '\\');
+    if (_.isArray(tag)) {
+        const ret = [];
+        for (const t of tag) {
+            ret.push(t.replace(/(?=[\^\$\(\)\[\]\{\}\*\+\.\?\\\|\/])/g, '\\'));
+        }
+        return ret;
+    } else {
+        return tag.replace(/(?=[\^\$\(\)\[\]\{\}\*\+\.\?\\\|\/])/g, '\\');
+    }
 }
 
 async function getInsideTags() {
@@ -168,6 +176,9 @@ async function getInsideTags() {
 
 async function getIllusts() {
     illusts = await knex('illusts').select('id', 'title as ti', 'image_url as url', 'rating as r', 'tags as t', 'create_date as d', 'total_bookmarks as b').orderBy('id', 'asc');
+    for (const illust of illusts) {
+        illust.t = illust.t.toLowerCase();
+    }
     illustsIndex = {};
     for (let i = 0; i < illusts.length; i++) {
         illustsIndex[illusts[i].id] = i;
@@ -232,7 +243,8 @@ async function searchIllust(recvObj, tags, opt) {
             if (isSafe && illust.r != 'safe') continue;
             for (const inAnd of opOr) {
                 let lastBool = true;
-                for (const and of inAnd) {
+                for (let i = 0; i < inAnd.length; i++) {
+                    const and = inAnd[i];
                     if (illust.t.indexOf(and) == -1) {
                         lastBool = false;
                         break;
@@ -248,7 +260,7 @@ async function searchIllust(recvObj, tags, opt) {
     }
 
     function selectAll() {
-        if (!regExp) regExp = new RegExp(replaceRegexpChar(tagList.sex.join('|')), 'i');
+        if (!regExp) regExp = new RegExp(replaceRegexpChar(tagList.sex).join('|'), 'i');
         for (const illust of illusts) {
             if (illust.b < bookmarks) continue;
             if (isSafe && illust.r != 'safe') continue;
@@ -480,10 +492,10 @@ module.exports = async function (recvObj, client) {
         if (userTag.type == 'regexp') {
             regExp = new RegExp(userTag.match, 'im');
         } else {
-            regExp = new RegExp(userTag.match.split(',').join('|'), 'im')
+            regExp = new RegExp(replaceRegexpChar(userTag.match).split(',').join('|'), 'im')
         }
         if (regExp.test(recvObj.content)) {
-            PixivPic(recvObj, client, userTag.rawTags.split(','), {
+            PixivPic(recvObj, client, userTag.rawTags.toLowerCase().split(','), {
                 autoBurst,
                 burstNum,
                 num

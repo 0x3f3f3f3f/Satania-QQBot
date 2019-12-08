@@ -209,7 +209,7 @@ async function initDatabase() {
 
                 let illusts;
                 try {
-                    illusts = (await curPixivClient.searchIllust(tagList.join(' OR ') + ' -腐 -足りない', {
+                    illusts = (await curPixivClient.searchIllust(tagList.join(' OR ') + ' -腐 -ホモ -gay -足りない', {
                         sort: isDateDesc ? 'date_desc' : 'date_asc',
                         startDate: `${year}-${month}-${date}`,
                         endDate: `${year}-${month}-${date}`

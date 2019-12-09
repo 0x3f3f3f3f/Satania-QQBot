@@ -328,7 +328,7 @@ function testIllust(illust) {
     if (/男/.test(illust.tags)) {
         if (!(/男の娘|ちんちんの付いた美少女/.test(illust.tags))) return;
     }
-    if (/[^a-z]bl[^a-z]/i.test(illust.tags)) return;
+    if (/[^a-z]bl[^a-z]|(^|,)ゲイ/i.test(illust.tags)) return;
 
     // 不要小于1000收藏
     if (illust.totalBookmarks < 1000) return;

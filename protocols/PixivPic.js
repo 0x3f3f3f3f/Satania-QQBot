@@ -416,7 +416,7 @@ module.exports = async function (recvObj, client) {
     }
 
     // 色图计数
-    if (/((色|涩|瑟)图|图库)计数|总(数|计)/m.test(recvObj.content)) {
+    if (/((色|涩|瑟)图|图库)(计数|总(数|计))/m.test(recvObj.content)) {
         client.sendMsg(recvObj, '图库总计: ' + illusts.length + '张');
         return true;
     }
@@ -505,7 +505,7 @@ module.exports = async function (recvObj, client) {
     }
 
     // Fallback
-    if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)/im.test(recvObj.content)) {
+    if (/(色|涩|瑟)图|gkd|搞快点|开车|不够(色|涩|瑟)|av|安慰|学习/im.test(recvObj.content)) {
         PixivPic(recvObj, client, null, {
             autoBurst,
             burstNum,

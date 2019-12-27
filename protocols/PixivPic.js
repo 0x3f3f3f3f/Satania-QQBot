@@ -251,8 +251,16 @@ async function searchIllust(recvObj, tags, opt) {
                     }
                 }
                 if (lastBool) {
-                    selected.push(illustsIndex[illust.id]);
-                    selectedIndex[illust.id] = selected.length - 1;
+                    if (opt.rule && opt.rule.rule == 'safe') {
+                        if (!regExp) regExp = new RegExp(replaceRegexpChar(tagList.sex).join('|'), 'i');
+                        if (!regExp.test(illust.t)) {
+                            selected.push(illustsIndex[illust.id]);
+                            selectedIndex[illust.id] = selected.length - 1;
+                        }
+                    } else {
+                        selected.push(illustsIndex[illust.id]);
+                        selectedIndex[illust.id] = selected.length - 1;
+                    }
                     break;
                 }
             }
@@ -264,9 +272,16 @@ async function searchIllust(recvObj, tags, opt) {
         for (const illust of illusts) {
             if (illust.b < bookmarks) continue;
             if (isSafe && illust.r != 'safe') continue;
-            if (regExp.test(illust.t)) {
-                selected.push(illustsIndex[illust.id]);
-                selectedIndex[illust.id] = selected.length - 1;
+            if (opt.rule && opt.rule.rule == 'safe') {
+                if (!regExp.test(illust.t)) {
+                    selected.push(illustsIndex[illust.id]);
+                    selectedIndex[illust.id] = selected.length - 1;
+                }
+            } else {
+                if (regExp.test(illust.t)) {
+                    selected.push(illustsIndex[illust.id]);
+                    selectedIndex[illust.id] = selected.length - 1;
+                }
             }
         }
     }
@@ -388,29 +403,28 @@ async function downloadIllust(illust, recvObj, opt) {
 }
 
 module.exports = async function (recvObj, client) {
-    // 群、qq黑名单
+    // 读取群、qq规则
+    let rule;
     if (
         recvObj.type == recvType.friend ||
         recvObj.type == recvType.groupNonFriend ||
         recvObj.type == recvType.discussNonFriend ||
         recvObj.type == recvType.nonFriend
     ) {
-        const rule = (await knex('rule_list').where({
+        rule = (await knex('rule_list').where({
             type: 'qq',
-            name: recvObj.qq,
-            rule: 'block'
+            name: recvObj.qq
         }))[0];
-        if (rule && rule.name == recvObj.qq.toString()) {
+        if (rule && rule.rule == 'block') {
             client.sendMsg(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
             return true;
         }
     } else {
-        const rule = (await knex('rule_list').where({
+        rule = (await knex('rule_list').where({
             type: 'group',
-            name: recvObj.group,
-            rule: 'block'
+            name: recvObj.group
         }))[0];
-        if (rule && rule.group == recvObj.group.toString()) {
+        if (rule && rule.rule == 'block') {
             return false;
         }
     }
@@ -498,7 +512,8 @@ module.exports = async function (recvObj, client) {
             PixivPic(recvObj, client, userTag.rawTags.toLowerCase().split(','), {
                 autoBurst,
                 burstNum,
-                num
+                num,
+                rule
             });
             return true;
         }
@@ -509,7 +524,8 @@ module.exports = async function (recvObj, client) {
         PixivPic(recvObj, client, null, {
             autoBurst,
             burstNum,
-            num
+            num,
+            rule
         });
         return true;
     }
@@ -539,6 +555,7 @@ async function PixivPic(recvObj, client, tags, opt) {
         }
     }
 
+    // ban恶意刷图
     illustBlock[recvObj.qq].count--;
     if (illustBlock[recvObj.qq].count <= 0) {
         if (!(await knex('rule_list').where('type', 'qq').andWhere('name', recvObj.qq))[0]) {
@@ -567,12 +584,7 @@ async function PixivPic(recvObj, client, tags, opt) {
             recvObj.type == recvType.discussNonFriend ||
             recvObj.type == recvType.nonFriend
         )) {
-        const rule = (await knex('rule_list').where({
-            type: 'group',
-            name: recvObj.group,
-            rule: 'white'
-        }))[0];
-        if (!(rule && rule.name == recvObj.group.toString())) {
+        if (!(opt.rule && opt.rule.rule == 'white')) {
             if (illustCharge[recvObj.group].count <= 0 && !opt.resend) {
                 client.sendMsg(recvObj, '搞太快了~ 请等待' +
                     (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +

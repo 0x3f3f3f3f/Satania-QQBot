@@ -1,6 +1,15 @@
 const request = require('request');
 const _ = require('lodash');
 
+const DocType = {
+    api: 0,
+    manual: 1
+};
+const DocUrl = {
+    [0]: 'https://docs.unity3d.com/ScriptReference/',
+    [1]: 'https://docs.unity3d.com/Manual/'
+}
+
 module.exports = function (recvObj, client) {
     let type = null;
     if (/api/ig.test(recvObj.content)) {

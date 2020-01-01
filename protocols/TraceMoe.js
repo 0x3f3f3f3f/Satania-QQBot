@@ -66,9 +66,9 @@ async function TraceMoe(imgInfo, recvObj, client) {
 
     client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]` +
         ' 欧尼酱是不是你想要的内个~\r\n' +
-        (result.tracemoeObj.title_native ? `原名：${result.tracemoeObj.title_native }\r\n` : '') +
-        (result.tracemoeObj.title_chinese ? `中文名：${result.tracemoeObj.title_chinese }\r\n` : '') +
-        (result.tracemoeObj.title_english ? `英文名：${result.tracemoeObj.title_english }\r\n` : '') +
+        (result.tracemoeObj.title_native ? `原名：${result.tracemoeObj.title_native}\r\n` : '') +
+        (result.tracemoeObj.title_chinese ? `中文名：${result.tracemoeObj.title_chinese}\r\n` : '') +
+        (result.tracemoeObj.title_english ? `英文名：${result.tracemoeObj.title_english}\r\n` : '') +
         `相似度：${(result.tracemoeObj.similarity * 100).toFixed(2)}%\r\n` +
         `匹配${result.tracemoeObj.episode||'?'}话 ` +
         (parseInt(result.tracemoeObj.at / 3600) == 0 ? '' : (parseInt(result.tracemoeObj.at / 3600) + '时')) +

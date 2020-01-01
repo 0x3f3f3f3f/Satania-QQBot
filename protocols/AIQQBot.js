@@ -9,7 +9,7 @@ const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.j
 module.exports = function (recvObj, client) {
     inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
     if (_.isEmpty(inputText)) {
-        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.publicDomainName}/emoticons/satania_cry.gif]` : '欧尼酱~想我了吗？');
+        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]` : '欧尼酱~想我了吗？');
         return;
     }
 
@@ -18,7 +18,7 @@ module.exports = function (recvObj, client) {
         if (new RegExp(localRules[i].regExp, 'im').test(inputText)) {
             const index = parseInt(Math.random() * localRules[i].msgList.length);
             let msg = localRules[i].msgList[index];
-            msg = msg.replace('emoticons', `${secret.publicDomainName}/emoticons`);
+            msg = msg.replace('emoticons', secret.emoticonsPath);
             client.sendMsg(recvObj, msg);
             return;
         }
@@ -74,7 +74,7 @@ async function AIQQBot(inputText, recvObj, client) {
     }
 
     if (!botObj) {
-        client.sendMsg(recvObj, `[QQ:pic=${secret.publicDomainName}/emoticons/satania_cry.gif]`);
+        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);
         return;
     }
 

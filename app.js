@@ -2,7 +2,6 @@ const WebSocket = require('ws');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
 const EventEmitter = require('events');
 const uuid = require('uuid/v4');
 const recvType = require('./lib/receiveType');
@@ -11,28 +10,6 @@ const recvType = require('./lib/receiveType');
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 // 全局事件
 global.appEvent = new EventEmitter();
-
-// 启动浏览器
-(async function () {
-    if (!fs.existsSync(secret.chromiumUserData))
-        fs.mkdirSync(secret.chromiumUserData, {
-            recursive: true
-        });
-    global.browser = await puppeteer.launch({
-        userDataDir: secret.chromiumUserData,
-        //headless模式加载缓慢的解决办法 https://github.com/GoogleChrome/puppeteer/issues/1718
-        args: [
-            '--proxy-server="direct://"',
-            '--proxy-bypass-list=*'
-        ]
-    });
-    appEvent.emit('browser_initialized');
-    // 让最开始打开的页面始终在前面
-    browser.on('targetcreated', async () => {
-        const pages = await browser.pages();
-        if (pages[1]) await pages[1].bringToFront();
-    });
-})();
 
 // 扩展一下ws的send方法
 WebSocket.prototype.sendMsg = function (recvObj, message) {
@@ -77,12 +54,12 @@ const heartBeat = setInterval(() => {
 // 载入所有协议
 global.protocols = {};
 for (const protocolName of fs.readdirSync('./protocols')) {
-    if (fs.statSync(`./protocols/${protocolName}`).isFile && protocolName.endsWith('.js')) {
+    if (fs.statSync(`./protocols/${protocolName}`).isFile() && protocolName.endsWith('.js')) {
         protocols[path.basename(protocolName, path.extname(protocolName))] = require(`./protocols/${protocolName}`);
     }
 }
 // web服务
-require('./Pixiv_web_service')();
+require('./Pixiv_web_api')();
 
 // 协议入口
 async function protocolEntry(recvObj, client) {

@@ -9,7 +9,7 @@ const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.j
 module.exports = function (recvObj, client) {
     inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
     if (_.isEmpty(inputText)) {
-        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]` : '欧尼酱~想我了吗？');
+        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.publicDomainName}/emoticons/satania_cry.gif]` : '欧尼酱~想我了吗？');
         return;
     }
 
@@ -18,7 +18,7 @@ module.exports = function (recvObj, client) {
         if (new RegExp(localRules[i].regExp, 'im').test(inputText)) {
             const index = parseInt(Math.random() * localRules[i].msgList.length);
             let msg = localRules[i].msgList[index];
-            msg = msg.replace('emoticons', secret.emoticonsPath);
+            msg = msg.replace('emoticons', `${secret.publicDomainName}/emoticons`);
             client.sendMsg(recvObj, msg);
             return;
         }
@@ -52,24 +52,17 @@ async function AIQQBot(inputText, recvObj, client) {
     let botObj;
     try {
         botObj = await new Promise((resolve, reject) => {
-            request.post({
-                url: 'https://api.ai.qq.com/fcgi-bin/nlp/nlp_textchat',
-                form: params
+            request.post('https://api.ai.qq.com/fcgi-bin/nlp/nlp_textchat', {
+                form: params,
+                json: true
             }, (err, res, body) => {
                 if (err) {
                     reject();
                     return;
                 }
-                let result;
-                try {
-                    result = JSON.parse(body);
-                } catch {
-                    reject();
-                    return;
-                }
-                if (result.ret == 0) {
-                    console.log('AI Bot:', result.data.answer);
-                    resolve(result);
+                if (body.ret == 0) {
+                    console.log('AI Bot:', body.data.answer);
+                    resolve(body);
                 } else {
                     resolve(null);
                 }
@@ -81,7 +74,7 @@ async function AIQQBot(inputText, recvObj, client) {
     }
 
     if (!botObj) {
-        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);
+        client.sendMsg(recvObj, `[QQ:pic=${secret.publicDomainName}/emoticons/satania_cry.gif]`);
         return;
     }
 

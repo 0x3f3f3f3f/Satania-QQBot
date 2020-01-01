@@ -9,6 +9,7 @@ const moment = require('moment');
 const nzhcn = require('nzh/cn');
 const recvType = require('../lib/receiveType');
 const base64url = require('../lib/base64url');
+const request = require('request');
 
 // 连接数据库
 const knex = require('knex')({
@@ -117,8 +118,6 @@ const timer = setInterval(() => {
     const curMoment = moment();
     if (curHours != curMoment.hours()) {
         curHours = curMoment.hours();
-        //清理色图缓存
-        cleanUp();
         // 每天12点更新色图库
         if (curHours == 12) {
             updateIllusts();
@@ -146,13 +145,6 @@ const timer = setInterval(() => {
         }
     }
 }, 1000);
-
-function cleanUp() {
-    const illustDir = fs.readdirSync(path.join(secret.tempPath, 'image'));
-    for (const illustPath of illustDir) {
-        fs.unlinkSync(path.join(secret.tempPath, 'image', illustPath));
-    }
-}
 
 function replaceRegexpChar(tag) {
     if (_.isArray(tag)) {
@@ -357,9 +349,26 @@ async function searchIllust(recvObj, tags, opt) {
 }
 
 async function downloadIllust(illust, recvObj, opt) {
+    let result;
     try {
-        const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.url));
-        await pixivImg(illust.url, illustPath);
+        result = await new Promise((resolve, reject) => {
+            request.post(`${secret.publicDomainName}/service/PixivPic`, {
+                json: {
+                    url: illust.url
+                }
+            }, (err, res, body) => {
+                if (err) {
+                    reject();
+                    return;
+                }
+                resolve(body);
+            });
+        });
+
+        if (result.err) {
+            return null;
+        }
+
         if (!opt.resend && !(
                 recvObj.type == recvType.friend ||
                 recvObj.type == recvType.groupNonFriend ||
@@ -372,33 +381,10 @@ async function downloadIllust(illust, recvObj, opt) {
                 date: moment().format()
             });
         }
-        const sourceImg = sharp(illustPath);
-        const sourceImgMetadata = await sourceImg.metadata();
-        const waterMarkImg = sharp('watermark.png');
-        const waterMarkImgMetadata = await waterMarkImg.metadata();
-        const x = sourceImgMetadata.width - waterMarkImgMetadata.width - (parseInt(Math.random() * 5) + 6);
-        const y = sourceImgMetadata.height - waterMarkImgMetadata.height - (parseInt(Math.random() * 5) + 6);
-        const waterMarkBuffer = await waterMarkImg.extract({
-            left: x < 0 ? -x : 0,
-            top: y < 0 ? -y : 0,
-            width: x < 0 ? waterMarkImgMetadata.width + x : waterMarkImgMetadata.width,
-            height: y < 0 ? waterMarkImgMetadata.height + y : waterMarkImgMetadata.height
-        }).toBuffer();
-        const imgBuffer = await sourceImg
-            .composite([{
-                input: waterMarkBuffer,
-                left: x < 0 ? 0 : x,
-                top: y < 0 ? 0 : y
-            }])
-            .jpeg({
-                quality: 92,
-                chromaSubsampling: '4:4:4'
-            })
-            .toBuffer();
-        fs.writeFileSync(illustPath, imgBuffer);
-        return illustPath;
+
+        return result.url;
     } catch {
-        return null
+        return null;
     }
 }
 
@@ -456,7 +442,7 @@ module.exports = async function (recvObj, client) {
             );
         } else {
             client.sendMsg(recvObj, '欧尼酱~请按下图方法与我私聊获得链接~\r\n' +
-                `[QQ:pic=${secret.emoticonsPath}\\user_tags_help.jpg]\r\n` +
+                `[QQ:pic=${secret.publicDomainName}/emoticons/user_tags_help.jpg]\r\n` +
                 '规则预览：\r\n' +
                 encodeURI(`${secret.publicDomainName}/user-tags/edit.html`));
         }
@@ -595,14 +581,14 @@ async function PixivPic(recvObj, client, tags, opt) {
         }
     }
 
-    let illustPath;
+    let illustUrl;
     try {
         const illust = await searchIllust(recvObj, tags, opt);
         if (!illust) throw 'illust is null';
-        illustPath = await downloadIllust(illust, recvObj, opt);
+        illustUrl = await downloadIllust(illust, recvObj, opt);
     } catch {}
 
-    if (illustPath) {
+    if (illustUrl) {
         // 群聊才减充能
         if (!(
                 recvObj.type == recvType.friend ||
@@ -612,8 +598,8 @@ async function PixivPic(recvObj, client, tags, opt) {
             ) && !opt.resend) {
             illustCharge[recvObj.group].count--;
         }
-        client.sendMsg(recvObj, `[QQ:pic=${illustPath}]`);
+        client.sendMsg(recvObj, `[QQ:pic=${illustUrl}]`);
     } else {
-        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);
+        client.sendMsg(recvObj, `[QQ:pic=${secret.publicDomainName}/emoticons/satania_cry.gif]`);
     }
 }

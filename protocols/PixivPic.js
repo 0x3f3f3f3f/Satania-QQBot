@@ -1,8 +1,3 @@
-const pixivImg = require("pixiv-img");
-const fs = require('fs');
-const path = require('path');
-const sharp = require('sharp');
-sharp.cache(false);
 const _ = require('lodash');
 const childProcess = require('child_process');
 const moment = require('moment');
@@ -93,7 +88,6 @@ let illustsIndex = {};
 let isInitialized = false;
 
 (async function () {
-    cleanUp();
     // 初始化数据库
     await initDatabase();
     // 拿到内部标签

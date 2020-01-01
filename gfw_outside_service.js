@@ -15,6 +15,7 @@ app.use(express.json());
 if (!fs.existsSync(secret.imagePath)) {
     fs.mkdirSync(secret.imagePath);
 }
+cleanUp();
 // 计时器 每秒执行一次
 // 当前小时
 let curHours = moment().hours();

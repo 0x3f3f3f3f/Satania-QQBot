@@ -71,7 +71,7 @@ async function UnityDoc(type, recvObj, client) {
     const infoText = result.infoText.split('\n');
     let resultText = '';
     for (let i = 0; i < result.results.length; i++) {
-        const res = res.results[i];
+        const res = result.results[i];
         resultText += (resultText == '' ? '' : '\r\n') + '\r\n' +
             `${DocUrl[type]+res.url}\r\n${res.title}: ${infoText[i]}`
     }

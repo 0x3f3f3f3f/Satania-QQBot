@@ -5,6 +5,8 @@ const nzhcn = require('nzh/cn');
 const recvType = require('../lib/receiveType');
 const base64url = require('../lib/base64url');
 const request = require('request');
+const fs = require('fs');
+const path = require('path');
 
 // 连接数据库
 const knex = require('knex')({
@@ -88,6 +90,7 @@ let illustsIndex = {};
 let isInitialized = false;
 
 (async function () {
+    cleanUp();
     // 初始化数据库
     await initDatabase();
     // 拿到内部标签
@@ -112,6 +115,8 @@ const timer = setInterval(() => {
     const curMoment = moment();
     if (curHours != curMoment.hours()) {
         curHours = curMoment.hours();
+        //清理色图缓存
+        cleanUp();
         // 每天12点更新色图库
         if (curHours == 12) {
             updateIllusts();
@@ -139,6 +144,13 @@ const timer = setInterval(() => {
         }
     }
 }, 1000);
+
+function cleanUp() {
+    const imgDir = fs.readdirSync(path.join(secret.tempPath, 'image'));
+    for (const imgPath of imgDir) {
+        fs.unlinkSync(path.join(secret.tempPath, 'image', imgPath));
+    }
+}
 
 function replaceRegexpChar(tag) {
     if (_.isArray(tag)) {
@@ -359,9 +371,12 @@ async function downloadIllust(illust, recvObj, opt) {
             });
         });
 
-        if (result.err) {
+        if (result.length == 1) {
             return null;
         }
+
+        const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.url));
+        fs.writeFileSync(illustPath, result);
 
         if (!opt.resend && !(
                 recvObj.type == recvType.friend ||
@@ -376,7 +391,7 @@ async function downloadIllust(illust, recvObj, opt) {
             });
         }
 
-        return result.url;
+        return illustPath;
     } catch {
         return null;
     }
@@ -575,14 +590,14 @@ async function PixivPic(recvObj, client, tags, opt) {
         }
     }
 
-    let illustUrl;
+    let illustPath;
     try {
         const illust = await searchIllust(recvObj, tags, opt);
         if (!illust) throw 'illust is null';
-        illustUrl = await downloadIllust(illust, recvObj, opt);
+        illustPath = await downloadIllust(illust, recvObj, opt);
     } catch {}
 
-    if (illustUrl) {
+    if (illustPath) {
         // 群聊才减充能
         if (!(
                 recvObj.type == recvType.friend ||
@@ -592,7 +607,7 @@ async function PixivPic(recvObj, client, tags, opt) {
             ) && !opt.resend) {
             illustCharge[recvObj.group].count--;
         }
-        client.sendMsg(recvObj, `[QQ:pic=${illustUrl}]`);
+        client.sendMsg(recvObj, `[QQ:pic=${illustPath}]`);
     } else {
         client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);
     }

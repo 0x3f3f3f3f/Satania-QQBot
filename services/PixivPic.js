@@ -3,13 +3,12 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 sharp.cache(false);
-const uuid = require('uuid/v4');
 
 module.exports = async function (req, res) {
     const imgUrl = req.body.url;
 
     try {
-        const illustPath = path.join(secret.imagePath, 'illust_' + uuid() + '.jpg');
+        const illustPath = path.join(secret.imagePath, 'illust_' + path.basename(imgUrl));
         await pixivImg(imgUrl, illustPath);
         const sourceImg = sharp(illustPath);
         const sourceImgMetadata = await sourceImg.metadata();
@@ -34,13 +33,10 @@ module.exports = async function (req, res) {
                 chromaSubsampling: '4:4:4'
             })
             .toBuffer();
+
+        res.send(imgBuffer);
         fs.writeFileSync(illustPath, imgBuffer);
-        res.json({
-            url: `${secret.publicDomainName}/image/${path.basename(illustPath)}`
-        });
     } catch {
-        res.json({
-            err: true
-        });
+        res.send(Buffer.alloc(1));
     }
 }

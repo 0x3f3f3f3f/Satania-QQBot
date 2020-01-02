@@ -361,7 +361,8 @@ async function downloadIllust(illust, recvObj, opt) {
             request.post(`${secret.publicDomainName}/service/PixivPic`, {
                 json: {
                     url: illust.url
-                }
+                },
+                encoding: null
             }, (err, res, body) => {
                 if (err) {
                     reject();

@@ -124,7 +124,12 @@ module.exports = async function (req, res) {
                 window.stop();
                 let infoText = '';
                 for (const span of document.querySelectorAll('.tlid-translation.translation span')) {
-                    infoText += (infoText == '' ? '' : '\n') + span.textContent;
+                    const prevElement = span.previousElementSibling;
+                    if (prevElement && prevElement.tagName == 'BR') {
+                        infoText += (infoText == '' ? '' : '\n') + span.textContent;
+                    } else {
+                        infoText += span.textContent;
+                    }
                 }
                 return infoText;
             });

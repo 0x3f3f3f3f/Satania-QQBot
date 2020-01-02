@@ -81,7 +81,7 @@ module.exports = async function (req, res) {
     if (imagePath) {
         res.json({
             saucenaoObj: saucenaoObj.results[0],
-            imageUrl: `${secret.imageRootUrl}/${path.basename(imagePath)}`
+            imageUrl: `${secret.imageRootUrl + (secret.imageRootUrl.startsWith('http') ? '/' : path.sep) + path.basename(imagePath)}`
         });
     } else {
         res.json({

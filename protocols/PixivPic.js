@@ -358,7 +358,7 @@ async function downloadIllust(illust, recvObj, opt) {
     let result;
     try {
         result = await new Promise((resolve, reject) => {
-            request.post(`${secret.publicDomainName}/service/PixivPic`, {
+            request.post(`${secret.serviceRootUrl}/PixivPic`, {
                 json: {
                     url: illust.url
                 },

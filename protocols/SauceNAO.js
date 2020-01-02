@@ -31,7 +31,7 @@ async function SauceNAO(url, recvObj, client) {
     let result;
     try {
         result = await new Promise((resolve, reject) => {
-            request.post(`${secret.publicDomainName}/service/SauceNAO`, {
+            request.post(`${secret.serviceRootUrl}/SauceNAO`, {
                 json: {
                     url
                 }

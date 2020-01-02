@@ -36,7 +36,7 @@ async function UnityDoc(type, recvObj, client) {
     let result;
     try {
         result = await new Promise((resolve, reject) => {
-            request.post(`${secret.publicDomainName}/service/UnityDoc`, {
+            request.post(`${secret.serviceRootUrl}/UnityDoc`, {
                 json: {
                     type,
                     text: searchText

@@ -42,4 +42,4 @@ for (const serviceName of fs.readdirSync('./services')) {
     }
 }
 
-app.listen(port, '127.0.0.1');
+app.listen(port, secret.httpHost);

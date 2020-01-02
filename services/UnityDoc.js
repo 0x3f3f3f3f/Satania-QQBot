@@ -21,7 +21,8 @@ let browser;
         //headless模式加载缓慢的解决办法 https://github.com/GoogleChrome/puppeteer/issues/1718
         args: [
             '--proxy-server="direct://"',
-            '--proxy-bypass-list=*'
+            '--proxy-bypass-list=*',
+            '--no-sandbox'
         ]
     });
     isInitialized = true;

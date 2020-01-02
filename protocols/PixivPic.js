@@ -362,7 +362,7 @@ async function downloadIllust(illust, recvObj, opt) {
                 json: {
                     url: illust.url
                 },
-                encoding: null
+                timeout: 10000
             }, (err, res, body) => {
                 if (err) {
                     reject();
@@ -372,12 +372,9 @@ async function downloadIllust(illust, recvObj, opt) {
             });
         });
 
-        if (result.length == 1) {
+        if (result.err) {
             return null;
         }
-
-        const illustPath = path.join(secret.tempPath, 'image', 'illust_' + path.basename(illust.url));
-        fs.writeFileSync(illustPath, result);
 
         if (!opt.resend && !(
                 recvObj.type == recvType.friend ||
@@ -392,7 +389,7 @@ async function downloadIllust(illust, recvObj, opt) {
             });
         }
 
-        return illustPath;
+        return result.url;
     } catch {
         return null;
     }

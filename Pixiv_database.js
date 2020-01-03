@@ -35,6 +35,7 @@ const knex = require('knex')({
     client: 'mysql2',
     connection: {
         host: secret.mysqlHost,
+        port: secret.mysqlPort,
         user: secret.mysqlUser,
         password: secret.mysqlPassword,
         database: secret.mysqlDatabase

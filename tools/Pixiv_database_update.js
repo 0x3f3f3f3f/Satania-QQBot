@@ -95,7 +95,7 @@ async function getIllust(pixiv, illust, progress) {
         detail = (await pixiv.illustDetail(illust.id)).illust;
     } catch (error) {
         if (error.response && error.response.status == 404) {
-            console.log('Illust has been deleted'.red.bold);
+            console.log(`[${progress.index+1}/${progress.length}]`.green, illust.id, 'Illust has been deleted'.red.bold);
             await knex('illusts').where('id', illust.id).delete();
             requests.splice(progress.i, 1);
             requestEvent.emit('finish');

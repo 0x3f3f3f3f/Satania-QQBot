@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const childProcess = require('child_process');
 const moment = require('moment');
 const nzhcn = require('nzh/cn');
 const recvType = require('../lib/receiveType');
@@ -186,12 +185,48 @@ async function getIllusts() {
 
 async function updateIllusts() {
     await getInsideTags();
-    const js1 = childProcess.fork('Pixiv_database.js', [tagList.sex.join(), 'day_sex', 0, 0, 7]);
-    const js2 = childProcess.fork('Pixiv_database.js', [tagList.char.join(), 'day_char', 0, 0, 7]);
-    await Promise.all([
-        new Promise(resolve => js1.on('close', resolve)),
-        new Promise(resolve => js2.on('close', resolve))
-    ]);
+
+    // 发起更新
+    try {
+        await new Promise((resolve, reject) => {
+            request.post(`${secret.serviceRootUrl}/PixivPic`, {
+                json: {
+                    evnt: 'updateIllusts',
+                    tagList
+                }
+            }, (err, res, body) => {
+                if (err) {
+                    reject();
+                    return;
+                }
+                if (body.result) resolve();
+                else reject();
+            });
+        });
+    } catch {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return updateIllusts();
+    }
+
+    // 获取更新状态
+    let isUpdating = true;
+    while (isUpdating) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        isUpdating = await new Promise(resolve => {
+            request.post(`${secret.serviceRootUrl}/PixivPic`, {
+                json: {
+                    evnt: 'getStatus'
+                }
+            }, (err, res, body) => {
+                if (!err && _.isBoolean(body.isUpdating)) {
+                    resolve(body.isUpdating);
+                } else {
+                    resolve(true);
+                }
+            });
+        });
+    }
+
     await getIllusts();
 }
 

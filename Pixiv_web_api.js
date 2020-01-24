@@ -76,6 +76,7 @@ const app = express();
 const port = 33000;
 
 app.use(express.json());
+app.use(express.static('web'));
 
 // 支持跨域
 // app.all('*', (req, res, next) => {
@@ -85,7 +86,7 @@ app.use(express.json());
 // });
 
 // 获得用户名
-app.post('/getUserName', async (req, res) => {
+app.post('/api/getUserName', async (req, res) => {
     if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey))) {
         res.json({
             err: true
@@ -118,7 +119,7 @@ app.post('/getUserName', async (req, res) => {
 });
 
 // 登录
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
     if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey)) ||
         !_.isString(req.body.userName)) {
         res.json({
@@ -161,7 +162,7 @@ app.post('/login', async (req, res) => {
 });
 
 // 获得所有用户标签
-app.post('/getUserTags', async (req, res) => {
+app.post('/api/getUserTags', async (req, res) => {
     // if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey))) {
     //     res.json({
     //         err: true
@@ -243,7 +244,7 @@ app.post('/getUserTags', async (req, res) => {
 });
 
 // 用户编辑标签
-app.post('/setUserTag', async (req, res) => {
+app.post('/api/setUserTag', async (req, res) => {
     if ((!_.isString(req.body.userKey) || /^\s*$/.test(req.body.userKey)) ||
         (_.isObject(req.body.userTag) && (
             !_.isBoolean(req.body.userTag.enabled) ||

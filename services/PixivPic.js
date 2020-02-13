@@ -68,8 +68,8 @@ module.exports = async function (req, res) {
 
 async function updateIllusts(tagList) {
     isUpdating = true;
-    const js1 = childProcess.fork('Pixiv_database.js', [tagList.sex.join(), 'day_sex', 0, 0, 7]);
-    const js2 = childProcess.fork('Pixiv_database.js', [tagList.char.join(), 'day_char', 0, 0, 7]);
+    const js1 = childProcess.fork('Pixiv_database.js', [tagList.sex.join(), 'day_sex', 0, 0, 14]);
+    const js2 = childProcess.fork('Pixiv_database.js', [tagList.char.join(), 'day_char', 0, 0, 14]);
     await Promise.all([
         new Promise(resolve => js1.on('close', resolve)),
         new Promise(resolve => js2.on('close', resolve))

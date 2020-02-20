@@ -24,7 +24,11 @@ module.exports = function (recvObj, client) {
             let msg = localRules[i].msgList[index];
             msg = msg.replace('emoticons', secret.emoticonsPath);
             msg = msg.replace(/\//g, path.sep);
-            client.sendMsg(recvObj, msg);
+            if (/QQ\:pic/.test(msg)) {
+                client.sendMsg(recvObj, msg);
+            } else {
+                sendVoice(recvObj, client, msg);
+            }
             return;
         }
     }
@@ -86,21 +90,25 @@ async function AIQQBot(inputText, recvObj, client) {
     if (botObj.data.answer.length > 50) {
         client.sendMsg(recvObj, botObj.data.answer);
     } else {
-        let tts;
-        try {
-            tts = await speechClient.text2audio(botObj.data.answer, {
-                per: 103
-            });
-        } catch {
-            client.sendMsg(recvObj, botObj.data.answer);
-            return;
-        }
-        if (tts && tts.data) {
-            voicePath = path.join(secret.tempPath, 'voice', 'aipSpeech_' + uuid() + '.mp3');
-            fs.writeFileSync(voicePath, tts.data);
-            client.sendMsg(recvObj, `[QQ:voice=${voicePath}]`);
-        } else {
-            client.sendMsg(recvObj, botObj.data.answer);
-        }
+        sendVoice(recvObj, client, botObj.data.answer);
+    }
+}
+
+async function sendVoice(recvObj, client, text) {
+    let tts;
+    try {
+        tts = await speechClient.text2audio(text, {
+            per: 103
+        });
+    } catch {
+        client.sendMsg(recvObj, text);
+        return;
+    }
+    if (tts && tts.data) {
+        voicePath = path.join(secret.tempPath, 'voice', 'aipSpeech_' + uuid() + '.mp3');
+        fs.writeFileSync(voicePath, tts.data);
+        client.sendMsg(recvObj, `[QQ:voice=${voicePath}]`);
+    } else {
+        client.sendMsg(recvObj, text);
     }
 }

@@ -13,7 +13,11 @@ const speechClient = new AipSpeechClient(secret.Baidu_APP_ID, secret.Baidu_API_K
 module.exports = function (recvObj, client) {
     inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
     if (_.isEmpty(inputText)) {
-        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]` : '欧尼酱~想我了吗？');
+        if (Math.random() > 0.5) {
+            sendVoice(recvObj, client, '藕妮酱~想我了吗？');
+        } else {
+            client.sendMsg(`[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+        }
         return;
     }
 
@@ -98,7 +102,8 @@ async function sendVoice(recvObj, client, text) {
     let tts;
     try {
         tts = await speechClient.text2audio(text, {
-            per: 103
+            per: 103,
+            pit: 7
         });
     } catch {
         client.sendMsg(recvObj, text);

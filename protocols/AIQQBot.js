@@ -3,13 +3,14 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 const crypto = require('crypto');
 const fs = require('fs');
+const path = require('path');
 
 const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.json', 'utf8'));
 
 module.exports = function (recvObj, client) {
     inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
     if (_.isEmpty(inputText)) {
-        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]` : '欧尼酱~想我了吗？');
+        client.sendMsg(recvObj, (Math.random() > 0.5) ? `[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]` : '欧尼酱~想我了吗？');
         return;
     }
 
@@ -19,6 +20,7 @@ module.exports = function (recvObj, client) {
             const index = parseInt(Math.random() * localRules[i].msgList.length);
             let msg = localRules[i].msgList[index];
             msg = msg.replace('emoticons', secret.emoticonsPath);
+            msg = msg.replace(/\//g, path.sep);
             client.sendMsg(recvObj, msg);
             return;
         }
@@ -74,7 +76,7 @@ async function AIQQBot(inputText, recvObj, client) {
     }
 
     if (!botObj) {
-        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}\\satania_cry.gif]`);
+        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
         return;
     }
 

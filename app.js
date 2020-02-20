@@ -63,7 +63,8 @@ require('./Pixiv_web_api')();
 
 // 协议入口
 async function protocolEntry(recvObj, client) {
-    if (!protocols.SauceNAO(recvObj, client) &&
+    if (!protocols.Dice(recvObj, client) &&
+        !protocols.SauceNAO(recvObj, client) &&
         !protocols.TraceMoe(recvObj, client) &&
         !protocols.UnityDoc(recvObj, client) &&
         !await protocols.PixivPic(recvObj, client)) {

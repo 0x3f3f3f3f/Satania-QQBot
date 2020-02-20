@@ -4,6 +4,7 @@
   "description": "QQ机器人",
   "main": "app.js",
   "dependencies": {
+    "baidu-aip-sdk": "^2.4.5",
     "colors": "^1.4.0",
     "express": "^4.17.1",
     "gif-frames": "^1.0.1",

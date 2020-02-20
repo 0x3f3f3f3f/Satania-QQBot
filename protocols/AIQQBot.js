@@ -7,6 +7,9 @@ const path = require('path');
 
 const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.json', 'utf8'));
 
+const AipSpeechClient = require('baidu-aip-sdk').speech;
+const speechClient = new AipSpeechClient(secret.Baidu_APP_ID, secret.Baidu_API_KEY, secret.Baidu_SECRET_KEY);
+
 module.exports = function (recvObj, client) {
     inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
     if (_.isEmpty(inputText)) {
@@ -80,5 +83,24 @@ async function AIQQBot(inputText, recvObj, client) {
         return;
     }
 
-    client.sendMsg(recvObj, botObj.data.answer);
+    if (botObj.data.answer.length > 50) {
+        client.sendMsg(recvObj, botObj.data.answer);
+    } else {
+        let tts;
+        try {
+            tts = await speechClient.text2audio(botObj.data.answer, {
+                per: 103
+            });
+        } catch {
+            client.sendMsg(recvObj, botObj.data.answer);
+            return;
+        }
+        if (tts && tts.data) {
+            voicePath = path.join(secret.tempPath, 'voice', 'aipSpeech_' + uuid() + '.mp3');
+            fs.writeFileSync(voicePath, tts.data);
+            client.sendMsg(recvObj, `[QQ:voice=${voicePath}]`);
+        } else {
+            client.sendMsg(recvObj, botObj.data.answer);
+        }
+    }
 }

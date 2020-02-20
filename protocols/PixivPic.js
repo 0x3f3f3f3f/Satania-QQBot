@@ -150,6 +150,10 @@ function cleanUp() {
     for (const imgPath of imgDir) {
         fs.unlinkSync(path.join(secret.tempPath, 'image', imgPath));
     }
+    const voiceDir = fs.readdirSync(path.join(secret.tempPath, 'voice'));
+    for (const voicePath of voiceDir) {
+        fs.unlinkSync(path.join(secret.tempPath, 'voice', voicePath));
+    }
 }
 
 function replaceRegexpChar(tag) {
@@ -481,13 +485,14 @@ module.exports = async function (recvObj, client) {
             }
             const key = base64url.encode(Buffer.from(account, 'utf-8').toString('base64'));
             client.sendMsg(recvObj,
-                '请登录：' + encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
+                '请登录：' + `[QQ:url=${encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)}]`
             );
         } else {
             client.sendMsg(recvObj, '欧尼酱~请按下图方法与我私聊获得链接~\r\n' +
                 `[QQ:pic=${secret.emoticonsPath}${path.sep}user_tags_help.jpg]\r\n` +
                 '规则预览：\r\n' +
-                encodeURI(`${secret.publicDomainName}/user-tags/edit.html`));
+                `[QQ:url=${encodeURI(`${secret.publicDomainName}/user-tags/edit.html`)}]`
+            );
         }
         return true;
     }

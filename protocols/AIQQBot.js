@@ -28,7 +28,7 @@ module.exports = function (recvObj, client) {
             let msg = localRules[i].msgList[index];
             msg = msg.replace('emoticons', secret.emoticonsPath);
             msg = msg.replace(/\//g, path.sep);
-            if (/QQ\:pic/.test(msg)) {
+            if (/QQ\:(pic|voice)/.test(msg)) {
                 client.sendMsg(recvObj, msg);
             } else {
                 sendVoice(recvObj, client, msg);

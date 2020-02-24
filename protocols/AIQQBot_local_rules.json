@@ -44,4 +44,17 @@
         "[QQ:pic=emoticons/call_waifu.jpg]",
         "喊谁老婆呢？臭傻逼！"
     ]
+}, {
+    "regExp": "名场面",
+    "msgList": [
+        "[QQ:voice=emoticons/mea_1.mp3]",
+        "[QQ:voice=emoticons/mea_2.mp3]",
+        "[QQ:voice=emoticons/mea_3.mp3]",
+        "[QQ:voice=emoticons/mea_4.mp3]",
+        "[QQ:voice=emoticons/heart_1.mp3]",
+        "[QQ:voice=emoticons/heart_2.mp3]",
+        "[QQ:voice=emoticons/matsuri.mp3]",
+        "[QQ:voice=emoticons/giraffe.mp3]",
+        "[QQ:voice=emoticons/dog_ma.mp3]"
+    ]
 }]

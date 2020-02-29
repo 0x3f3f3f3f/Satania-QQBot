@@ -100,14 +100,16 @@ async function AIQQBot(inputText, recvObj, client) {
 
 async function sendVoice(recvObj, client, text) {
     let tts;
-    try {
-        tts = await speechClient.text2audio(text, {
-            per: 103,
-            pit: 7
-        });
-    } catch {
-        client.sendMsg(recvObj, text);
-        return;
+    if (secret.EnableVoice) {
+        try {
+            tts = await speechClient.text2audio(text, {
+                per: 103,
+                pit: 7
+            });
+        } catch {
+            client.sendMsg(recvObj, text);
+            return;
+        }
     }
     if (tts && tts.data) {
         voicePath = path.join(secret.tempPath, 'voice', 'aipSpeech_' + uuid() + '.mp3');

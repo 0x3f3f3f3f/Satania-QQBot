@@ -36,7 +36,7 @@ async function TraceMoe(imgInfo, recvObj, client) {
     let result;
     try {
         result = await new Promise((resolve, reject) => {
-            request.post(`${secret.serviceRootUrl}/TraceMoe`, {
+            request.post(`${secret.serviceRootUrl}/service/TraceMoe`, {
                 json: {
                     url: imgInfo.url
                 }

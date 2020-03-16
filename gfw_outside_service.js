@@ -15,6 +15,8 @@ app.use(express.json());
 if (!fs.existsSync(secret.imagePath)) {
     fs.mkdirSync(secret.imagePath);
 }
+app.use('/image/', express.static(secret.imagePath));
+
 cleanUp();
 // 计时器 每秒执行一次
 // 当前小时
@@ -38,7 +40,7 @@ function cleanUp() {
 // 载入所有墙外服务
 for (const serviceName of fs.readdirSync('./services')) {
     if (fs.statSync(`./services/${serviceName}`).isFile() && serviceName.endsWith('.js')) {
-        app.post(`/${path.basename(serviceName,'.js')}`, require(`./services/${serviceName}`));
+        app.post(`/service/${path.basename(serviceName,'.js')}`, require(`./services/${serviceName}`));
     }
 }
 

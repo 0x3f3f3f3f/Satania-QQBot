@@ -193,7 +193,7 @@ async function updateIllusts() {
     // 发起更新
     try {
         await new Promise((resolve, reject) => {
-            request.post(`${secret.serviceRootUrl}/PixivPic`, {
+            request.post(`${secret.serviceRootUrl}/service/PixivPic`, {
                 json: {
                     evnt: 'updateIllusts',
                     tagList
@@ -217,7 +217,7 @@ async function updateIllusts() {
     while (isUpdating) {
         await new Promise(resolve => setTimeout(resolve, 10000));
         isUpdating = await new Promise(resolve => {
-            request.post(`${secret.serviceRootUrl}/PixivPic`, {
+            request.post(`${secret.serviceRootUrl}/service/PixivPic`, {
                 json: {
                     evnt: 'getStatus'
                 }
@@ -398,7 +398,7 @@ async function downloadIllust(illust, recvObj, opt) {
     let result;
     try {
         result = await new Promise((resolve, reject) => {
-            request.post(`${secret.serviceRootUrl}/PixivPic`, {
+            request.post(`${secret.serviceRootUrl}/service/PixivPic`, {
                 json: {
                     url: illust.url
                 },

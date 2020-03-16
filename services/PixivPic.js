@@ -55,7 +55,7 @@ module.exports = async function (req, res) {
                     .toBuffer();
                 fs.writeFileSync(illustPath, imgBuffer);
                 res.json({
-                    url: `${secret.imageRootUrl + (secret.imageRootUrl.startsWith('http') ? '/' : path.sep) + path.basename(illustPath)}`
+                    url: `${secret.imageRootUrl}/${path.basename(illustPath)}`
                 });
             } catch {
                 res.json({

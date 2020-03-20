@@ -67,6 +67,7 @@ async function protocolEntry(recvObj, client) {
         !protocols.SauceNAO(recvObj, client) &&
         !protocols.TraceMoe(recvObj, client) &&
         !protocols.UnityDoc(recvObj, client) &&
+        !protocols.EvaluateCode(recvObj, client) &&
         !await protocols.PixivPic(recvObj, client)) {
         protocols.AIQQBot(recvObj, client);
     }

@@ -16,7 +16,7 @@ module.exports = function (recvObj, client) {
         if (Math.random() > 0.5) {
             sendVoice(recvObj, client, '藕妮酱~想我了吗？');
         } else {
-            client.sendMsg(`[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+            client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
         }
         return;
     }

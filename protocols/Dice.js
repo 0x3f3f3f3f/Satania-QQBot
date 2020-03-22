@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = function (recvObj, client) {
     const msg = recvObj.content.replace(/\[.*?\]/g, '').trim();
-    if (/^roll/i.test(recvObj.content)) {
+    if (/roll/i.test(recvObj.content)) {
         const num = msg.match(/\d+/g);
         const numZh = msg.match(/[零一二两三四五六七八九十百千万亿兆]+/g);
         if (num) {

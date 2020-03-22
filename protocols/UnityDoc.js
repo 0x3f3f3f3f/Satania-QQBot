@@ -12,7 +12,7 @@ const DocUrl = {
 
 module.exports = function (recvObj, client) {
     let type = null;
-    if (/^api/i.test(recvObj.content)) {
+    if (/api/i.test(recvObj.content)) {
         type = DocType.api;
     } else if (/手册/i.test(recvObj.content)) {
         type = DocType.manual;
@@ -25,7 +25,7 @@ module.exports = function (recvObj, client) {
 }
 
 async function UnityDoc(type, recvObj, client) {
-    let searchText = recvObj.content.replace(/\[.*?\]|api|手.*?册/g, '').trim();
+    let searchText = recvObj.content.replace(/\[.*?\]|api|手册/g, '').trim();
     if (_.isEmpty(searchText)) {
         client.sendMsg(recvObj, '你居然没写关键词？');
         return;

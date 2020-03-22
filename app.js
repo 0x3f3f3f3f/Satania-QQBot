@@ -63,11 +63,11 @@ require('./Pixiv_web_api')();
 
 // 协议入口
 async function protocolEntry(recvObj, client) {
-    if (!protocols.Dice(recvObj, client) &&
+    if (!protocols.EvaluateCode(recvObj, client) &&
+        !protocols.Dice(recvObj, client) &&
         !protocols.SauceNAO(recvObj, client) &&
         !protocols.TraceMoe(recvObj, client) &&
         !protocols.UnityDoc(recvObj, client) &&
-        !protocols.EvaluateCode(recvObj, client) &&
         !await protocols.PixivPic(recvObj, client)) {
         protocols.AIQQBot(recvObj, client);
     }

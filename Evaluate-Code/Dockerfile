@@ -10,6 +10,11 @@ RUN npm i
 
 EXPOSE 33200
 
+RUN mkdir user-content
+RUN groupadd restricted && useradd -g restricted restricted
+RUN chown restricted:restricted user-content
+USER restricted
+
 CMD ["node", "web_api.js"]
 
 COPY . .

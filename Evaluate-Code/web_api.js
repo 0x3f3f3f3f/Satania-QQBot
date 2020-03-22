@@ -19,9 +19,10 @@ app.post('/', (req, res) => {
     console.log('=>', req.body.code);
 
     const process = childProcess.spawnSync("dotnet", [
-        path.join("CLI", "EvaluateCodeCLI.dll"),
+        path.join("../CLI", "EvaluateCodeCLI.dll"),
         req.body.code
     ], {
+        cwd: 'user-content',
         encoding: 'utf8',
         windowsHide: true,
         timeout: 60000

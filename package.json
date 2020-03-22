@@ -23,15 +23,11 @@
     "ws": "^7.2.1"
   },
   "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0x3f3f3f3f/Satania-QQBot.git"
   },
   "author": "Freezer.CH",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/0x3f3f3f3f/Satania-QQBot/issues"
   },

@@ -43,5 +43,10 @@ for (const serviceName of fs.readdirSync('./services')) {
         app.post(`/service/${path.basename(serviceName,'.js')}`, require(`./services/${serviceName}`));
     }
 }
+for (const serviceName of fs.readdirSync('./services/proxy')) {
+    if (fs.statSync(`./services/proxy/${serviceName}`).isFile() && serviceName.endsWith('.js')) {
+        app.use(`/service/${path.basename(serviceName,'.js')}`, require(`./services/proxy/${serviceName}`));
+    }
+}
 
 app.listen(port, secret.httpHost);

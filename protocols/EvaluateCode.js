@@ -1,25 +1,37 @@
-const dgram = require('dgram');
+const request = require('request');
 
 module.exports = function (recvObj, client) {
     if (/(运行|执行|跑)c#|c#(运行|执行)/ig.test(recvObj.content)) {
-        const code = recvObj.content.replace(/\[.*?\]|运行|执行|跑|c#/ig, '').replace(/(\\r\\n|\\n)/g, '\n');
+        const code = recvObj.content.replace(/\[.*?\]|(运行|执行|跑)c#|c#(运行|执行)/ig, '')
+            .replace(/\\r/, '\r').replace(/\\n/g, '\n');
 
-        const udpClient = dgram.createSocket('udp4');
-
-        udpClient.on('error', (err) => {
-            console.error(err.message);
-            console.error(err.stack);
-            client.sendMsg(recvObj, '欧尼酱执行出错了~喵');
-            udpClient.close();
-        });
-        // 发送代码
-        udpClient.send(code, secret.evaluateCodePort, secret.evaluateCodeHost);
-
-        udpClient.on('message', (msg, rinfo) => {
-            client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]\r\n` + msg.toString());
-        });
+        EvaluateCode(code, recvObj, client);
 
         return true;
     }
     return false;
+}
+
+async function EvaluateCode(code, recvObj, client) {
+    let result;
+    try {
+        result = await new Promise((resolve, reject) => {
+            request.post(`${secret.serviceRootUrl}/service/EvaluateCode`, {
+                json: {
+                    code
+                }
+            }, (err, res, body) => {
+                if (err) {
+                    reject();
+                    return;
+                }
+                resolve(body);
+            });
+        });
+    } catch {
+        client.sendMsg(recvObj, '欧尼酱执行C#服务出错了~喵');
+        return;
+    }
+
+    client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]\r\n` + result.output);
 }

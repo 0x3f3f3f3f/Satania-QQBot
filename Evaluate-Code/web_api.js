@@ -11,7 +11,7 @@ app.use(express.json());
 app.post('/', async (req, res) => {
     if (!_.isString(req.body.code)) {
         res.json({
-            result: "参数不正确"
+            output: "参数不正确"
         });
         return;
     }
@@ -25,15 +25,15 @@ app.post('/', async (req, res) => {
         timeout: 60000
     });
 
-    const result = process.stdout.trim();
+    const output = process.stdout.trim();
 
-    if (!_.isEmpty(result)) {
+    if (!_.isEmpty(output)) {
         res.json({
-            result: process.stdout
+            output
         });
     } else {
         res.json({
-            result: "执行没有产生结果"
+            output: "执行没有产生结果"
         });
     }
 });

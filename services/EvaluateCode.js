@@ -2,5 +2,8 @@ const createProxyMiddleware = require('http-proxy-middleware').createProxyMiddle
 
 module.exports = createProxyMiddleware({
     target: secret.evaluateCodeUrl,
+    pathRewrite: {
+        '.*': '/'
+    },
     changeOrigin: true
 });

@@ -4,7 +4,7 @@ const _ = require('lodash');
 module.exports = function (recvObj, client) {
     if (/(运行|执行|跑)c#|c#(运行|执行)/i.test(recvObj.content)) {
         const code = recvObj.content.replace(/\[.*?\]|(运行|执行|跑)c#|c#(运行|执行)/ig, '')
-            .replace(/\\r\\n|\\n/g, '\n');
+            .replace(/\\r\\n/g, '\n');
 
         if (_.isEmpty(code.trim())) {
             client.sendMsg(recvObj, '你居然没写代码？');

@@ -463,13 +463,13 @@ module.exports = async function (recvObj, client) {
     }
 
     // 色图计数
-    if (/((色|涩|瑟)图|图库)(计数|总(数|计))/m.test(recvObj.content)) {
+    if (/((色|涩|瑟)图|图库)(计数|总(数|计))/.test(recvObj.content)) {
         client.sendMsg(recvObj, '图库总计: ' + illusts.length + '张');
         return true;
     }
 
     // 生成web服务的url
-    if (/(编辑|加|增)(标签|规则|词条)|(标签|规则|词条)(编辑|.*?加|.*?增)/m.test(recvObj.content)) {
+    if (/(编辑|加|增)(标签|规则|词条)|(标签|规则|词条)(编辑|.*?加|.*?增)/.test(recvObj.content)) {
         if (
             recvObj.type == recvType.friend ||
             recvObj.type == recvType.groupNonFriend ||
@@ -508,7 +508,7 @@ module.exports = async function (recvObj, client) {
         }
     }
     // 重发
-    if (/(重|重新|再)发/m.test(recvObj.content)) {
+    if (/(重|重新|再)发/.test(recvObj.content)) {
         PixivPic(recvObj, client, null, {
             resend: true,
             num: num || 1
@@ -538,9 +538,9 @@ module.exports = async function (recvObj, client) {
         const userTag = userTags[i];
         let regExp;
         if (userTag.type == 'regexp') {
-            regExp = new RegExp(userTag.match, 'im');
+            regExp = new RegExp(userTag.match, 'i');
         } else {
-            regExp = new RegExp(replaceRegexpChar(userTag.match).split(',').join('|'), 'im')
+            regExp = new RegExp(replaceRegexpChar(userTag.match).split(',').join('|'), 'i')
         }
         if (regExp.test(recvObj.content)) {
             PixivPic(recvObj, client, userTag.rawTags.toLowerCase().split(','), {
@@ -554,7 +554,7 @@ module.exports = async function (recvObj, client) {
     }
 
     // Fallback
-    if (/(色|涩|瑟)图|gkd|ghs|搞快点|开车|不够(色|涩|瑟)|av|安慰|学习/im.test(recvObj.content)) {
+    if (/(色|涩|瑟)图|gkd|ghs|搞快点|开车|不够(色|涩|瑟)|av|安慰|学习/i.test(recvObj.content)) {
         PixivPic(recvObj, client, null, {
             autoBurst,
             burstNum,

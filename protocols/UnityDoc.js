@@ -12,9 +12,9 @@ const DocUrl = {
 
 module.exports = function (recvObj, client) {
     let type = null;
-    if (/api/ig.test(recvObj.content)) {
+    if (/^api/i.test(recvObj.content)) {
         type = DocType.api;
-    } else if (/手.*?册/g.test(recvObj.content)) {
+    } else if (/手册/i.test(recvObj.content)) {
         type = DocType.manual;
     }
     if (type != null) {

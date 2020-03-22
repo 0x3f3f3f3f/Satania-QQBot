@@ -12,7 +12,7 @@ module.exports = function (recvObj, client, isPending = false) {
         appEvent.emit('SauceNao_done', recvObj);
         return;
     }
-    if (/((搜|查|找).*?图)|(图.*?(搜|查|找))/m.test(recvObj.content)) {
+    if (/((搜|查|找).*?图)|(图.*?(搜|查|找))/.test(recvObj.content)) {
         const imgInfo = getFirstImageInfo(recvObj.content);
         if (!imgInfo) {
             client.sendMsg(recvObj, '收到！接下来请单独发一张图片给我搜索~');

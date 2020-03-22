@@ -2,7 +2,7 @@ const request = require('request');
 const _ = require('lodash');
 
 module.exports = function (recvObj, client) {
-    if (/(运行|执行|跑)c#|c#(运行|执行)/ig.test(recvObj.content)) {
+    if (/^(运行|执行|跑)c#|c#(运行|执行)/i.test(recvObj.content)) {
         const code = recvObj.content.replace(/\[.*?\]|(运行|执行|跑)c#|c#(运行|执行)/ig, '')
             .replace(/\\r\\n|\\n/g, '\n');
 

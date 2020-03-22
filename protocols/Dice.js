@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = function (recvObj, client) {
     const msg = recvObj.content.replace(/\[.*?\]/g, '').trim();
-    if (/roll/im.test(recvObj.content)) {
+    if (/^roll/i.test(recvObj.content)) {
         const num = msg.match(/\d+/g);
         const numZh = msg.match(/[零一二两三四五六七八九十百千万亿兆]+/g);
         if (num) {
@@ -28,7 +28,7 @@ module.exports = function (recvObj, client) {
             client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]\r\n` + `roll(1-100): ${parseInt(Math.random() * 100) + 1}`);
         }
         return true;
-    } else if (/(抛|投)*?骰子/m.test(recvObj.content)) {
+    } else if (/(抛|投).*?骰子/.test(recvObj.content)) {
         let num = parseInt(msg.match(/\d+/));
         if (!num) {
             const numZh = msg.match(/[零一二两三四五六七八九十百千万亿兆]+/);

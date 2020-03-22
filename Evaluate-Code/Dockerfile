@@ -1,5 +1,6 @@
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1
-FROM node:current-slim
+RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN apt-get install -y nodejs
 
 WORKDIR /usr/src/app
 

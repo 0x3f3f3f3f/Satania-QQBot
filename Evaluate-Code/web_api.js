@@ -8,13 +8,15 @@ const port = 33200;
 
 app.use(express.json());
 
-app.post('/', async (req, res) => {
+app.post('/', (req, res) => {
     if (!_.isString(req.body.code)) {
         res.json({
             output: "参数不正确"
         });
         return;
     }
+
+    console.log('=>', req.body.code);
 
     const process = childProcess.spawnSync("dotnet", [
         path.join("CLI", "EvaluateCodeCLI.dll"),
@@ -38,4 +40,4 @@ app.post('/', async (req, res) => {
     }
 });
 
-app.listen(port);
+app.listen(port, '0.0.0.0');

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 sharp.cache(false);
-const uuid = require('uuid/v4');
+const uuid = require('uuid').v4;
 const childProcess = require('child_process');
 
 let isUpdating = false;

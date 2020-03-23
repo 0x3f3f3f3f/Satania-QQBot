@@ -3,7 +3,7 @@ const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
-const uuid = require('uuid/v4');
+const uuid = require('uuid').v4;
 const recvType = require('./lib/receiveType');
 
 // 账号密码

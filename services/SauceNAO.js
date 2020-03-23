@@ -4,7 +4,7 @@ const path = require('path');
 const sharp = require('sharp');
 sharp.cache(false);
 const _ = require('lodash');
-const uuid = require('uuid/v4');
+const uuid = require('uuid').v4;
 
 module.exports = async function (req, res) {
     const url = req.body.url;

@@ -1,6 +1,6 @@
 const request = require('request');
 const _ = require('lodash');
-const uuid = require('uuid/v4');
+const uuid = require('uuid').v4;
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');

@@ -105,12 +105,12 @@ let isInitialized = false;
 // 当前小时
 let curHours = moment().hours();
 // 色图技能充能
-const illustMaxCharge = 5;
-const illustCD = 120;
-const illustCharge = {};
-const illustBlockMaxCharge = 100;
-const illustBlockCD = 3600;
-const illustBlock = {};
+const groupBlockMaxCharge = 5;
+const groupBlockCD = 120;
+const groupList = {};
+const userBlockMaxCharge = 100;
+const userBlockCD = 3600;
+const userList = {};
 const timer = setInterval(() => {
     const curMoment = moment();
     if (curHours != curMoment.hours()) {
@@ -120,26 +120,31 @@ const timer = setInterval(() => {
         // 每天12点更新色图库
         if (curHours == 12) {
             updateIllusts();
+            // 重置用户列表
+            for (const qq in userList) {
+                delete userList[qq];
+            }
         }
     }
     // 充能（区分每个群）
-    for (const groupId in illustCharge) {
-        const charge = illustCharge[groupId];
-        if (charge.count < illustMaxCharge) {
-            charge.cd--;
-            if (charge.cd <= 0) {
-                charge.cd = illustCD;
-                charge.count++;
+    for (const groupId in groupList) {
+        const group = groupList[groupId];
+        if (group.charge < groupBlockMaxCharge) {
+            group.cd--;
+            if (group.cd <= 0) {
+                group.cd = groupBlockCD;
+                group.charge++;
             }
         }
     }
     // 自动ban
-    for (const qq in illustBlock) {
-        const charge = illustBlock[qq];
-        if (charge.count < illustBlockMaxCharge) {
-            charge.cd--;
-            if (charge.cd <= 0) {
-                delete illustBlock[qq];
+    for (const qq in userList) {
+        const user = userList[qq];
+        if (user.charge < userBlockMaxCharge) {
+            user.cd--;
+            if (user.cd <= 0) {
+                user.cd = userBlockCD;
+                user.charge = userBlockMaxCharge;
             }
         }
     }
@@ -590,17 +595,17 @@ async function PixivPic(recvObj, client, tags, opt) {
         return;
     }
 
-    if (!illustBlock[recvObj.qq]) {
-        illustBlock[recvObj.qq] = {
-            count: illustBlockMaxCharge,
-            cd: illustBlockCD,
+    if (!userList[recvObj.qq]) {
+        userList[recvObj.qq] = {
+            count: userBlockMaxCharge,
+            cd: userBlockCD,
             seenList: []
         }
     }
 
     // ban恶意刷图
-    illustBlock[recvObj.qq].count--;
-    if (illustBlock[recvObj.qq].count <= 0) {
+    if (!(opt.rule && opt.rule.rule == 'white') &&
+        userList[recvObj.qq].charge <= 0) {
         if (!(await knex('rule_list').where('type', 'qq').andWhere('name', recvObj.qq))[0]) {
             await knex('rule_list').insert({
                 type: 'qq',
@@ -610,14 +615,14 @@ async function PixivPic(recvObj, client, tags, opt) {
         } else {
             await knex('rule_list').where('type', 'qq').andWhere('name', recvObj.qq).update('rule', 'block');
         }
-        delete illustBlock[recvObj.qq];
+        delete userList[recvObj.qq];
         return;
     }
 
-    if (!illustCharge[recvObj.group]) {
-        illustCharge[recvObj.group] = {
-            count: illustMaxCharge,
-            cd: illustCD
+    if (!groupList[recvObj.group]) {
+        groupList[recvObj.group] = {
+            count: groupBlockMaxCharge,
+            cd: groupBlockCD
         }
     }
     // 白名单
@@ -628,10 +633,10 @@ async function PixivPic(recvObj, client, tags, opt) {
             recvObj.type == recvType.nonFriend
         )) {
         if (!(opt.rule && opt.rule.rule == 'white')) {
-            if (illustCharge[recvObj.group].count <= 0 && !opt.resend) {
+            if (groupList[recvObj.group].charge <= 0 && !opt.resend) {
                 client.sendMsg(recvObj, '搞太快了~ 请等待' +
-                    (parseInt(illustCharge[recvObj.group].cd / 60) == 0 ? '' : (parseInt(illustCharge[recvObj.group].cd / 60) + '分')) +
-                    illustCharge[recvObj.group].cd % 60 + '秒'
+                    (parseInt(groupList[recvObj.group].cd / 60) == 0 ? '' : (parseInt(groupList[recvObj.group].cd / 60) + '分')) +
+                    groupList[recvObj.group].cd % 60 + '秒'
                 );
                 return;
             }
@@ -641,7 +646,7 @@ async function PixivPic(recvObj, client, tags, opt) {
     let illust;
     let illustPath;
     try {
-        illust = await searchIllust(recvObj, tags, opt, illustBlock[recvObj.qq].seenList);
+        illust = await searchIllust(recvObj, tags, opt, userList[recvObj.qq].seenList);
         if (!illust) throw 'illust is null';
         illustPath = await downloadIllust(illust, recvObj, opt);
     } catch {}
@@ -655,12 +660,13 @@ async function PixivPic(recvObj, client, tags, opt) {
                     recvObj.type == recvType.discussNonFriend ||
                     recvObj.type == recvType.nonFriend
                 )) {
-                illustCharge[recvObj.group].count--;
+                groupList[recvObj.group].charge--;
             } else {
-                illustBlock[recvObj.qq].seenList.push({
+                userList[recvObj.qq].seenList.push({
                     id: illust.id
                 });
             }
+            userList[recvObj.qq].charge--;
         }
         client.sendMsg(recvObj, `[QQ:pic=${illustPath}]`);
     } else {

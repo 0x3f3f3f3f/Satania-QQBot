@@ -234,7 +234,7 @@ async function updateIllusts() {
     await getIllusts();
 }
 
-async function searchIllust(recvObj, tags, opt) {
+async function searchIllust(recvObj, tags, opt, seenList) {
     const selected = [];
     const selectedIndex = {};
     let startTime = Date.now();
@@ -332,6 +332,14 @@ async function searchIllust(recvObj, tags, opt) {
                 recvObj.type == recvType.nonFriend
             ) && recvObj.group != '') {
             const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
+            for (const seen of seenList) {
+                if (!_.isUndefined(selectedIndex[seen.id])) {
+                    selected.splice(selectedIndex[seen.id], 1);
+                    delete selectedIndex[seen.id];
+                }
+            }
+        } else {
+            seenList.sort((a, b) => b.id - a.id);
             for (const seen of seenList) {
                 if (!_.isUndefined(selectedIndex[seen.id])) {
                     selected.splice(selectedIndex[seen.id], 1);
@@ -585,7 +593,8 @@ async function PixivPic(recvObj, client, tags, opt) {
     if (!illustBlock[recvObj.qq]) {
         illustBlock[recvObj.qq] = {
             count: illustBlockMaxCharge,
-            cd: illustBlockCD
+            cd: illustBlockCD,
+            seenList: []
         }
     }
 
@@ -629,22 +638,29 @@ async function PixivPic(recvObj, client, tags, opt) {
         }
     }
 
+    let illust;
     let illustPath;
     try {
-        const illust = await searchIllust(recvObj, tags, opt);
+        illust = await searchIllust(recvObj, tags, opt, illustBlock[recvObj.qq].seenList);
         if (!illust) throw 'illust is null';
         illustPath = await downloadIllust(illust, recvObj, opt);
     } catch {}
 
     if (illustPath) {
-        // 群聊才减充能
-        if (!(
-                recvObj.type == recvType.friend ||
-                recvObj.type == recvType.groupNonFriend ||
-                recvObj.type == recvType.discussNonFriend ||
-                recvObj.type == recvType.nonFriend
-            ) && !opt.resend) {
-            illustCharge[recvObj.group].count--;
+        if (!opt.resend) {
+            // 群聊才减充能
+            if (!(
+                    recvObj.type == recvType.friend ||
+                    recvObj.type == recvType.groupNonFriend ||
+                    recvObj.type == recvType.discussNonFriend ||
+                    recvObj.type == recvType.nonFriend
+                )) {
+                illustCharge[recvObj.group].count--;
+            } else {
+                illustBlock[recvObj.qq].seenList.push({
+                    id: illust.id
+                });
+            }
         }
         client.sendMsg(recvObj, `[QQ:pic=${illustPath}]`);
     } else {

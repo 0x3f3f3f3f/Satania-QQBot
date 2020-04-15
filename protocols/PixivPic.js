@@ -105,10 +105,10 @@ let isInitialized = false;
 // 当前小时
 let curHours = moment().hours();
 // 色图技能充能
-const groupBlockMaxCharge = 5;
+const groupBlockMaxCount = 5;
 const groupBlockCD = 120;
 const groupList = {};
-const userBlockMaxCharge = 100;
+const userBlockMaxCount = 100;
 const userBlockCD = 3600;
 const userList = {};
 const timer = setInterval(() => {
@@ -129,22 +129,22 @@ const timer = setInterval(() => {
     // 充能（区分每个群）
     for (const groupId in groupList) {
         const group = groupList[groupId];
-        if (group.charge < groupBlockMaxCharge) {
+        if (group.count < groupBlockMaxCount) {
             group.cd--;
             if (group.cd <= 0) {
                 group.cd = groupBlockCD;
-                group.charge++;
+                group.count++;
             }
         }
     }
     // 自动ban
     for (const qq in userList) {
         const user = userList[qq];
-        if (user.charge < userBlockMaxCharge) {
+        if (user.count < userBlockMaxCount) {
             user.cd--;
             if (user.cd <= 0) {
                 user.cd = userBlockCD;
-                user.charge = userBlockMaxCharge;
+                user.count = userBlockMaxCount;
             }
         }
     }
@@ -597,7 +597,7 @@ async function PixivPic(recvObj, client, tags, opt) {
 
     if (!userList[recvObj.qq]) {
         userList[recvObj.qq] = {
-            count: userBlockMaxCharge,
+            count: userBlockMaxCount,
             cd: userBlockCD,
             seenList: []
         }
@@ -605,7 +605,7 @@ async function PixivPic(recvObj, client, tags, opt) {
 
     // ban恶意刷图
     if (!(opt.rule && opt.rule.rule == 'white') &&
-        userList[recvObj.qq].charge <= 0) {
+        userList[recvObj.qq].count <= 0) {
         if (!(await knex('rule_list').where('type', 'qq').andWhere('name', recvObj.qq))[0]) {
             await knex('rule_list').insert({
                 type: 'qq',
@@ -621,7 +621,7 @@ async function PixivPic(recvObj, client, tags, opt) {
 
     if (!groupList[recvObj.group]) {
         groupList[recvObj.group] = {
-            count: groupBlockMaxCharge,
+            count: groupBlockMaxCount,
             cd: groupBlockCD
         }
     }
@@ -633,7 +633,7 @@ async function PixivPic(recvObj, client, tags, opt) {
             recvObj.type == recvType.nonFriend
         )) {
         if (!(opt.rule && opt.rule.rule == 'white')) {
-            if (groupList[recvObj.group].charge <= 0 && !opt.resend) {
+            if (groupList[recvObj.group].count <= 0 && !opt.resend) {
                 client.sendMsg(recvObj, '搞太快了~ 请等待' +
                     (parseInt(groupList[recvObj.group].cd / 60) == 0 ? '' : (parseInt(groupList[recvObj.group].cd / 60) + '分')) +
                     groupList[recvObj.group].cd % 60 + '秒'
@@ -660,13 +660,13 @@ async function PixivPic(recvObj, client, tags, opt) {
                     recvObj.type == recvType.discussNonFriend ||
                     recvObj.type == recvType.nonFriend
                 )) {
-                groupList[recvObj.group].charge--;
+                groupList[recvObj.group].count--;
             } else {
                 userList[recvObj.qq].seenList.push({
                     id: illust.id
                 });
             }
-            userList[recvObj.qq].charge--;
+            userList[recvObj.qq].count--;
         }
         client.sendMsg(recvObj, `[QQ:pic=${illustPath}]`);
     } else {

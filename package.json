@@ -9,7 +9,7 @@
     "express": "^4.17.1",
     "gif-frames": "^1.0.1",
     "iconv-lite": "^0.5.1",
-    "knex": "^0.20.12",
+    "knex": "^0.20.14",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "mysql2": "^2.1.0",
@@ -19,7 +19,7 @@
     "puppeteer": "^2.1.1",
     "request": "^2.88.2",
     "sharp": "^0.25.2",
-    "uuid": "^7.0.2",
+    "uuid": "^7.0.3",
     "ws": "^7.2.3"
   },
   "devDependencies": {},

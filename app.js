@@ -108,6 +108,9 @@ async function onMessage(data) {
     // 系统消息
     if (recvObj.qq == '10000') return;
 
+    // 反哔哩哔哩小程序
+    if (protocols.AntiBiliMiniApp(recvObj, client)) return;
+
     // 分步搜图
     for (const pending of SauceNaoPendingList) {
         if (recvObj.group == pending.recvObj.group &&

@@ -461,10 +461,6 @@ module.exports = async function (recvObj, client) {
             type: 'qq',
             name: recvObj.qq
         }))[0];
-        if (rule && rule.rule == 'block') {
-            client.sendMsg(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
-            return true;
-        }
     } else {
         rule = (await knex('rule_list').where({
             type: 'group',
@@ -556,6 +552,10 @@ module.exports = async function (recvObj, client) {
             regExp = new RegExp(replaceRegexpChar(userTag.match).split(',').join('|'), 'i')
         }
         if (regExp.test(recvObj.content)) {
+            if (rule && rule.rule == 'block') {
+                client.sendMsg(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
+                return true;
+            }
             PixivPic(recvObj, client, userTag.rawTags.toLowerCase().split(','), {
                 autoBurst,
                 burstNum,
@@ -568,6 +568,10 @@ module.exports = async function (recvObj, client) {
 
     // Fallback
     if (/(色|涩|瑟)图|gkd|ghs|搞快点|开车|不够(色|涩|瑟)|av|安慰|学习/i.test(recvObj.content)) {
+        if (rule && rule.rule == 'block') {
+            client.sendMsg(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
+            return true;
+        }
         PixivPic(recvObj, client, null, {
             autoBurst,
             burstNum,

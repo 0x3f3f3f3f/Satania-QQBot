@@ -105,8 +105,8 @@ let isInitialized = false;
 // 当前小时
 let curHours = moment().hours();
 // 色图技能充能
-const groupBlockMaxCount = 5;
-const groupBlockCD = 120;
+const groupBlockMaxCount = 20;
+const groupBlockCD = 300;
 const groupList = {};
 const userBlockMaxCount = 100;
 const userBlockCD = 3600;
@@ -133,7 +133,7 @@ const timer = setInterval(() => {
             group.cd--;
             if (group.cd <= 0) {
                 group.cd = groupBlockCD;
-                group.count++;
+                group.count += 5;
             }
         }
     }

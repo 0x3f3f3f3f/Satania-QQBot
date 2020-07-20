@@ -6,6 +6,6 @@
   "author": "CH",
   "dependencies": {
     "express": "^4.17.1",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.19"
   }
 }

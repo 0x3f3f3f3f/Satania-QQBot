@@ -1,9 +1,9 @@
 # 萨塔妮娅 Project 3.0
 QQ机器人
 
-2020.11更新兼容[CQHTTP Mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai)~~因为二次元浓度过高~~
+2020.11更新兼容[Mirai-API-http](https://github.com/project-mirai/mirai-api-http)~~因为二次元浓度过高~~
 
-已知问题：多次尝试最新版本的CQHTTP Mirai语音发送没有成功
+已知问题：发送语音待官方完善
 
 ## 包含功能：
 
@@ -38,9 +38,9 @@ QQ机器人
 你需要将secret.sample.json重命名为secret.json，并填入相关api key或密码使应用可正常运行。
 
 字段说明：
-wsHost                  qq宿主websocket地址
-wsPort                  qq宿主websocket端口
-wsPath                  qq宿主websocket路径
+MiraiApiHttpHost        qq宿主API HTTP地址
+MiraiApiHttpPort        qq宿主API HTTP端口
+MiraiApiHttpAuthKey     qq宿主API HTTP授权密钥
 SauceNAO_API_KEY        SauceNAO API密钥
 targetQQ                目标qq号，用于机器人被at依据
 tempPath                qq宿主临时文件夹
@@ -166,7 +166,7 @@ rule: block
 * ~~[QQLight](https://www.52chat.cc/) —— QQ宿主~~（已弃用）
 * ~~[QQLight WebSocket插件](https://github.com/Chocolatl/qqlight-websocket)~~（已弃用）
 * [Mirai](https://github.com/mamoe/mirai) —— QQ宿主
-* [CQHTTP Mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai) —— 兼容酷Q HTTP API
+* [Mirai-API-http](https://github.com/project-mirai/mirai-api-http) —— Mirai-API-http插件
 * [Knex.js](http://knexjs.org/) —— ORM框架
 * [Express](https://expressjs.com/) —— Web服务框架
 * [Puppeteer](https://github.com/puppeteer/puppeteer) —— 无头Chrome Node.js API

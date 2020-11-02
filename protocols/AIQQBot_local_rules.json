@@ -2,22 +2,22 @@
     "regExp": "你.*?(叫什么|叫啥|名字|是谁)|你谁",
     "msgList": [
         "啊~~~哈哈哈~，吾乃未来的地狱支配者，胡桃泽·萨塔妮娅·麦克威尔，颤抖吧人类！",
-        "[CQ:image,file=emoticons/satania_debut.gif]"
+        "image:emoticons/satania_debut.gif"
     ]
 }, {
     "regExp": "表.*?演",
     "msgList": [
-        "[CQ:image,file=emoticons/satania_lol.gif]",
-        "[CQ:image,file=emoticons/satania_show1.gif]",
-        "[CQ:image,file=emoticons/satania_show2.gif]",
-        "[CQ:image,file=emoticons/satania_show3.gif]"
+        "image:emoticons/satania_lol.gif",
+        "image:emoticons/satania_show1.gif",
+        "image:emoticons/satania_show2.gif",
+        "image:emoticons/satania_show3.gif"
     ]
 }, {
     "regExp": "胖.*?次|内.*?裤|小.*?裤",
     "msgList": [
         "变...变态！",
         "今天穿的是蓝白~",
-        "[CQ:image,file=emoticons/satania_cry.gif]",
+        "image:emoticons/satania_cry.gif",
         "萨塔尼亚~会害羞啦~"
     ]
 }, {
@@ -41,20 +41,20 @@
 }, {
     "regExp": "老婆",
     "msgList": [
-        "[CQ:image,file=emoticons/call_waifu.jpg]",
+        "image:emoticons/call_waifu.jpg",
         "喊谁老婆呢？臭傻逼！"
     ]
 }, {
     "regExp": "名场面",
     "msgList": [
-        "[CQ:record,file=emoticons/mea_1.mp3]",
-        "[CQ:record,file=emoticons/mea_2.mp3]",
-        "[CQ:record,file=emoticons/mea_3.mp3]",
-        "[CQ:record,file=emoticons/mea_4.mp3]",
-        "[CQ:record,file=emoticons/heart_1.mp3]",
-        "[CQ:record,file=emoticons/heart_2.mp3]",
-        "[CQ:record,file=emoticons/matsuri.mp3]",
-        "[CQ:record,file=emoticons/giraffe.mp3]",
-        "[CQ:record,file=emoticons/dog_ma.mp3]"
+        "voice:emoticons/mea_1.mp3",
+        "voice:emoticons/mea_2.mp3",
+        "voice:emoticons/mea_3.mp3",
+        "voice:emoticons/mea_4.mp3",
+        "voice:emoticons/heart_1.mp3",
+        "voice:emoticons/heart_2.mp3",
+        "voice:emoticons/matsuri.mp3",
+        "voice:emoticons/giraffe.mp3",
+        "voice:emoticons/dog_ma.mp3"
     ]
 }]

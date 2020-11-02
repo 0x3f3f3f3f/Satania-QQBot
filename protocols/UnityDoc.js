@@ -1,5 +1,6 @@
 const request = require('request');
 const _ = require('lodash');
+const messageHelper = require('../lib/messageHelper');
 
 const DocType = {
     api: 0,
@@ -12,26 +13,27 @@ const DocUrl = {
 
 module.exports = function (recvObj, client) {
     let type = null;
-    if (/api/i.test(recvObj.content)) {
+    const inputText = messageHelper.getText(recvObj.message).trim();
+    if (/api/i.test(inputText)) {
         type = DocType.api;
-    } else if (/手册/i.test(recvObj.content)) {
+    } else if (/手册/i.test(inputText)) {
         type = DocType.manual;
     }
     if (type != null) {
-        UnityDoc(type, recvObj, client);
+        UnityDoc(type, recvObj, client, inputText);
         return true
     }
     return false;
 }
 
-async function UnityDoc(type, recvObj, client) {
-    let searchText = recvObj.content.replace(/\[.*?\]|api|手册/g, '').trim();
+async function UnityDoc(type, recvObj, client, inputText) {
+    let searchText = inputText.replace(/api|手册/g, '').trim();
     if (_.isEmpty(searchText)) {
-        client.sendMsg(recvObj, '你居然没写关键词？');
+        sendText(recvObj, '你居然没写关键词？');
         return;
     }
 
-    client.sendMsg(recvObj, '搜索中~');
+    sendText(recvObj, '搜索中~');
 
     let result;
     try {
@@ -53,28 +55,45 @@ async function UnityDoc(type, recvObj, client) {
         if (result.err) {
             switch (result.err) {
                 case 'noready':
-                    client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
+                    sendText(recvObj, '萨塔尼亚还没准备好~');
                     return;
                 case 'neterr':
-                    client.sendMsg(recvObj, '欧尼酱搜索出错了~喵');
+                    sendText(recvObj, '欧尼酱搜索出错了~喵');
                     return;
                 case 'nofind':
-                    client.sendMsg(recvObj, '欧尼酱对不起，没有找到你要的~');
+                    sendText(recvObj, '欧尼酱对不起，没有找到你要的~');
                     return;
             }
         }
     } catch {
-        client.sendMsg(recvObj, '欧尼酱搜索出错了~喵');
+        sendText(recvObj, '欧尼酱搜索出错了~喵');
         return;
     }
 
+    const message = [{
+        type: 'At',
+        target: recvObj.qq
+    }];
     const infoText = result.infoText.split('\n');
-    let resultText = '';
     for (let i = 0; i < result.results.length; i++) {
         const res = result.results[i];
-        resultText += (resultText == '' ? '' : '\r\n') + '\r\n' +
-            `${DocUrl[type]+res.url}\r\n${res.title}: ${infoText[i]}`
+        if (i > 0) {
+            message.push({
+                type: 'Plain',
+                text: '\n'
+            });
+        }
+        message.push({
+            type: 'Plain',
+            text: '\n'
+        }, {
+            type: 'Plain',
+            text: DocUrl[type] + res.url
+        }, {
+            type: 'Plain',
+            text: `\n${res.title}: ${infoText[i]}`
+        });
     }
 
-    client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]\r\n` + resultText);
+    sendMsg(recvObj, message);
 }

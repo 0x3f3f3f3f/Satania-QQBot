@@ -13,7 +13,9 @@ app.use(express.json());
 
 // 创建图片文件夹
 if (!fs.existsSync(secret.imagePath)) {
-    fs.mkdirSync(secret.imagePath);
+    fs.mkdirSync(secret.imagePath, {
+        recursive: true
+    });
 }
 app.use('/image/', express.static(secret.imagePath));
 

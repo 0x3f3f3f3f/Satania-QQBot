@@ -6,6 +6,7 @@ const base64url = require('../lib/base64url');
 const request = require('request');
 const fs = require('fs');
 const path = require('path');
+const messageHelper = require('../lib/messageHelper');
 
 // 连接数据库
 const knex = require('knex')({
@@ -81,6 +82,15 @@ async function initDatabase() {
             table.string('comment').defaultTo('');
         });
     }
+}
+
+// 创建临时文件夹
+if (!fs.existsSync(secret.tempPath)) {
+    fs.mkdirSync(secret.tempPath, {
+        recursive: true
+    });
+    fs.mkdirSync(path.join(secret.tempPath, 'image'));
+    fs.mkdirSync(path.join(secret.tempPath, 'voice'));
 }
 
 const tagList = {};
@@ -245,12 +255,7 @@ async function searchIllust(recvObj, tags, opt, seenList) {
     let startTime = Date.now();
 
     let bookmarks = 1000;
-    if ((
-            recvObj.type == recvType.friend ||
-            recvObj.type == recvType.groupNonFriend ||
-            recvObj.type == recvType.discussNonFriend ||
-            recvObj.type == recvType.nonFriend
-        ) && opt.num > bookmarks) {
+    if (recvObj.type != recvType.GroupMessage && opt.num > bookmarks) {
         bookmarks = opt.num;
     } else {
         const rand = (1 - Math.pow(1 - Math.random(), 2)) * 20000;
@@ -258,7 +263,7 @@ async function searchIllust(recvObj, tags, opt, seenList) {
             bookmarks = rand;
         }
     }
-    const isSafe = recvObj.type != recvType.friend;
+    const isSafe = recvObj.type != recvType.FriendMessage;
     let opAnd = [];
     const opOr = [];
     let regExp;
@@ -330,12 +335,7 @@ async function searchIllust(recvObj, tags, opt, seenList) {
     }
 
     async function rmSeen() {
-        if (!(
-                recvObj.type == recvType.friend ||
-                recvObj.type == recvType.groupNonFriend ||
-                recvObj.type == recvType.discussNonFriend ||
-                recvObj.type == recvType.nonFriend
-            ) && recvObj.group != '') {
+        if (recvObj.type == recvType.GroupMessage && recvObj.group != 0) {
             const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
             for (const seen of seenList) {
                 if (!_.isUndefined(selectedIndex[seen.id])) {
@@ -355,12 +355,7 @@ async function searchIllust(recvObj, tags, opt, seenList) {
     }
 
     if (opt.resend) {
-        if (!(
-                recvObj.type == recvType.friend ||
-                recvObj.type == recvType.groupNonFriend ||
-                recvObj.type == recvType.discussNonFriend ||
-                recvObj.type == recvType.nonFriend
-            ) && recvObj.group != '') {
+        if (recvObj.type == recvType.GroupMessage && recvObj.group != 0) {
             const seen = (await knex('seen_list').where('group', recvObj.group).select('id', 'illust_id').orderBy('id', 'desc').limit(1).offset(opt.num - 1))[0];
             if (!_.isEmpty(seen)) {
                 return illusts[illustsIndex[seen.illust_id]];
@@ -429,12 +424,7 @@ async function downloadIllust(illust, recvObj, opt) {
             return null;
         }
 
-        if (!opt.resend && !(
-                recvObj.type == recvType.friend ||
-                recvObj.type == recvType.groupNonFriend ||
-                recvObj.type == recvType.discussNonFriend ||
-                recvObj.type == recvType.nonFriend
-            ) && recvObj.group != '') {
+        if (!opt.resend && recvObj.type == recvType.GroupMessage && recvObj.group != '') {
             await knex('seen_list').insert({
                 group: recvObj.group,
                 illust_id: illust.id,
@@ -449,14 +439,11 @@ async function downloadIllust(illust, recvObj, opt) {
 }
 
 module.exports = async function (recvObj, client) {
+    const inputText = messageHelper.getText(recvObj.message).trim();
+
     // 读取群、qq规则
     let rule;
-    if (
-        recvObj.type == recvType.friend ||
-        recvObj.type == recvType.groupNonFriend ||
-        recvObj.type == recvType.discussNonFriend ||
-        recvObj.type == recvType.nonFriend
-    ) {
+    if (recvObj.type != recvType.GroupMessage) {
         rule = (await knex('rule_list').where({
             type: 'qq',
             name: recvObj.qq
@@ -472,19 +459,14 @@ module.exports = async function (recvObj, client) {
     }
 
     // 色图计数
-    if (/((色|涩|瑟)图|图库)(计数|总(数|计))/.test(recvObj.content)) {
-        client.sendMsg(recvObj, '图库总计: ' + illusts.length + '张');
+    if (/((色|涩|瑟)图|图库)(计数|总(数|计))/.test(inputText)) {
+        sendText(recvObj, '图库总计: ' + illusts.length + '张');
         return true;
     }
 
     // 生成web服务的url
-    if (/(编辑|加|增)(标签|规则|词条)|(标签|规则|词条)(编辑|.*?加|.*?增)/.test(recvObj.content)) {
-        if (
-            recvObj.type == recvType.friend ||
-            recvObj.type == recvType.groupNonFriend ||
-            recvObj.type == recvType.discussNonFriend ||
-            recvObj.type == recvType.nonFriend
-        ) {
+    if (/(编辑|加|增)(标签|规则|词条)|(标签|规则|词条)(编辑|.*?加|.*?增)/.test(inputText)) {
+        if (recvObj.type != recvType.GroupMessage) {
             const account = 'qq:' + recvObj.qq;
             if (!(await knex('users').where('account', account))[0]) {
                 await knex('users').insert({
@@ -493,31 +475,48 @@ module.exports = async function (recvObj, client) {
                 });
             }
             const key = base64url.encode(Buffer.from(account, 'utf-8').toString('base64'));
-            client.sendMsg(recvObj,
-                '请登录：' + encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
-            );
+            sendMsg(recvObj, [{
+                    type: 'Plain',
+                    text: '请登录：'
+                },
+                {
+                    type: 'Plain',
+                    text: encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
+                }
+            ]);
         } else {
-            client.sendMsg(recvObj, '欧尼酱~请按下图方法与我私聊获得链接~\r\n' +
-                `[CQ:image,file=${secret.emoticonsPath}${path.sep}user_tags_help.jpg]\r\n` +
-                '规则预览：\r\n' +
-                encodeURI(`${secret.publicDomainName}/user-tags/edit.html`)
-            );
+            sendMsg(recvObj, [{
+                    type: 'Plain',
+                    text: '欧尼酱~请按下图方法与我私聊获得链接~\n'
+                },
+                {
+                    type: 'Image',
+                    path: `${secret.emoticonsPath}${path.sep}user_tags_help.jpg`
+                },
+                {
+                    type: 'Plain',
+                    text: '规则预览：\n'
+                },
+                {
+                    type: 'Plain',
+                    text: encodeURI(`${secret.publicDomainName}/user-tags/edit.html`)
+                }
+            ]);
         }
         return true;
     }
 
     // 获取数字
     let num; {
-        const msg = recvObj.content.replace(/\[.*?\]/g, '').trim();
-        num = parseInt(msg.match(/\d+/));
+        num = parseInt(inputText.match(/\d+/));
         if (!num) {
-            const numZh = msg.match(/[零一二两三四五六七八九十百千万亿兆]+/);
+            const numZh = inputText.match(/[零一二两三四五六七八九十百千万亿兆]+/);
             if (numZh)
                 num = parseInt(nzhcn.decodeS(numZh.toString().replace(/两/g, '二')));
         }
     }
     // 重发
-    if (/(重|重新|再)发/.test(recvObj.content)) {
+    if (/(重|重新|再)发/.test(inputText)) {
         PixivPic(recvObj, client, null, {
             resend: true,
             num: num || 1
@@ -527,16 +526,11 @@ module.exports = async function (recvObj, client) {
     // 十连or三连
     let autoBurst = false;
     let burstNum = 0;
-    if ((
-            recvObj.type == recvType.friend ||
-            recvObj.type == recvType.groupNonFriend ||
-            recvObj.type == recvType.discussNonFriend ||
-            recvObj.type == recvType.nonFriend
-        ) &&
-        /(十|10)连/m.test(recvObj.content)) {
+    if (recvObj.type != recvType.GroupMessage &&
+        /(十|10)连/m.test(inputText)) {
         autoBurst = true;
         burstNum = 10;
-    } else if (/(三|3)连/m.test(recvObj.content)) {
+    } else if (/(三|3)连/m.test(inputText)) {
         autoBurst = true;
         burstNum = 3;
     }
@@ -551,9 +545,9 @@ module.exports = async function (recvObj, client) {
         } else {
             regExp = new RegExp(replaceRegexpChar(userTag.match).split(',').join('|'), 'i')
         }
-        if (regExp.test(recvObj.content)) {
+        if (regExp.test(inputText)) {
             if (rule && rule.rule == 'block') {
-                client.sendMsg(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
+                sendText(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
                 return true;
             }
             PixivPic(recvObj, client, userTag.rawTags.toLowerCase().split(','), {
@@ -567,9 +561,9 @@ module.exports = async function (recvObj, client) {
     }
 
     // Fallback
-    if (/(色|涩|瑟)图|gkd|ghs|搞快点|开车|不够(色|涩|瑟)|av|安慰|学习/i.test(recvObj.content)) {
+    if (/(色|涩|瑟)图|gkd|ghs|搞快点|开车|不够(色|涩|瑟)|av|安慰|学习/i.test(inputText)) {
         if (rule && rule.rule == 'block') {
-            client.sendMsg(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
+            sendText(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
             return true;
         }
         PixivPic(recvObj, client, null, {
@@ -595,7 +589,7 @@ async function PixivPic(recvObj, client, tags, opt) {
     }
 
     if (!isInitialized) {
-        client.sendMsg(recvObj, '萨塔尼亚还没准备好~');
+        sendText(recvObj, '萨塔尼亚还没准备好~');
         return;
     }
 
@@ -630,15 +624,10 @@ async function PixivPic(recvObj, client, tags, opt) {
         }
     }
     // 白名单
-    if (!(
-            recvObj.type == recvType.friend ||
-            recvObj.type == recvType.groupNonFriend ||
-            recvObj.type == recvType.discussNonFriend ||
-            recvObj.type == recvType.nonFriend
-        )) {
+    if (recvObj.type == recvType.GroupMessage) {
         if (!(opt.rule && opt.rule.rule == 'white')) {
             if (groupList[recvObj.group].count <= 0 && !opt.resend) {
-                client.sendMsg(recvObj, '搞太快了~ 请等待' +
+                sendText(recvObj, '搞太快了~ 请等待' +
                     (parseInt(groupList[recvObj.group].cd / 60) == 0 ? '' : (parseInt(groupList[recvObj.group].cd / 60) + '分')) +
                     groupList[recvObj.group].cd % 60 + '秒'
                 );
@@ -658,12 +647,7 @@ async function PixivPic(recvObj, client, tags, opt) {
     if (illustPath) {
         if (!opt.resend) {
             // 群聊才减充能
-            if (!(
-                    recvObj.type == recvType.friend ||
-                    recvObj.type == recvType.groupNonFriend ||
-                    recvObj.type == recvType.discussNonFriend ||
-                    recvObj.type == recvType.nonFriend
-                )) {
+            if (recvObj.type == recvType.GroupMessage) {
                 groupList[recvObj.group].count--;
             } else {
                 userList[recvObj.qq].seenList.push({
@@ -672,8 +656,8 @@ async function PixivPic(recvObj, client, tags, opt) {
             }
             userList[recvObj.qq].count--;
         }
-        client.sendMsg(recvObj, `[CQ:image,file=${illustPath}]`);
+        sendImageUrl(recvObj, illustPath);
     } else {
-        client.sendMsg(recvObj, `[CQ:image,file=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+        sendImage(recvObj, `${secret.emoticonsPath}${path.sep}satania_cry.gif`);
     }
 }

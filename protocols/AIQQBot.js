@@ -4,19 +4,21 @@ const uuid = require('uuid').v4;
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const messageHelper = require('../lib/messageHelper');
 
 const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.json', 'utf8'));
 
-const AipSpeechClient = require('baidu-aip-sdk').speech;
-const speechClient = new AipSpeechClient(secret.Baidu_APP_ID, secret.Baidu_API_KEY, secret.Baidu_SECRET_KEY);
+// const AipSpeechClient = require('baidu-aip-sdk').speech;
+// const speechClient = new AipSpeechClient(secret.Baidu_APP_ID, secret.Baidu_API_KEY, secret.Baidu_SECRET_KEY);
 
 module.exports = function (recvObj, client) {
-    inputText = recvObj.content.replace(/\[.*?\]/g, '').trim();
+    const inputText = messageHelper.getText(recvObj.message).trim();
     if (_.isEmpty(inputText)) {
         if (Math.random() > 0.5) {
-            sendVoice(recvObj, client, '藕妮酱~想我了吗？');
+            // sendVoice(recvObj, client, '藕妮酱~想我了吗？');
+            sendText(recvObj, '藕妮酱~想我了吗？');
         } else {
-            client.sendMsg(recvObj, `[CQ:image,file=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+            sendImage(recvObj, `${secret.emoticonsPath}${path.sep}satania_cry.gif`);
         }
         return;
     }
@@ -28,16 +30,17 @@ module.exports = function (recvObj, client) {
             let msg = localRules[i].msgList[index];
             msg = msg.replace('emoticons', secret.emoticonsPath);
             msg = msg.replace(/\//g, path.sep);
-            if (/CQ\:image/.test(msg)) {
-                client.sendMsg(recvObj, msg);
-            } else if (/CQ\:record/.test(msg)) {
+            if (/^image\:/.test(msg)) {
+                sendImage(recvObj, msg.replace(/^image\:/, ''));
+            } else if (/^voice\:/.test(msg)) {
                 if (secret.EnableVoice) {
-                    client.sendMsg(recvObj, msg);
+                    sendVoice(recvObj, msg.replace(/^voice\:/, ''));
                 } else {
-                    client.sendMsg(recvObj, '未开启语音功能哦~');
+                    sendText(recvObj, '未开启语音功能哦~');
                 }
             } else {
-                sendVoice(recvObj, client, msg);
+                // sendTTS(recvObj, client, msg);
+                sendText(recvObj, msg);
             }
             return;
         }
@@ -88,23 +91,24 @@ async function AIQQBot(inputText, recvObj, client) {
             });
         });
     } catch {
-        client.sendMsg(recvObj, '电波出了点问题~喵');
+        sendText(recvObj, '电波出了点问题~喵');
         return;
     }
 
     if (!botObj) {
-        client.sendMsg(recvObj, `[CQ:image,file=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+        sendImage(recvObj, `${secret.emoticonsPath}${path.sep}satania_cry.gif`);
         return;
     }
 
-    if (botObj.data.answer.length > 50) {
-        client.sendMsg(recvObj, botObj.data.answer);
-    } else {
-        sendVoice(recvObj, client, botObj.data.answer);
-    }
+    // if (botObj.data.answer.length > 50) {
+    //     sendText(recvObj, botObj.data.answer);
+    // } else {
+    //     sendTTS(recvObj, client, botObj.data.answer);
+    // }
+    sendText(recvObj, botObj.data.answer);
 }
 
-async function sendVoice(recvObj, client, text) {
+async function sendTTS(recvObj, client, text) {
     let tts;
     if (secret.EnableVoice) {
         try {
@@ -113,15 +117,15 @@ async function sendVoice(recvObj, client, text) {
                 pit: 7
             });
         } catch {
-            client.sendMsg(recvObj, text);
+            sendText(recvObj, text);
             return;
         }
     }
     if (tts && tts.data) {
         voicePath = path.join(secret.tempPath, 'voice', 'aipSpeech_' + uuid() + '.mp3');
         fs.writeFileSync(voicePath, tts.data);
-        client.sendMsg(recvObj, `[CQ:record,file=${voicePath}]`);
+        sendVoice(recvObj, voicePath);
     } else {
-        client.sendMsg(recvObj, text);
+        sendText(recvObj, text);
     }
 }

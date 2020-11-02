@@ -51,8 +51,14 @@ module.exports = async function (req, res) {
             let imagePath = null;
             if (!err && _.isBuffer(body)) {
                 imagePath = path.join(secret.imagePath, 'saucenao_' + uuid() + '.jpg');
-                const sourceImg = sharp(body);
-                const sourceImgMetadata = await sourceImg.metadata();
+                let sourceImg, sourceImgMetadata;
+                try {
+                    sourceImg = sharp(body);
+                    sourceImgMetadata = await sourceImg.metadata();
+                } catch {
+                    resolve(null);
+                    return;
+                }
                 const waterMarkImg = sharp('watermark.png');
                 const waterMarkImgMetadata = await waterMarkImg.metadata();
                 const x = sourceImgMetadata.width - waterMarkImgMetadata.width - (parseInt(Math.random() * 5) + 6);

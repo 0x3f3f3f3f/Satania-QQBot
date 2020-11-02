@@ -1,16 +1,18 @@
 module.exports = function (recvObj, client) {
+    const headlessMsg = recvObj.message.shift();
+    const str = JSON.stringify(headlessMsg);
     if (!repeaterMode[recvObj.group] &&
-        repeaterDic[recvObj.group] == recvObj.content) {
+        repeaterDic[recvObj.group] == str) {
         repeaterMode[recvObj.group] = true;
 
-        client.sendMsg(recvObj, recvObj.content);
+        sendMsg(recvObj, headlessMsg);
     } else if (repeaterMode[recvObj.group] &&
-        repeaterDic[recvObj.group] != recvObj.content) {
+        repeaterDic[recvObj.group] != str) {
         repeaterMode[recvObj.group] = false;
     }
 
     // 记录最后一条聊天信息
-    repeaterDic[recvObj.group] = recvObj.content;
+    repeaterDic[recvObj.group] = str;
 }
 
 const repeaterMode = {};

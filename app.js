@@ -1,5 +1,5 @@
 // 机器人主入口
-// 2020.11更换宿主mirai，协议与酷q http api一致
+// 2020.11更换宿主mirai，采用mirai-api-http
 
 const WebSocket = require('ws');
 const _ = require('lodash');
@@ -7,26 +7,47 @@ const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
 const recvType = require('./lib/receiveType');
+const miraiApiHttp = require('./lib/miraiApiHttp');
+const messageHelper = require('./lib/messageHelper');
 
 // 账号密码
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 // 全局事件
 global.appEvent = new EventEmitter();
 
-// 扩展一下ws的send方法
-WebSocket.prototype.sendMsg = function (recvObj, message) {
-    this.send(JSON.stringify({
-        action: 'send_msg',
-        params: {
-            message_type: recvType.convert(recvObj.type),
-            user_id: recvObj.qq,
-            group_id: recvObj.group,
-            message: message
-        }
-    }));
-}
+// 注册一下send方法
+global.sendMsg = (recvObj, message) => miraiApiHttp.send(sessionKey, recvObj, message);
+global.sendText = (recvObj, text) => miraiApiHttp.send(sessionKey, recvObj, [{
+    type: 'Plain',
+    text
+}]);
+global.sendImage = (recvObj, filePath) => miraiApiHttp.send(sessionKey, recvObj, [{
+    type: 'Image',
+    path: filePath
+}]);
+global.sendImageUrl = (recvObj, url) => miraiApiHttp.send(sessionKey, recvObj, [{
+    type: 'Image',
+    url
+}]);
+global.sendVoice = (recvObj, filePath) => miraiApiHttp.send(sessionKey, recvObj, [{
+    type: 'Voice',
+    path: filePath
+}]);
 
-function connet() {
+// 连接mirai-api-http
+let sessionKey;
+
+async function connect() {
+    // 释放上一次未断开的会话
+    if (!_.isEmpty(sessionKey)) {
+        await miraiApiHttp.release(sessionKey);
+    }
+    // 获得版本号
+    console.log('mirai-api-http version:', (await miraiApiHttp.about()).version);
+    // 获得会话
+    sessionKey = await miraiApiHttp.auth();
+    await miraiApiHttp.verify(sessionKey);
+    // 开始连接ws
     if (client) {
         client.off('open', onOpen);
         client.off('message', onMessage);
@@ -34,7 +55,7 @@ function connet() {
         client.off('close', onClose);
         client.off('error', onError);
     }
-    client = new WebSocket(`ws://${secret.wsHost}:${secret.wsPort}${secret.wsPath}`);
+    client = new WebSocket(`ws://${secret.MiraiApiHttpHost}:${secret.MiraiApiHttpPort}/all?sessionKey=${sessionKey}`);
     client.on('open', onOpen);
     client.on('message', onMessage);
     client.on('pong', onPong);
@@ -43,11 +64,11 @@ function connet() {
 }
 
 let client;
-connet();
+connect();
 
 // 心跳
 const heartBeat = setInterval(() => {
-    if (client.readyState == WebSocket.OPEN) {
+    if (client && client.readyState == WebSocket.OPEN) {
         client.ping();
     }
 }, 10000);
@@ -90,21 +111,23 @@ async function onMessage(data) {
     if (_.isEmpty(recvObj)) return;
 
     // 判断是否为qq消息
-    if (recvObj.post_type != 'message') {
+    if (!(recvObj.type == 'FriendMessage' ||
+            recvObj.type == 'GroupMessage' ||
+            recvObj.type == 'TempMessage')) {
         console.log('=>', recvObj);
         return;
     }
 
     // 重新定义为通用消息对象
     recvObj = {
-        type: recvType.convert(recvObj.message_type, recvObj.sub_type) || 0,
-        qq: recvObj.user_id || 0,
-        group: recvObj.group_id || 0,
-        content: recvObj.message || ''
+        type: recvType.convert(recvObj.type),
+        qq: recvObj.sender.id || 0,
+        group: (recvObj.sender.group && recvObj.sender.group.id) || 0,
+        message: recvObj.messageChain || ''
     }
 
     // 打印消息内容
-    console.log('群:', recvObj.group, 'qq:', recvObj.qq, recvObj.content);
+    console.log('群:', recvObj.group, 'qq:', recvObj.qq, messageHelper.flat(recvObj.message));
 
     // 系统消息
     if (recvObj.qq == '10000') return;
@@ -128,10 +151,7 @@ async function onMessage(data) {
         }
     }
 
-    if (recvObj.type == recvType.friend ||
-        recvObj.type == recvType.groupNonFriend ||
-        recvObj.type == recvType.discussNonFriend ||
-        recvObj.type == recvType.nonFriend) {
+    if (recvObj.type != recvType.GroupMessage) {
         await protocolEntry(recvObj, client);
     }
     // 在群里需要先被at了
@@ -210,8 +230,8 @@ const pendingTimer = setInterval(() => {
 
 const reconnectTimer = setInterval(() => {
     // 断线重连
-    if (client.readyState == WebSocket.CLOSED) {
+    if (client && client.readyState == WebSocket.CLOSED) {
         console.log('reconnect...');
-        connet();
+        connect();
     }
 }, 1000);

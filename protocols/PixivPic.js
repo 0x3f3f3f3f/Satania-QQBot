@@ -494,13 +494,13 @@ module.exports = async function (recvObj, client) {
             }
             const key = base64url.encode(Buffer.from(account, 'utf-8').toString('base64'));
             client.sendMsg(recvObj,
-                '请登录：' + `[QQ:url=${encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)}]`
+                '请登录：' + encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
             );
         } else {
             client.sendMsg(recvObj, '欧尼酱~请按下图方法与我私聊获得链接~\r\n' +
-                `[QQ:pic=${secret.emoticonsPath}${path.sep}user_tags_help.jpg]\r\n` +
+                `[CQ:image,file=${secret.emoticonsPath}${path.sep}user_tags_help.jpg]\r\n` +
                 '规则预览：\r\n' +
-                `[QQ:url=${encodeURI(`${secret.publicDomainName}/user-tags/edit.html`)}]`
+                encodeURI(`${secret.publicDomainName}/user-tags/edit.html`)
             );
         }
         return true;
@@ -672,8 +672,8 @@ async function PixivPic(recvObj, client, tags, opt) {
             }
             userList[recvObj.qq].count--;
         }
-        client.sendMsg(recvObj, `[QQ:pic=${illustPath}]`);
+        client.sendMsg(recvObj, `[CQ:image,file=${illustPath}]`);
     } else {
-        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+        client.sendMsg(recvObj, `[CQ:image,file=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
     }
 }

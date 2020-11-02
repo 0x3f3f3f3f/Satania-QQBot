@@ -16,7 +16,7 @@ module.exports = function (recvObj, client) {
         if (Math.random() > 0.5) {
             sendVoice(recvObj, client, '藕妮酱~想我了吗？');
         } else {
-            client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+            client.sendMsg(recvObj, `[CQ:image,file=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
         }
         return;
     }
@@ -28,8 +28,14 @@ module.exports = function (recvObj, client) {
             let msg = localRules[i].msgList[index];
             msg = msg.replace('emoticons', secret.emoticonsPath);
             msg = msg.replace(/\//g, path.sep);
-            if (/QQ\:(pic|voice)/.test(msg)) {
+            if (/CQ\:image/.test(msg)) {
                 client.sendMsg(recvObj, msg);
+            } else if (/CQ\:record/.test(msg)) {
+                if (secret.EnableVoice) {
+                    client.sendMsg(recvObj, msg);
+                } else {
+                    client.sendMsg(recvObj, '未开启语音功能哦~');
+                }
             } else {
                 sendVoice(recvObj, client, msg);
             }
@@ -87,7 +93,7 @@ async function AIQQBot(inputText, recvObj, client) {
     }
 
     if (!botObj) {
-        client.sendMsg(recvObj, `[QQ:pic=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
+        client.sendMsg(recvObj, `[CQ:image,file=${secret.emoticonsPath}${path.sep}satania_cry.gif]`);
         return;
     }
 
@@ -114,7 +120,7 @@ async function sendVoice(recvObj, client, text) {
     if (tts && tts.data) {
         voicePath = path.join(secret.tempPath, 'voice', 'aipSpeech_' + uuid() + '.mp3');
         fs.writeFileSync(voicePath, tts.data);
-        client.sendMsg(recvObj, `[QQ:voice=${voicePath}]`);
+        client.sendMsg(recvObj, `[CQ:record,file=${voicePath}]`);
     } else {
         client.sendMsg(recvObj, text);
     }

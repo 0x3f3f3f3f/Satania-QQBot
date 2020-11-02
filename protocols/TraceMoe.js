@@ -1,9 +1,9 @@
 const request = require('request');
 const getFirstImageInfo = require('../lib/getFirstImageInfo');
 
-module.exports = function (recvObj, client, isPending = false) {
+module.exports = async function (recvObj, client, isPending = false) {
     if (isPending) {
-        const imgInfo = getFirstImageInfo(recvObj.content);
+        const imgInfo = await getFirstImageInfo(recvObj.content);
         if (!imgInfo) {
             client.sendMsg(recvObj, '欧尼酱搜图的话请至少要一张图哦~');
         } else {
@@ -13,7 +13,7 @@ module.exports = function (recvObj, client, isPending = false) {
         return;
     }
     if (/(搜|查|找).*?(番|动画|动漫)|(番|动画|动漫).*?(搜|查|找)/.test(recvObj.content)) {
-        const imgInfo = getFirstImageInfo(recvObj.content);
+        const imgInfo = await getFirstImageInfo(recvObj.content);
         if (!imgInfo) {
             client.sendMsg(recvObj, '收到！接下来请单独发一张图片给我搜索~');
             appEvent.emit('TraceMoe_pending', recvObj);
@@ -64,7 +64,7 @@ async function TraceMoe(imgInfo, recvObj, client) {
         return;
     }
 
-    client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]` +
+    client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]` +
         ' 欧尼酱是不是你想要的内个~\r\n' +
         (result.tracemoeObj.title_native ? `原名：${result.tracemoeObj.title_native}\r\n` : '') +
         (result.tracemoeObj.title_chinese ? `中文名：${result.tracemoeObj.title_chinese}\r\n` : '') +
@@ -74,6 +74,6 @@ async function TraceMoe(imgInfo, recvObj, client) {
         (parseInt(result.tracemoeObj.at / 3600) == 0 ? '' : (parseInt(result.tracemoeObj.at / 3600) + '时')) +
         (parseInt(result.tracemoeObj.at % 3600 / 60) == 0 ? '' : (parseInt(result.tracemoeObj.at % 3600 / 60) + '分')) +
         (parseInt(result.tracemoeObj.at % 60) == 0 ? '' : (parseInt(result.tracemoeObj.at % 60) + '秒')) +
-        (result.imageUrl ? `\r\n[QQ:pic=${result.imageUrl}]` : '')
+        (result.imageUrl ? `\r\n[CQ:image,file=${result.imageUrl}]` : '')
     );
 }

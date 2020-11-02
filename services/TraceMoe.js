@@ -2,7 +2,6 @@ const request = require('request');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
-sharp.cache(false);
 const _ = require('lodash');
 const uuid = require('uuid').v4;
 const gifFrames = require('gif-frames');
@@ -86,8 +85,7 @@ module.exports = async function (req, res) {
             let imagePath = null;
             if (!err && _.isBuffer(body)) {
                 imagePath = path.join(secret.imagePath, 'tracemoe_' + uuid() + '.jpg');
-                fs.writeFileSync(imagePath, body);
-                const sourceImg = sharp(imagePath);
+                const sourceImg = sharp(body);
                 const sourceImgMetadata = await sourceImg.metadata();
                 const waterMarkImg = sharp('watermark.png');
                 const waterMarkImgMetadata = await waterMarkImg.metadata();

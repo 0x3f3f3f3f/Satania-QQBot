@@ -1,6 +1,10 @@
 # 萨塔妮娅 Project 3.0
 QQ机器人
 
+2020.11更新兼容[CQHTTP Mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai)~~因为二次元浓度过高~~
+
+已知问题：多次尝试最新版本的CQHTTP Mirai语音发送没有成功
+
 ## 包含功能：
 
 * 色图机器人
@@ -159,8 +163,10 @@ rule: block
 * user_tags —— 标签自助系统的用户标签信息保存在此表。应用自动管理，无需手动编辑
 
 ## 库与框架
-* [QQLight](https://www.52chat.cc/) —— QQ宿主
-* [QQLight WebSocket插件](https://github.com/Chocolatl/qqlight-websocket)
+* ~~[QQLight](https://www.52chat.cc/) —— QQ宿主~~（已弃用）
+* ~~[QQLight WebSocket插件](https://github.com/Chocolatl/qqlight-websocket)~~（已弃用）
+* [Mirai](https://github.com/mamoe/mirai) —— QQ宿主
+* [CQHTTP Mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai) —— 兼容酷Q HTTP API
 * [Knex.js](http://knexjs.org/) —— ORM框架
 * [Express](https://expressjs.com/) —— Web服务框架
 * [Puppeteer](https://github.com/puppeteer/puppeteer) —— 无头Chrome Node.js API
@@ -172,6 +178,7 @@ rule: block
 * [SauceNao](https://saucenao.com/) —— 以图搜图
 * [trace.moe](https://trace.moe/) —— 以图搜番
 * [智能闲聊](https://ai.qq.com/product/nlpchat.shtml) —— 腾讯AI开放平台
+* [语言合成](https://ai.baidu.com/tech/speech/tts) —— 百度AI开放平台
 
 ## 特别感谢
 * <a href="https://github.com/KumoKyaku"><img src="https://avatars1.githubusercontent.com/u/15962980?&v=4" width="32"> 云却</a>

@@ -57,5 +57,5 @@ async function EvaluateCode(code, recvObj, client) {
         return;
     }
 
-    client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]\r\n` + result.output);
+    client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]\r\n` + result.output);
 }

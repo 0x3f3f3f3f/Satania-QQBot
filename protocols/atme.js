@@ -5,8 +5,8 @@ module.exports = function (recvObj) {
     if (!_.isArray(arr)) return false;
 
     for (let i = 0; i < arr.length; i++) {
-        const QQ = arr[i].replace(/\[|\]/g, '').split('=');
-        if (QQ[0] == 'QQ:at' && QQ[1] == secret.targetQQ) {
+        const CQ = arr[i].replace(/\[|\]/g, '').split(',');
+        if (CQ[0] == 'CQ:at' && CQ[1] == `qq=${secret.targetQQ}`) {
             return true;
         }
     }

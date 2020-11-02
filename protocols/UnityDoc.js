@@ -73,8 +73,8 @@ async function UnityDoc(type, recvObj, client) {
     for (let i = 0; i < result.results.length; i++) {
         const res = result.results[i];
         resultText += (resultText == '' ? '' : '\r\n') + '\r\n' +
-            `[QQ:url=${DocUrl[type]+res.url}]\r\n${res.title}: ${infoText[i]}`
+            `${DocUrl[type]+res.url}\r\n${res.title}: ${infoText[i]}`
     }
 
-    client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]\r\n` + resultText);
+    client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]\r\n` + resultText);
 }

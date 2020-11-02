@@ -1,8 +1,7 @@
-const pixivImg = require("pixiv-img");
+const pixivImg = require('../lib/getPixivImage');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
-sharp.cache(false);
 const uuid = require('uuid').v4;
 const childProcess = require('child_process');
 
@@ -29,8 +28,7 @@ module.exports = async function (req, res) {
             try {
                 // const illustPath = path.join(secret.imagePath, 'illust_' + path.basename(imgUrl));
                 const illustPath = path.join(secret.imagePath, 'illust_' + uuid() + '.jpg');
-                await pixivImg(imgUrl, illustPath);
-                const sourceImg = sharp(illustPath);
+                const sourceImg = sharp(await pixivImg(imgUrl));
                 const sourceImgMetadata = await sourceImg.metadata();
                 const waterMarkImg = sharp('watermark.png');
                 const waterMarkImgMetadata = await waterMarkImg.metadata();

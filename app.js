@@ -1,9 +1,11 @@
+// 机器人主入口
+// 2020.11更换宿主mirai，协议与酷q http api一致
+
 const WebSocket = require('ws');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
-const uuid = require('uuid').v4;
 const recvType = require('./lib/receiveType');
 
 // 账号密码
@@ -14,13 +16,12 @@ global.appEvent = new EventEmitter();
 // 扩展一下ws的send方法
 WebSocket.prototype.sendMsg = function (recvObj, message) {
     this.send(JSON.stringify({
-        id: uuid(),
-        method: 'sendMessage',
+        action: 'send_msg',
         params: {
-            type: recvObj.type,
-            group: recvObj.group,
-            qq: recvObj.qq,
-            content: message
+            message_type: recvType.convert(recvObj.type),
+            user_id: recvObj.qq,
+            group_id: recvObj.group,
+            message: message
         }
     }));
 }
@@ -65,8 +66,8 @@ require('./Pixiv_web_api')();
 async function protocolEntry(recvObj, client) {
     if (!protocols.EvaluateCode(recvObj, client) &&
         !protocols.Dice(recvObj, client) &&
-        !protocols.SauceNAO(recvObj, client) &&
-        !protocols.TraceMoe(recvObj, client) &&
+        !await protocols.SauceNAO(recvObj, client) &&
+        !await protocols.TraceMoe(recvObj, client) &&
         !protocols.UnityDoc(recvObj, client) &&
         !await protocols.PixivPic(recvObj, client)) {
         protocols.AIQQBot(recvObj, client);
@@ -89,17 +90,17 @@ async function onMessage(data) {
     if (_.isEmpty(recvObj)) return;
 
     // 判断是否为qq消息
-    if (recvObj.event != 'message') {
+    if (recvObj.post_type != 'message') {
         console.log('=>', recvObj);
         return;
     }
 
     // 重新定义为通用消息对象
     recvObj = {
-        type: recvObj.params.type || 0,
-        qq: recvObj.params.qq || '',
-        group: recvObj.params.group || '',
-        content: recvObj.params.content || ''
+        type: recvType.convert(recvObj.message_type, recvObj.sub_type) || 0,
+        qq: recvObj.user_id || 0,
+        group: recvObj.group_id || 0,
+        content: recvObj.message || ''
     }
 
     // 打印消息内容

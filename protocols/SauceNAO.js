@@ -1,9 +1,9 @@
 const request = require('request');
 const getFirstImageInfo = require('../lib/getFirstImageInfo');
 
-module.exports = function (recvObj, client, isPending = false) {
+module.exports = async function (recvObj, client, isPending = false) {
     if (isPending) {
-        const imgInfo = getFirstImageInfo(recvObj.content);
+        const imgInfo = await getFirstImageInfo(recvObj.content);
         if (!imgInfo) {
             client.sendMsg(recvObj, '欧尼酱搜图的话请至少要一张图哦~');
         } else {
@@ -13,7 +13,8 @@ module.exports = function (recvObj, client, isPending = false) {
         return;
     }
     if (/((搜|查|找).*?图)|(图.*?(搜|查|找))/.test(recvObj.content)) {
-        const imgInfo = getFirstImageInfo(recvObj.content);
+        const imgInfo = await getFirstImageInfo(recvObj.content);
+        console.log(imgInfo);
         if (!imgInfo) {
             client.sendMsg(recvObj, '收到！接下来请单独发一张图片给我搜索~');
             appEvent.emit('SauceNao_pending', recvObj);
@@ -59,7 +60,7 @@ async function SauceNAO(url, recvObj, client) {
         return;
     }
 
-    client.sendMsg(recvObj, `[QQ:at=${recvObj.qq}]` +
+    client.sendMsg(recvObj, `[CQ:at,qq=${recvObj.qq}]` +
         ' 欧尼酱是不是你想要的内个~\r\n' +
         `相似度：${result.saucenaoObj.header.similarity}%\r\n` +
         ((result.saucenaoObj.data.title ||
@@ -74,7 +75,7 @@ async function SauceNAO(url, recvObj, client) {
                     result.saucenaoObj.data.member_name||
                     result.saucenaoObj.data.author_name||
                     result.saucenaoObj.data.creator}\r\n` : '') +
-        (result.imageUrl ? `[QQ:pic=${result.imageUrl}]` : '') +
+        (result.imageUrl ? `[CQ:image,file=${result.imageUrl}]` : '') +
         (result.saucenaoObj.data.ext_urls ? ('\r\n' + result.saucenaoObj.data.ext_urls[0]) : '')
     );
 }

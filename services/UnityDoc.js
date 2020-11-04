@@ -45,18 +45,19 @@ module.exports = async function (req, res) {
     }
 
     // 含有非英语，需要翻译
-    if (/[^\u0000-\u007F]/.test(searchText)) {
-        let translate = await browser.newPage();
-        try {
-            translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${encodeURIComponent(searchText)}`);
-            await translate.waitForSelector('.tlid-translation.translation');
-            searchText = await translate.evaluate(() => {
-                window.stop();
-                return document.querySelector('.tlid-translation.translation').textContent;
-            });
-        } catch {}
-        await translate.close();
-    }
+    // 谷歌翻译上架了反爬虫，暂时先关闭翻译
+    // if (/[^\u0000-\u007F]/.test(searchText)) {
+    //     let translate = await browser.newPage();
+    //     try {
+    //         translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${encodeURIComponent(searchText)}`);
+    //         await translate.waitForSelector('.tlid-translation.translation');
+    //         searchText = await translate.evaluate(() => {
+    //             window.stop();
+    //             return document.querySelector('.tlid-translation.translation').textContent;
+    //         });
+    //     } catch {}
+    //     await translate.close();
+    // }
 
     console.log('Unity Documentation search:', searchText);
 
@@ -114,27 +115,27 @@ module.exports = async function (req, res) {
             infoText += (infoText == '' ? '' : '\n') + result.info;
         }
 
-        translate = await browser.newPage();
-        try {
-            translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=${encodeURIComponent(infoText)}`);
-            await translate.waitForFunction(() => {
-                return document.querySelectorAll('.tlid-translation.translation span').length > 0;
-            });
-            infoText = await translate.evaluate(() => {
-                window.stop();
-                let infoText = '';
-                for (const span of document.querySelectorAll('.tlid-translation.translation span')) {
-                    const prevElement = span.previousElementSibling;
-                    if (prevElement && prevElement.tagName == 'BR') {
-                        infoText += (infoText == '' ? '' : '\n') + span.textContent;
-                    } else {
-                        infoText += span.textContent;
-                    }
-                }
-                return infoText;
-            });
-        } catch {}
-        await translate.close();
+        // translate = await browser.newPage();
+        // try {
+        //     translate.goto(`https://translate.google.com/#view=home&op=translate&sl=auto&tl=zh-CN&text=${encodeURIComponent(infoText)}`);
+        //     await translate.waitForFunction(() => {
+        //         return document.querySelectorAll('.tlid-translation.translation span').length > 0;
+        //     });
+        //     infoText = await translate.evaluate(() => {
+        //         window.stop();
+        //         let infoText = '';
+        //         for (const span of document.querySelectorAll('.tlid-translation.translation span')) {
+        //             const prevElement = span.previousElementSibling;
+        //             if (prevElement && prevElement.tagName == 'BR') {
+        //                 infoText += (infoText == '' ? '' : '\n') + span.textContent;
+        //             } else {
+        //                 infoText += span.textContent;
+        //             }
+        //         }
+        //         return infoText;
+        //     });
+        // } catch {}
+        // await translate.close();
 
         res.json({
             results,

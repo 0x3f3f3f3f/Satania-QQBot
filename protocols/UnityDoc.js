@@ -77,16 +77,18 @@ async function UnityDoc(type, recvObj, client, inputText) {
     const infoText = result.infoText.split('\n');
     for (let i = 0; i < result.results.length; i++) {
         const res = result.results[i];
-        if (i > 0) {
+        if (i == 0) {
             message.push({
                 type: 'Plain',
                 text: '\n'
             });
+        } else {
+            message.push({
+                type: 'Plain',
+                text: '\n\n'
+            });
         }
         message.push({
-            type: 'Plain',
-            text: '\n'
-        }, {
             type: 'Plain',
             text: DocUrl[type] + res.url
         }, {

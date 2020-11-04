@@ -11,7 +11,7 @@ const blockNamespace = [
     "System.Runtime"
 ];
 
-module.exports = function (recvObj, client) {
+module.exports = function (recvObj) {
     const inputText = messageHelper.getText(recvObj.message).trim();
     if (/(运行|执行|跑)c#|c#(运行|执行)/i.test(inputText)) {
         const code = inputText.replace(/(运行|执行|跑)c#|c#(运行|执行)/ig, '')
@@ -27,14 +27,14 @@ module.exports = function (recvObj, client) {
             return true;
         }
 
-        EvaluateCode(code, recvObj, client);
+        EvaluateCode(code, recvObj);
 
         return true;
     }
     return false;
 }
 
-async function EvaluateCode(code, recvObj, client) {
+async function EvaluateCode(code, recvObj) {
     let result;
     try {
         result = await new Promise((resolve, reject) => {

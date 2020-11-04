@@ -2,14 +2,14 @@ const request = require('request');
 const getImageInfo = require('../lib/getImageInfo');
 const messageHelper = require('../lib/messageHelper');
 
-module.exports = async function (recvObj, client, isPending = false) {
+module.exports = async function (recvObj, isPending = false) {
     const imageUrl = messageHelper.getImage(recvObj.message);
     if (isPending) {
         const imgInfo = await getImageInfo(imageUrl);
         if (!imgInfo) {
             sendText(recvObj, '欧尼酱搜图的话请至少要一张图哦~');
         } else {
-            TraceMoe(imgInfo, recvObj, client);
+            TraceMoe(imgInfo, recvObj);
         }
         appEvent.emit('TraceMoe_done', recvObj);
         return;
@@ -21,14 +21,14 @@ module.exports = async function (recvObj, client, isPending = false) {
             sendText(recvObj, '收到！接下来请单独发一张图片给我搜索~');
             appEvent.emit('TraceMoe_pending', recvObj);
         } else {
-            TraceMoe(imgInfo, recvObj, client);
+            TraceMoe(imgInfo, recvObj);
         }
         return true;
     }
     return false;
 }
 
-async function TraceMoe(imgInfo, recvObj, client) {
+async function TraceMoe(imgInfo, recvObj) {
     if (imgInfo.width / imgInfo.height < 1.2) {
         sendText(recvObj, '欧尼酱~你是不是又在拿表情包逗我？');
         return;

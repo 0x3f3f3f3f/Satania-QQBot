@@ -11,11 +11,11 @@ const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.j
 // const AipSpeechClient = require('baidu-aip-sdk').speech;
 // const speechClient = new AipSpeechClient(secret.Baidu_APP_ID, secret.Baidu_API_KEY, secret.Baidu_SECRET_KEY);
 
-module.exports = function (recvObj, client) {
+module.exports = function (recvObj) {
     const inputText = messageHelper.getText(recvObj.message).trim();
     if (_.isEmpty(inputText)) {
         if (Math.random() > 0.5) {
-            // sendVoice(recvObj, client, '藕妮酱~想我了吗？');
+            // sendTTS(recvObj, '藕妮酱~想我了吗？');
             sendText(recvObj, '藕妮酱~想我了吗？');
         } else {
             sendImage(recvObj, `${secret.emoticonsPath}${path.sep}satania_cry.gif`);
@@ -39,17 +39,17 @@ module.exports = function (recvObj, client) {
                     sendText(recvObj, '未开启语音功能哦~');
                 }
             } else {
-                // sendTTS(recvObj, client, msg);
+                // sendTTS(recvObj, msg);
                 sendText(recvObj, msg);
             }
             return;
         }
     }
 
-    AIQQBot(inputText, recvObj, client);
+    AIQQBot(inputText, recvObj);
 }
 
-async function AIQQBot(inputText, recvObj, client) {
+async function AIQQBot(inputText, recvObj) {
     const params = {
         app_id: secret.AI_QQ_APPID,
         time_stamp: parseInt(Date.now() / 1000),
@@ -103,12 +103,12 @@ async function AIQQBot(inputText, recvObj, client) {
     // if (botObj.data.answer.length > 50) {
     //     sendText(recvObj, botObj.data.answer);
     // } else {
-    //     sendTTS(recvObj, client, botObj.data.answer);
+    //     sendTTS(recvObj, botObj.data.answer);
     // }
     sendText(recvObj, botObj.data.answer);
 }
 
-async function sendTTS(recvObj, client, text) {
+async function sendTTS(recvObj, text) {
     let tts;
     if (secret.EnableVoice) {
         try {

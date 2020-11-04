@@ -438,7 +438,7 @@ async function downloadIllust(illust, recvObj, opt) {
     }
 }
 
-module.exports = async function (recvObj, client) {
+module.exports = async function (recvObj) {
     const inputText = messageHelper.getText(recvObj.message).trim();
 
     // 读取群、qq规则
@@ -517,7 +517,7 @@ module.exports = async function (recvObj, client) {
     }
     // 重发
     if (/(重|重新|再)发/.test(inputText)) {
-        PixivPic(recvObj, client, null, {
+        PixivPic(recvObj, null, {
             resend: true,
             num: num || 1
         });
@@ -550,7 +550,7 @@ module.exports = async function (recvObj, client) {
                 sendText(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
                 return true;
             }
-            PixivPic(recvObj, client, userTag.rawTags.toLowerCase().split(','), {
+            PixivPic(recvObj, userTag.rawTags.toLowerCase().split(','), {
                 autoBurst,
                 burstNum,
                 num,
@@ -566,7 +566,7 @@ module.exports = async function (recvObj, client) {
             sendText(recvObj, '您的色图功能已被禁用，如有疑问请联系QQ：23458057');
             return true;
         }
-        PixivPic(recvObj, client, null, {
+        PixivPic(recvObj, null, {
             autoBurst,
             burstNum,
             num,
@@ -578,12 +578,12 @@ module.exports = async function (recvObj, client) {
     return false;
 }
 
-async function PixivPic(recvObj, client, tags, opt) {
+async function PixivPic(recvObj, tags, opt) {
     // N连抽
     if (opt.autoBurst) {
         opt.autoBurst = false;
         for (let i = 0; i < opt.burstNum; i++) {
-            await PixivPic(recvObj, client, tags, opt);
+            await PixivPic(recvObj, tags, opt);
         }
         return;
     }

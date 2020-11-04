@@ -1,5 +1,13 @@
-module.exports = function (recvObj, client) {
-    const headlessMsg = recvObj.message.shift();
+module.exports = function (recvObj) {
+    const headlessMsg = [];
+    headlessMsg.push(...recvObj.message);
+    headlessMsg.shift();
+    // 删除图片的url，因为url字段每次会不同
+    for (const msg of headlessMsg) {
+        if (msg.type == 'Image') {
+            delete msg.url;
+        }
+    }
     const str = JSON.stringify(headlessMsg);
     if (!repeaterMode[recvObj.group] &&
         repeaterDic[recvObj.group] == str) {

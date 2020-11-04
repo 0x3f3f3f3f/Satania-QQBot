@@ -11,7 +11,7 @@ const DocUrl = {
     [1]: 'https://docs.unity3d.com/Manual/'
 }
 
-module.exports = function (recvObj, client) {
+module.exports = function (recvObj) {
     let type = null;
     const inputText = messageHelper.getText(recvObj.message).trim();
     if (/api/i.test(inputText)) {
@@ -20,13 +20,13 @@ module.exports = function (recvObj, client) {
         type = DocType.manual;
     }
     if (type != null) {
-        UnityDoc(type, recvObj, client, inputText);
+        UnityDoc(type, recvObj, inputText);
         return true
     }
     return false;
 }
 
-async function UnityDoc(type, recvObj, client, inputText) {
+async function UnityDoc(type, recvObj, inputText) {
     let searchText = inputText.replace(/api|手册/g, '').trim();
     if (_.isEmpty(searchText)) {
         sendText(recvObj, '你居然没写关键词？');

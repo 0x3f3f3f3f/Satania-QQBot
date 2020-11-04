@@ -2,14 +2,14 @@ const request = require('request');
 const getImageInfo = require('../lib/getImageInfo');
 const messageHelper = require('../lib/messageHelper');
 
-module.exports = async function (recvObj, client, isPending = false) {
+module.exports = async function (recvObj, isPending = false) {
     const imageUrl = messageHelper.getImage(recvObj.message);
     if (isPending) {
         const imgInfo = await getImageInfo(imageUrl);
         if (!imgInfo) {
             sendText(recvObj, '欧尼酱搜图的话请至少要一张图哦~');
         } else {
-            SauceNAO(imgInfo.url, recvObj, client);
+            SauceNAO(imgInfo.url, recvObj);
         }
         appEvent.emit('SauceNao_done', recvObj);
         return;
@@ -21,14 +21,14 @@ module.exports = async function (recvObj, client, isPending = false) {
             sendText(recvObj, '收到！接下来请单独发一张图片给我搜索~');
             appEvent.emit('SauceNao_pending', recvObj);
         } else {
-            SauceNAO(imgInfo.url, recvObj, client);
+            SauceNAO(imgInfo.url, recvObj);
         }
         return true;
     }
     return false;
 }
 
-async function SauceNAO(url, recvObj, client) {
+async function SauceNAO(url, recvObj) {
     sendText(recvObj, '搜索中~');
 
     let result;

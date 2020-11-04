@@ -84,14 +84,14 @@ for (const protocolName of fs.readdirSync('./protocols')) {
 require('./Pixiv_web_api')();
 
 // 协议入口
-async function protocolEntry(recvObj, client) {
-    if (!protocols.EvaluateCode(recvObj, client) &&
-        !protocols.Dice(recvObj, client) &&
-        !await protocols.SauceNAO(recvObj, client) &&
-        !await protocols.TraceMoe(recvObj, client) &&
-        !protocols.UnityDoc(recvObj, client) &&
-        !await protocols.PixivPic(recvObj, client)) {
-        protocols.AIQQBot(recvObj, client);
+async function protocolEntry(recvObj) {
+    if (!protocols.EvaluateCode(recvObj) &&
+        !protocols.Dice(recvObj) &&
+        !await protocols.SauceNAO(recvObj) &&
+        !await protocols.TraceMoe(recvObj) &&
+        !protocols.UnityDoc(recvObj) &&
+        !await protocols.PixivPic(recvObj)) {
+        protocols.AIQQBot(recvObj);
     }
 }
 
@@ -133,33 +133,33 @@ async function onMessage(data) {
     if (recvObj.qq == '10000') return;
 
     // 反哔哩哔哩小程序
-    if (protocols.AntiBiliMiniApp(recvObj, client)) return;
+    if (protocols.AntiBiliMiniApp(recvObj)) return;
 
     // 分步搜图
     for (const pending of SauceNaoPendingList) {
         if (recvObj.group == pending.recvObj.group &&
             recvObj.qq == pending.recvObj.qq) {
-            protocols.SauceNAO(recvObj, client, true);
+            protocols.SauceNAO(recvObj, true);
             return;
         }
     }
     for (const pending of TraceMoePendingList) {
         if (recvObj.group == pending.recvObj.group &&
             recvObj.qq == pending.recvObj.qq) {
-            protocols.TraceMoe(recvObj, client, true);
+            protocols.TraceMoe(recvObj, true);
             return;
         }
     }
 
     if (recvObj.type != recvType.GroupMessage) {
-        await protocolEntry(recvObj, client);
+        await protocolEntry(recvObj);
     }
     // 在群里需要先被at了
     else if (protocols.atme(recvObj)) {
-        await protocolEntry(recvObj, client);
+        await protocolEntry(recvObj);
     } else {
         // 复读机
-        protocols.repeater(recvObj, client);
+        protocols.repeater(recvObj);
     }
 }
 

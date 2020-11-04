@@ -2,7 +2,7 @@ const nzhcn = require('nzh/cn');
 const path = require('path');
 const messageHelper = require('../lib/messageHelper');
 
-module.exports = function (recvObj, client) {
+module.exports = function (recvObj) {
     const inputText = messageHelper.getText(recvObj.message).trim();
     if (/roll/i.test(inputText)) {
         const num = inputText.match(/\d+/g);

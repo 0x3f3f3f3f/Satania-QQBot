@@ -64,7 +64,17 @@ async function connect() {
 }
 
 let client;
-connect();
+// 延迟启动，默认10秒，也可以手动
+let delayTime = 10;
+if (!_.isUndefined(process.argv[2])) {
+    const time = parseInt(process.argv[2]);
+    if (_.isInteger(time)) delayTime = time;
+}
+if (delayTime > 0) {
+    setTimeout(connect, delayTime * 1000);
+} else {
+    connect();
+}
 
 // 心跳
 const heartBeat = setInterval(() => {

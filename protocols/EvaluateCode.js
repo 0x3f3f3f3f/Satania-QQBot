@@ -44,7 +44,7 @@ async function EvaluateCode(code, recvObj) {
                 }
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 resolve(body);

@@ -5,7 +5,9 @@ const WebSocket = require('ws');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const EventEmitter = require('events');
+const {
+    EventEmitter
+} = require('events');
 const recvType = require('./lib/receiveType');
 const miraiApiHttp = require('./lib/miraiApiHttp');
 const messageHelper = require('./lib/messageHelper');

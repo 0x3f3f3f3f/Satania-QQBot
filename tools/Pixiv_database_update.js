@@ -1,19 +1,21 @@
 const fs = require('fs');
-const PixivAppApi = require('pixiv-app-api');
 const _ = require('lodash');
 require('colors');
-const EventEmitter = require('events');
+const {
+    EventEmitter
+} = require('events');
 
-const secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
+global.secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
+
+const {
+    PixivAppApi,
+    errorCode
+} = require('../lib/PixivAppApi');
 
 const pixivClients = [];
 for (const account of secret.PixivAPIAccounts) {
-    const pixiv = new PixivAppApi(account.userName, account.password, {
-        camelcaseKeys: true
-    });
-    pixiv.rStatus = true;
-    pixiv.rEvent = new EventEmitter();
-    pixivClients.push(pixiv);
+    const pixivClient = new PixivAppApi(account.userName, account.password);
+    pixivClients.push(pixivClient);
 }
 
 let curPixivClient = pixivClients[0];
@@ -35,14 +37,27 @@ const requestEvent = new EventEmitter();
 const index = _.isUndefined(process.argv[2]) ? 0 : parseInt(process.argv[2]) - 1;
 
 (async function () {
-    for (const pixivClient of pixivClients) {
-        await pixivClient.login();
-    }
-    const pixivLoginTimer = setInterval(async () => {
-        for (const pixivClient of pixivClients) {
+    for (let i = pixivClients.length - 1; i >= 0; i--) {
+        const pixivClient = pixivClients[i];
+
+        try {
             await pixivClient.login();
+        } catch (e) {
+            switch (e) {
+                case errorCode.NetError:
+                    i++;
+                    break;
+                case errorCode.LoginFail:
+                    pixivClients.splice(i, 1);
+                    break;
+            }
         }
-    }, 3600000);
+    }
+
+    if (pixivClients.length == 0) {
+        console.log('No account login...'.red.bold);
+        process.exit();
+    }
 
     const illusts = await knex('illusts');
     for (let i = index; i < illusts.length; i++) {
@@ -82,7 +97,6 @@ const index = _.isUndefined(process.argv[2]) ? 0 : parseInt(process.argv[2]) - 1
         }
     });
 
-    clearInterval(pixivLoginTimer);
     process.exit();
 })();
 
@@ -91,64 +105,82 @@ async function getIllust(pixiv, illust, progress) {
 
     let detail;
     try {
-        if (!pixiv.rStatus) throw 'Pixiv client no recovery';
+        if (!pixiv.isReady) throw 'Pixiv client no recovered';
         detail = (await pixiv.illustDetail(illust.id)).illust;
-    } catch (error) {
-        if (error.response && error.response.status == 404) {
+    } catch (e) {
+        if (e == errorCode.NoExist) {
             console.log(`[${progress.index+1}/${progress.length}]`.green, illust.id, 'Illust has been deleted'.red.bold);
             await knex('illusts').where('id', illust.id).delete();
-            requests.splice(progress.i, 1);
+            for (let i = requests.length - 1; i >= 0; i--) {
+                if (requests[i] == progress.i) {
+                    requests.splice(i, 1);
+                    break;
+                }
+            }
             requestEvent.emit('finish');
             return;
-        }
+        } else {
+            pixiv.startRecover();
 
-        if (pixiv.rStatus) {
-            pixiv.rStatus = false;
-            setTimeout(() => {
-                pixiv.rStatus = true;
-                pixiv.rEvent.emit('recovery', pixiv);
-            }, 300000);
-        }
-
-        let accountStatus = '';
-        for (const pixivClient of pixivClients) {
-            if (pixivClient.rStatus) accountStatus += '[' + 'a'.green + ']';
-            else accountStatus += '[' + 'd'.red.bold + ']';
-        }
-        console.log('Network failed'.red.bold, accountStatus);
-
-        let isFound = false;
-        for (const pixivClient of pixivClients) {
-            if (pixivClient.rStatus) {
-                curPixivClient = pixivClient;
-                isFound = true;
-                break;
+            let accountStatus = '';
+            for (const pixivClient of pixivClients) {
+                if (pixivClient.isReady) accountStatus += '[' + 'a'.green + ']';
+                else accountStatus += '[' + 'd'.red.bold + ']';
             }
-        }
-        if (!isFound) {
-            await new Promise(resolve => {
+
+            switch (e) {
+                case errorCode.NetError:
+                    console.log('Network failed'.red.bold, accountStatus);
+                    break;
+                case errorCode.OffestLimit:
+                    console.log('Offest limit'.red.bold, accountStatus);
+                    break;
+                case errorCode.NoExist:
+                    console.log('No exist'.red.bold, accountStatus);
+                    break;
+                case errorCode.NoNextPage:
+                    console.log('No next page'.red.bold, accountStatus);
+                    break;
+                case errorCode.RateLimit:
+                    console.log('Rate limit'.red.bold, accountStatus);
+                    break;
+                case errorCode.UnknowError:
+                    console.log('Unknow error'.red.bold, accountStatus);
+                    break;
+            }
+
+            let isFound = false;
+            for (const pixivClient of pixivClients) {
+                if (pixivClient.isReady) {
+                    curPixivClient = pixivClient;
+                    isFound = true;
+                    break;
+                }
+            }
+            if (!isFound) {
+                const watchdog = [];
                 for (const pixivClient of pixivClients) {
-                    pixivClient.rEvent.on('recovery', onRecovery);
+                    watchdog.push(pixivClient.recover());
                 }
 
-                function onRecovery(client) {
-                    for (const pixivClient of pixivClients) {
-                        pixivClient.rEvent.off('recovery', onRecovery);
-                    }
-                    curPixivClient = client;
-                    resolve();
+                const _curPC = await Promise.race(watchdog);
+                curPixivClient = _curPC;
+            }
+
+            await curPixivClient.login();
+            for (let i = requests.length - 1; i >= 0; i--) {
+                if (requests[i] == progress.i) {
+                    requests.splice(i, 1);
+                    break;
                 }
-            });
+            }
+            return getIllust(curPixivClient, illust, progress);
         }
-
-        await curPixivClient.login();
-        requests.splice(progress.i, 1);
-        return getIllust(curPixivClient, illust, progress);
     }
 
     let rating = '';
     if (!_.isEmpty(detail)) {
-        switch (detail.xRestrict) {
+        switch (detail.x_restrict) {
             case 0:
                 rating = 'safe';
                 break
@@ -159,7 +191,7 @@ async function getIllust(pixiv, illust, progress) {
                 rating = 'r18g';
                 break;
             default:
-                rating = 'unknow:' + detail.xRestrict;
+                rating = 'unknow:' + detail.x_restrict;
                 break;
         }
     }
@@ -171,20 +203,25 @@ async function getIllust(pixiv, illust, progress) {
 
     await knex('illusts').where('id', illust.id).update({
         title: detail.title,
-        image_url: detail.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
+        image_url: detail.image_urls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
         user_id: detail.user.id,
         rating,
         tags,
-        create_date: detail.createDate,
-        page_count: detail.pageCount,
+        create_date: detail.create_date,
+        page_count: detail.page_count,
         width: detail.width,
         height: detail.height,
-        total_view: detail.totalView,
-        total_bookmarks: detail.totalBookmarks
+        total_view: detail.total_view,
+        total_bookmarks: detail.total_bookmarks
     });
 
     console.log(`[${progress.index+1}/${progress.length}]`.green, illust.id, detail.title, rating.bold);
 
-    requests.splice(progress.i, 1);
+    for (let i = requests.length - 1; i >= 0; i--) {
+        if (requests[i] == progress.i) {
+            requests.splice(i, 1);
+            break;
+        }
+    }
     requestEvent.emit('finish');
 }

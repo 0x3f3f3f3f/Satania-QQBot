@@ -1,5 +1,6 @@
 const express = require('express');
 const _ = require('lodash');
+const encryption = require('./lib/encryption');
 
 // 连接数据库
 const knex = require('knex')({
@@ -96,7 +97,7 @@ app.post('/api/getUserName', async (req, res) => {
 
     let account;
     try {
-        account = Buffer.from(req.body.userKey, 'base64').toString('utf8');
+        account = encryption.XOR(Buffer.from(req.body.userKey, 'base64')).toString('utf8');
     } catch {
         res.json({
             err: '用户密钥错误'
@@ -130,7 +131,7 @@ app.post('/api/login', async (req, res) => {
 
     let account;
     try {
-        account = Buffer.from(req.body.userKey, 'base64').toString('utf8');
+        account = encryption.XOR(Buffer.from(req.body.userKey, 'base64')).toString('utf8');
     } catch {
         res.json({
             err: '用户密钥错误'
@@ -172,7 +173,7 @@ app.post('/api/getUserTags', async (req, res) => {
 
     let account;
     try {
-        account = Buffer.from(req.body.userKey, 'base64').toString('utf8');
+        account = encryption.XOR(Buffer.from(req.body.userKey, 'base64')).toString('utf8');
     } catch {
         // res.json({
         //     err: '用户密钥错误'
@@ -260,7 +261,7 @@ app.post('/api/setUserTag', async (req, res) => {
 
     let account;
     try {
-        account = Buffer.from(req.body.userKey, 'base64').toString('utf8');
+        account = encryption.XOR(Buffer.from(req.body.userKey, 'base64')).toString('utf8');
     } catch {
         res.json({
             err: '用户密钥错误'

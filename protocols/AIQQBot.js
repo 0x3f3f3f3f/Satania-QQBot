@@ -79,7 +79,7 @@ async function AIQQBot(inputText, recvObj) {
                 json: true
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 if (body.ret == 0) {

@@ -40,7 +40,7 @@ async function SauceNAO(url, recvObj) {
                 }
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 resolve(body);

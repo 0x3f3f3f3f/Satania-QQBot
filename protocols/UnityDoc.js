@@ -45,7 +45,7 @@ async function UnityDoc(type, recvObj, inputText) {
                 }
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 resolve(body);

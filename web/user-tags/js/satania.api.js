@@ -1,5 +1,5 @@
 const SataniaAPI = {
-    notFoundUrl = '/',
+    notFoundUrl: '/',
     async _post(url, data) {
         let result = null;
         try {

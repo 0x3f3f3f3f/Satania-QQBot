@@ -1,10 +1,8 @@
 const fs = require('fs');
-const PixivAppApi = require('pixiv-app-api');
 const util = require('util');
 const _ = require('lodash');
 require('colors');
 const moment = require('moment');
-const EventEmitter = require('events');
 
 // 获得参数
 const tagList = _.isUndefined(process.argv[2]) ? null : process.argv[2].split(',');
@@ -17,15 +15,16 @@ const argYears = _.isUndefined(process.argv[4]) ? 10 : parseInt(process.argv[4])
 const argMonths = _.isUndefined(process.argv[5]) ? 0 : parseInt(process.argv[5]);
 const argDays = _.isUndefined(process.argv[6]) ? 0 : parseInt(process.argv[6]);
 
-const secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
+global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
+
+const {
+    PixivAppApi,
+    errorCode
+} = require('./lib/PixivAppApi');
 
 const pixivClients = [];
 for (const account of secret.PixivAPIAccounts) {
-    const pixivClient = new PixivAppApi(account.userName, account.password, {
-        camelcaseKeys: true
-    });
-    pixivClient.rStatus = true;
-    pixivClient.rEvent = new EventEmitter();
+    const pixivClient = new PixivAppApi(account.userName, account.password);
     pixivClients.push(pixivClient);
 }
 
@@ -135,15 +134,28 @@ async function initDatabase() {
     // 恢复作业
     let recoveryWork = (await knex('recovery_work').where('name', argName))[0];
 
-    for (const pixivClient of pixivClients) {
-        await pixivClient.login();
-    }
-    // 长期作业
-    const pixivLoginTimer = setInterval(async () => {
-        for (const pixivClient of pixivClients) {
+    for (let i = pixivClients.length - 1; i >= 0; i--) {
+        const pixivClient = pixivClients[i];
+
+        try {
             await pixivClient.login();
+        } catch (e) {
+            switch (e) {
+                case errorCode.NetError:
+                    i++;
+                    break;
+                case errorCode.LoginFail:
+                    pixivClients.splice(i, 1);
+                    break;
+            }
         }
-    }, 3600000);
+    }
+
+    if (pixivClients.length == 0) {
+        console.log('No account login...'.red.bold);
+        await knex('recovery_work').where('name', argName).delete();
+        process.exit();
+    }
 
     let count = 0;
     let dayCount = 0;
@@ -210,13 +222,14 @@ async function initDatabase() {
 
                 let illusts;
                 try {
-                    illusts = (await curPixivClient.searchIllust(tagList.join(' OR ') + ' -腐 -ホモ -gay -足りない', {
+                    illusts = (await curPixivClient.searchIllust({
+                        word: tagList.join(' OR ') + ' -腐 -ホモ -gay -足りない',
                         sort: isDateDesc ? 'date_desc' : 'date_asc',
-                        startDate: `${year}-${month}-${date}`,
-                        endDate: `${year}-${month}-${date}`
+                        start_date: `${year}-${month}-${date}`,
+                        end_date: `${year}-${month}-${date}`
                     })).illusts;
-                } catch {
-                    await waitPixivClientRecovery(curPixivClient);
+                } catch (e) {
+                    await waitPixivClientRecovered(curPixivClient, e);
 
                     await curPixivClient.login();
                     date++;
@@ -229,31 +242,41 @@ async function initDatabase() {
                     dayCount++
                 }
 
-                while (curPixivClient.hasNext()) {
+                while (curPixivClient.hasNext) {
                     illusts = null;
 
                     try {
                         illusts = (await curPixivClient.next()).illusts;
-                    } catch {
-                        console.log(util.format('Day count:', dayCount).magenta.bold);
-                        if (dayCount > 5000) {
-                            console.error('Exceed the limit'.red.bold);
-                            // 用升序再试一遍，这样单天至少能刷到1w张
-                            if (isDateDesc) {
-                                isDateDesc = false;
-                                date++;
-                                break;
-                            } else {
-                                isDateDesc = true;
-                                break;
+                    } catch (e) {
+                        if (e == errorCode.NetError ||
+                            e == errorCode.RateLimit ||
+                            e == errorCode.UnknowError) {
+                            await waitPixivClientRecovered(curPixivClient, e);
+
+                            await curPixivClient.login();
+
+                            continue;
+                        } else if (e == errorCode.OffestLimit) {
+                            console.log(util.format('Day count:', dayCount).magenta.bold);
+                            if (dayCount >= 5000) {
+                                console.error('Offest limit'.red.bold);
+                                // 用升序再试一遍，这样单天至少能刷到1w张
+                                if (isDateDesc) {
+                                    isDateDesc = false;
+                                    date++;
+                                    break;
+                                } else {
+                                    isDateDesc = true;
+                                    break;
+                                }
                             }
+                        } else {
+                            await waitPixivClientRecovered(curPixivClient, e);
+
+                            await curPixivClient.login();
+                            date++;
+                            break;
                         }
-
-                        await waitPixivClientRecovery(curPixivClient);
-
-                        await curPixivClient.login();
-                        date++;
-                        break;
                     }
 
                     for (const illust of illusts) {
@@ -263,44 +286,61 @@ async function initDatabase() {
                     }
                 }
 
-                async function waitPixivClientRecovery(pClient) {
-                    if (pClient.rStatus) {
-                        pClient.rStatus = false;
-                        setTimeout(() => {
-                            pClient.rStatus = true;
-                            pClient.rEvent.emit('recovery', pClient);
-                        }, 300000);
-                    }
+                async function waitPixivClientRecovered(pClient, code) {
+                    pClient.startRecover();
 
                     let accountStatus = '';
                     for (const pixivClient of pixivClients) {
-                        if (pixivClient.rStatus) accountStatus += '[' + 'a'.green + ']';
+                        if (pixivClient.isReady) accountStatus += '[' + 'a'.green + ']';
                         else accountStatus += '[' + 'd'.red.bold + ']';
                     }
-                    console.log('Network failed'.red.bold, accountStatus);
+
+                    switch (code) {
+                        case errorCode.NetError:
+                            console.log('Network failed'.red.bold, accountStatus);
+                            break;
+                        case errorCode.OffestLimit:
+                            console.log('Offest limit'.red.bold, accountStatus);
+                            break;
+                        case errorCode.NoExist:
+                            console.log('No exist'.red.bold, accountStatus);
+                            break;
+                        case errorCode.NoNextPage:
+                            console.log('No next page'.red.bold, accountStatus);
+                            break;
+                        case errorCode.RateLimit:
+                            console.log('Rate limit'.red.bold, accountStatus);
+                            break;
+                        case errorCode.UnknowError:
+                            console.log('Unknow error'.red.bold, accountStatus);
+                            break;
+                    }
 
                     let isFound = false;
                     for (const pixivClient of pixivClients) {
-                        if (pixivClient.rStatus) {
+                        if (pixivClient.isReady) {
+                            pixivClient.lastPath = curPixivClient.lastPath;
+                            pixivClient.nextOption = {
+                                ...curPixivClient.nextOption
+                            }
+                            pixivClient.hasNext = true;
                             curPixivClient = pixivClient;
                             isFound = true;
                             break;
                         }
                     }
                     if (!isFound) {
-                        await new Promise(resolve => {
-                            for (const pixivClient of pixivClients) {
-                                pixivClient.rEvent.on('recovery', onRecovery);
-                            }
-
-                            function onRecovery(client) {
-                                for (const pixivClient of pixivClients) {
-                                    pixivClient.rEvent.off('recovery', onRecovery);
-                                }
-                                curPixivClient = client;
-                                resolve();
-                            }
-                        });
+                        const watchdog = [];
+                        for (const pixivClient of pixivClients) {
+                            watchdog.push(pixivClient.recover());
+                        }
+                        const _curPC = await Promise.race(watchdog);
+                        _curPC.lastPath = curPixivClient.lastPath;
+                        _curPC.nextOption = {
+                            ...curPixivClient.nextOption
+                        }
+                        _curPC.hasNext = true;
+                        curPixivClient = _curPC;
                     }
                 }
             }
@@ -308,7 +348,6 @@ async function initDatabase() {
         month = 12;
     }
 
-    clearInterval(pixivLoginTimer);
     clearInterval(counterTimer);
     // 执行完了需要干掉自己的作业记录
     await knex('recovery_work').where('name', argName).delete();
@@ -332,14 +371,14 @@ function testIllust(illust) {
     if (/[^a-z]bl[^a-z]|(^|,)ゲイ/i.test(illust.tags)) return;
 
     // 不要小于1000收藏
-    if (illust.totalBookmarks < 1000) return;
+    if (illust.total_bookmarks < 1000) return;
 
     setIllust(illust);
 }
 
 async function setIllust(illust) {
     let rating = '';
-    switch (illust.xRestrict) {
+    switch (illust.x_restrict) {
         case 0:
             rating = 'safe';
             break
@@ -350,21 +389,21 @@ async function setIllust(illust) {
             rating = 'r18g';
             break;
         default:
-            rating = 'unknow:' + illust.xRestrict;
+            rating = 'unknow:' + illust.x_restrict;
             break;
     }
     const data = {
         title: illust.title,
-        image_url: illust.imageUrls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
+        image_url: illust.image_urls.large.match(/^http.*?\.net|img-master.*$/g).join('/'),
         user_id: illust.user.id,
         rating,
         tags: illust.tags,
-        create_date: illust.createDate,
-        page_count: illust.pageCount,
+        create_date: illust.create_date,
+        page_count: illust.page_count,
         width: illust.width,
         height: illust.height,
-        total_view: illust.totalView,
-        total_bookmarks: illust.totalBookmarks
+        total_view: illust.total_view,
+        total_bookmarks: illust.total_bookmarks
     }
     if ((await knex('illusts').where('id', illust.id))[0]) {
         await knex('illusts').where('id', illust.id).update(data);

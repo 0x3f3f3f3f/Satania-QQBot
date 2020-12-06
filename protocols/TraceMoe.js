@@ -45,7 +45,7 @@ async function TraceMoe(imgInfo, recvObj) {
                 }
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 resolve(body);

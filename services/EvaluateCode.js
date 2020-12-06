@@ -8,6 +8,7 @@ module.exports = function (req, res) {
             res.json({
                 output: '执行C#服务离线了！'
             });
+            return;
         }
         res.json(body);
     });

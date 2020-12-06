@@ -22,7 +22,7 @@ module.exports = async function (req, res) {
                 json: true
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 if (body.results)

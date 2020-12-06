@@ -7,6 +7,7 @@ const request = require('request');
 const fs = require('fs');
 const path = require('path');
 const messageHelper = require('../lib/messageHelper');
+const encryption = require('../lib/encryption');
 
 // 连接数据库
 const knex = require('knex')({
@@ -215,7 +216,7 @@ async function updateIllusts() {
                 }
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 if (body.result) resolve();
@@ -413,7 +414,7 @@ async function downloadIllust(illust, recvObj, opt) {
                 timeout: 10000
             }, (err, res, body) => {
                 if (err) {
-                    reject();
+                    reject(err);
                     return;
                 }
                 resolve(body);
@@ -474,7 +475,7 @@ module.exports = async function (recvObj) {
                     group: 'user'
                 });
             }
-            const key = base64url.encode(Buffer.from(account, 'utf-8').toString('base64'));
+            const key = base64url.encode(encryption.XOR(Buffer.from(account, 'utf-8')).toString('base64'));
             sendMsg(recvObj, [{
                     type: 'Plain',
                     text: '请登录：'

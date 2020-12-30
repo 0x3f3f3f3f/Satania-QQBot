@@ -9,17 +9,17 @@
     "express": "^4.17.1",
     "gif-frames": "^1.0.1",
     "iconv-lite": "^0.6.2",
-    "knex": "^0.21.11",
+    "knex": "^0.21.15",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "mysql2": "^2.2.5",
     "nzh": "^1.0.4",
     "pixiv-app-api": "^1.2.1",
-    "puppeteer": "^5.4.1",
+    "puppeteer": "^5.5.0",
     "request": "^2.88.2",
-    "sharp": "^0.26.2",
-    "uuid": "^8.3.1",
-    "ws": "^7.3.1"
+    "sharp": "^0.27.0",
+    "uuid": "^8.3.2",
+    "ws": "^7.4.2"
   },
   "devDependencies": {},
   "repository": {

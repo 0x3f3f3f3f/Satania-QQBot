@@ -75,26 +75,18 @@ async function SauceNAO(url, recvObj) {
             text: `\n相似度：${result.saucenaoObj.header.similarity}%`
         }
     ];
-    if (result.saucenaoObj.data.title ||
-        result.saucenaoObj.data.jp_name ||
-        result.saucenaoObj.data.eng_name) {
+    const title = getTitle(result.saucenaoObj);
+    if (title) {
         message.push({
             type: 'Plain',
-            text: '\n标题：' +
-                result.saucenaoObj.data.title ||
-                result.saucenaoObj.data.jp_name ||
-                result.saucenaoObj.data.eng_name
+            text: '\n标题：' + title
         });
     }
-    if (result.saucenaoObj.data.member_name ||
-        result.saucenaoObj.data.author_name ||
-        result.saucenaoObj.data.creator) {
+    const author = getAuthor(result.saucenaoObj);
+    if (author) {
         message.push({
             type: 'Plain',
-            text: '\n作者：' +
-                result.saucenaoObj.data.member_name ||
-                result.saucenaoObj.data.author_name ||
-                result.saucenaoObj.data.creator
+            text: '\n作者：' + author
         });
     }
     if (result.imageUrl) {
@@ -113,4 +105,38 @@ async function SauceNAO(url, recvObj) {
         });
     }
     sendMsg(recvObj, message);
+}
+
+function getTitle(obj) {
+    if (obj.data.title) {
+        return obj.data.title;
+    } else if (obj.data.jp_name) {
+        return obj.data.jp_name;
+    } else if (obj.data.eng_name) {
+        return obj.data.eng_name;
+    } else if (obj.data.material) {
+        return obj.data.material;
+    } else if (obj.data.source) {
+        return obj.data.source;
+    } else if (obj.data.created_at) {
+        return obj.data.created_at;
+    }
+}
+
+function getAuthor(obj) {
+    if (obj.data.author) {
+        return obj.data.author;
+    } else if (obj.data.author_name) {
+        return obj.data.author_name;
+    } else if (obj.data.member_name) {
+        return obj.data.member_name;
+    } else if (obj.data.pawoo_user_display_name) {
+        return obj.data.pawoo_user_display_name;
+    } else if (obj.data.pawoo_user_username) {
+        return obj.data.pawoo_user_username;
+    } else if (obj.data.company) {
+        return obj.data.company;
+    } else if (obj.data.creator) {
+        return obj.data.creator;
+    }
 }

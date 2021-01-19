@@ -477,14 +477,9 @@ module.exports = async function (recvObj) {
             }
             const key = base64url.encode(encryption.XOR(Buffer.from(account, 'utf-8')).toString('base64'));
             sendMsg(recvObj, [{
-                    type: 'Plain',
-                    text: '请登录：'
-                },
-                {
-                    type: 'Plain',
-                    text: encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
-                }
-            ]);
+                type: 'Plain',
+                text: '请登录：' + encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
+            }]);
         } else {
             sendMsg(recvObj, [{
                     type: 'Plain',
@@ -496,11 +491,7 @@ module.exports = async function (recvObj) {
                 },
                 {
                     type: 'Plain',
-                    text: '规则预览：\n'
-                },
-                {
-                    type: 'Plain',
-                    text: encodeURI(`${secret.publicDomainName}/user-tags/edit.html`)
+                    text: '规则预览：\n' + encodeURI(`${secret.publicDomainName}/user-tags/edit.html`)
                 }
             ]);
         }

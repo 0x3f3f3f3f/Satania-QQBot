@@ -59,6 +59,7 @@ publicDomainName        公共域名，用于标签编辑系统所发送的URL�
 imagePath               图片处理的临时文件夹
 imageRootUrl            网页服务图片URL前缀
 serviceRootUrl          网页服务URL前缀
+pixivpyUrl              pixivpy服务地址
 ```
 
 ## Usage
@@ -76,6 +77,20 @@ $ node app.js
 
 例子：
 $ node gfw_outside_service.js
+```
+* pixivpy.py
+```
+起因pixiv启用了cloudflare的验证码，nodejs的pixiv-app-api库很久没有维护，目前处于不可用状态，所以pixiv api部分改用Python的PixivPy库。
+需要pip安装Flask和pixivpy。
+
+Usage:
+pixivpy <host> <port>
+
+host                监听主机/地址
+port                监听端口
+
+例子：
+$ python pixivpy.py 127.0.0.1 33101
 ```
 * Pixiv_database.js
 ```
@@ -174,7 +189,8 @@ rule: block
 * [gif-frames](https://github.com/benwiley4000/gif-frames) —— 展开GIF帧库
 
 ## 接入的API
-* [pixiv-app-api](https://github.com/akameco/pixiv-app-api) —— Pixiv API
+* ~~[pixiv-app-api](https://github.com/akameco/pixiv-app-api) —— Pixiv API~~ (已弃用)
+* [PixivPy](https://github.com/upbit/pixivpy) —— Pixiv API
 * [SauceNao](https://saucenao.com/) —— 以图搜图
 * [trace.moe](https://trace.moe/) —— 以图搜番
 * [智能闲聊](https://ai.qq.com/product/nlpchat.shtml) —— 腾讯AI开放平台

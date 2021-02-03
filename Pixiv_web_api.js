@@ -1,6 +1,7 @@
 const express = require('express');
 const _ = require('lodash');
 const encryption = require('./lib/encryption');
+const path = require('path');
 
 // 连接数据库
 const knex = require('knex')({
@@ -354,6 +355,17 @@ app.post('/api/setUserTag', async (req, res) => {
     res.json({
         result: true
     });
+});
+
+app.get('/api/getChatQQ', (req, res) => {
+    res.json({
+        chatqq: secret.targetQQ
+    });
+});
+
+app.get('/api/user_tags_help.jpg', (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=259200')
+    res.sendFile(`${secret.emoticonsPath}${path.sep}user_tags_help.jpg`);
 });
 
 module.exports = function () {

@@ -5,16 +5,18 @@ const SataniaAPI = {
         try {
             result = await new Promise((resovle, reject) => {
                 $.ajax({
-                    url,
-                    method: 'POST',
-                    dataType: 'json',
-                    contentType: "application/json",
-                    data: JSON.stringify(data)
-                }).done(res => {
-                    resovle(res);
-                }).fail((xhr, status, errorThrown) => {
-                    reject(errorThrown);
-                });
+                        url,
+                        method: 'POST',
+                        data: JSON.stringify(data),
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8'
+                    })
+                    .done((res) => {
+                        resovle(res);
+                    })
+                    .fail(() => {
+                        reject();
+                    });
             });
         } catch {
             alert('网络发生错误');
@@ -74,5 +76,21 @@ const SataniaAPI = {
         }
 
         return result;
+    },
+    async getChatQQ() {
+        try {
+            const result = await new Promise((resovle, reject) => {
+                $.get('/api/getChatQQ', (res) => {
+                        resovle(res);
+                    }, 'json')
+                    .fail(() => {
+                        reject();
+                    });
+            });
+            return result;
+        } catch {
+            alert('网络发生错误');
+            throw '网络发生错误';
+        }
     }
 }

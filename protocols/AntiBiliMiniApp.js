@@ -1,4 +1,4 @@
-const messageHelper = require('../lib/messageHelper');
+const messageHelper = require('../libs/messageHelper');
 
 function parseJson(recvObj, json) {
     try {

@@ -1,6 +1,6 @@
 const nzhcn = require('nzh/cn');
 const path = require('path');
-const messageHelper = require('../lib/messageHelper');
+const messageHelper = require('../libs/messageHelper');
 
 module.exports = function (recvObj) {
     const inputText = messageHelper.getText(recvObj.message).trim();

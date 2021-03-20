@@ -1,4 +1,4 @@
-const pixivImg = require('../lib/getPixivImage');
+const pixivImg = require('../libs/getPixivImage');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');

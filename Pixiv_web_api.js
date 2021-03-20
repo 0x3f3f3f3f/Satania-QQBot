@@ -1,6 +1,6 @@
 const express = require('express');
 const _ = require('lodash');
-const encryption = require('./lib/encryption');
+const encryption = require('./libs/encryption');
 const path = require('path');
 
 // 连接数据库

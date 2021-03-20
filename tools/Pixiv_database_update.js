@@ -10,11 +10,11 @@ global.secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
 const {
     PixivAppApi,
     errorCode
-} = require('../lib/PixivAppApi');
+} = require('../libs/PixivAppApi');
 
 const pixivClients = [];
 for (const account of secret.PixivAPIAccounts) {
-    const pixivClient = new PixivAppApi(account.userName, account.password);
+    const pixivClient = new PixivAppApi(account.userName, account.token);
     pixivClients.push(pixivClient);
 }
 

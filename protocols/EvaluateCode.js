@@ -1,7 +1,7 @@
 const request = require('request');
 const _ = require('lodash');
-const messageHelper = require('../lib/messageHelper');
-const recvType = require('../lib/receiveType');
+const messageHelper = require('../libs/messageHelper');
+const recvType = require('../libs/receiveType');
 
 // 安全
 // 被禁止的命名空间

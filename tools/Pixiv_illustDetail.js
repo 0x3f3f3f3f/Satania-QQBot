@@ -5,9 +5,9 @@ global.secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
 
 const {
     PixivAppApi
-} = require('../lib/PixivAppApi');
+} = require('../libs/PixivAppApi');
 
-let pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivPassword);
+let pixiv = new PixivAppApi(secret.PixivUserName, secret.PixivToken);
 
 const argIllustId = process.argv[2];
 

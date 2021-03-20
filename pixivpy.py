@@ -10,11 +10,11 @@ pixivclients = dict()
 # 登录
 def login():
     username = request.json['username']
-    password = request.json['password']
+    token = request.json['token']
 
     try:
         api = AppPixivAPI()
-        api.login(username, password)
+        api.auth(refresh_token=token)
 
         pixivclients[username] = api
 

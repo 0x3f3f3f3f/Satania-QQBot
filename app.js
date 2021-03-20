@@ -8,9 +8,9 @@ const path = require('path');
 const {
     EventEmitter
 } = require('events');
-const recvType = require('./lib/receiveType');
-const miraiApiHttp = require('./lib/miraiApiHttp');
-const messageHelper = require('./lib/messageHelper');
+const recvType = require('./libs/receiveType');
+const miraiApiHttp = require('./libs/miraiApiHttp');
+const messageHelper = require('./libs/messageHelper');
 
 // 账号密码
 global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));

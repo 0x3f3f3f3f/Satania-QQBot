@@ -1,6 +1,6 @@
 const request = require('request');
 const _ = require('lodash');
-const messageHelper = require('../lib/messageHelper');
+const messageHelper = require('../libs/messageHelper');
 
 const DocType = {
     api: 0,

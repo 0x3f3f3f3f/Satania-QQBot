@@ -1,13 +1,13 @@
 const _ = require('lodash');
 const moment = require('moment');
 const nzhcn = require('nzh/cn');
-const recvType = require('../lib/receiveType');
-const base64url = require('../lib/base64url');
+const recvType = require('../libs/receiveType');
+const base64url = require('../libs/base64url');
 const request = require('request');
 const fs = require('fs');
 const path = require('path');
-const messageHelper = require('../lib/messageHelper');
-const encryption = require('../lib/encryption');
+const messageHelper = require('../libs/messageHelper');
+const encryption = require('../libs/encryption');
 
 // 连接数据库
 const knex = require('knex')({

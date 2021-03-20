@@ -33,11 +33,11 @@ module.exports = {
         /**
          * PixivAppApi
          * @param {string} username 
-         * @param {string} password 
+         * @param {string} token 
          */
-        constructor(username, password) {
+        constructor(username, token) {
             this.username = username;
-            this.password = password;
+            this.token = token;
             this.isReady = true;
             this.rEvent = new EventEmitter();
             this.hasNext = false;
@@ -48,7 +48,7 @@ module.exports = {
         login() {
             return postAsync('/login', {
                 username: this.username,
-                password: this.password
+                token: this.token
             });
         }
 

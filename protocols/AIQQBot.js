@@ -4,7 +4,7 @@ const uuid = require('uuid').v4;
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const messageHelper = require('../lib/messageHelper');
+const messageHelper = require('../libs/messageHelper');
 
 const localRules = JSON.parse(fs.readFileSync('./protocols/AIQQBot_local_rules.json', 'utf8'));
 

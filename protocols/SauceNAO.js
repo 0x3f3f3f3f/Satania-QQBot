@@ -1,6 +1,6 @@
 const request = require('request');
-const getImageInfo = require('../lib/getImageInfo');
-const messageHelper = require('../lib/messageHelper');
+const getImageInfo = require('../libs/getImageInfo');
+const messageHelper = require('../libs/messageHelper');
 
 module.exports = async function (recvObj, isPending = false) {
     const imageUrl = messageHelper.getImage(recvObj.message);

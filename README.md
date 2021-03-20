@@ -3,7 +3,9 @@ QQ机器人
 
 2020.11更新兼容[Mirai-API-http](https://github.com/project-mirai/mirai-api-http)~~因为二次元浓度过高~~
 
-已知问题：发送语音待官方完善
+2021.3 pixivpy弃用账号密码登录，改为refresh_token，详情https://github.com/upbit/pixivpy#pixivpy--
+
+已知问题：发送语音未实现
 
 ## 包含功能：
 
@@ -47,7 +49,7 @@ tempPath                qq宿主临时文件夹
 emoticonsPath           表情图片路径
 AI_QQ_APPID             腾讯智能闲聊应用ID
 AI_QQ_APPKEY            腾讯智能闲聊应用密钥
-PixivAPIAccounts        拉取Pixiv时提供的Pixiv用户名密码，可以多个，因pixiv拉取限制，单个账号被限制后以轮换的方式保证事务正常运行
+PixivAPIAccounts        拉取Pixiv时提供的Pixiv用户名和refresh_token，可以多个，因pixiv拉取限制，单个账号被限制后以轮换的方式保证事务正常运行
 chromiumUserData        chromium用户临时文件路径
 mysqlHost               MySQL服务地址
 mysqlPort               MySQL服务端口

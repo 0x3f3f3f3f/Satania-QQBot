@@ -398,7 +398,7 @@ async function setIllust(illust) {
         user_id: illust.user.id,
         rating,
         tags: illust.tags,
-        create_date: illust.create_date,
+        create_date: moment(illust.create_date).format("YYYY-MM-DD HH:mm:ss"),
         page_count: illust.page_count,
         width: illust.width,
         height: illust.height,

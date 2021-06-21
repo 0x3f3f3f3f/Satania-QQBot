@@ -1,5 +1,6 @@
 // 机器人主入口
 // 2020.11更换宿主mirai，采用mirai-api-http
+// 2021.06 mirai-api-http api升级到纯ws
 
 const WebSocket = require('ws');
 const _ = require('lodash');
@@ -18,54 +19,42 @@ global.secret = JSON.parse(fs.readFileSync('./secret.json', 'utf8'));
 global.appEvent = new EventEmitter();
 
 // 注册一下send方法
-global.sendMsg = (recvObj, message) => miraiApiHttp.send(sessionKey, recvObj, message);
-global.sendText = (recvObj, text) => miraiApiHttp.send(sessionKey, recvObj, [{
+global.sendMsg = (recvObj, message) => miraiApiHttp.send(recvObj, message);
+global.sendText = (recvObj, text) => miraiApiHttp.send(recvObj, [{
     type: 'Plain',
     text
 }]);
-global.sendImage = (recvObj, filePath) => miraiApiHttp.send(sessionKey, recvObj, [{
+global.sendImage = (recvObj, filePath) => miraiApiHttp.send(recvObj, [{
     type: 'Image',
     path: filePath
 }]);
-global.sendImageUrl = (recvObj, url) => miraiApiHttp.send(sessionKey, recvObj, [{
+global.sendImageUrl = (recvObj, url) => miraiApiHttp.send(recvObj, [{
     type: 'Image',
     url
 }]);
-global.sendVoice = (recvObj, filePath) => miraiApiHttp.send(sessionKey, recvObj, [{
+global.sendVoice = (recvObj, filePath) => miraiApiHttp.send(recvObj, [{
     type: 'Voice',
     path: filePath
 }]);
 
 // 连接mirai-api-http
-let sessionKey;
-
 async function connect() {
-    // 释放上一次未断开的会话
-    if (!_.isEmpty(sessionKey)) {
-        await miraiApiHttp.release(sessionKey);
-    }
-    // 获得版本号
-    console.log('mirai-api-http version:', (await miraiApiHttp.about()).version);
-    // 获得会话
-    sessionKey = await miraiApiHttp.auth();
-    await miraiApiHttp.verify(sessionKey);
     // 开始连接ws
-    if (client) {
-        client.off('open', onOpen);
-        client.off('message', onMessage);
-        client.off('pong', onPong);
-        client.off('close', onClose);
-        client.off('error', onError);
+    if (miraiApiHttp.client) {
+        miraiApiHttp.client.off('open', onOpen);
+        miraiApiHttp.client.off('message', onMessage);
+        miraiApiHttp.client.off('pong', onPong);
+        miraiApiHttp.client.off('close', onClose);
+        miraiApiHttp.client.off('error', onError);
     }
-    client = new WebSocket(`ws://${secret.MiraiApiHttpHost}:${secret.MiraiApiHttpPort}/all?sessionKey=${sessionKey}`);
-    client.on('open', onOpen);
-    client.on('message', onMessage);
-    client.on('pong', onPong);
-    client.on('close', onClose);
-    client.on('error', onError);
+    miraiApiHttp.client = new WebSocket(`ws://${secret.MiraiApiHttpHost}:${secret.MiraiApiHttpPort}/all?verifyKey=${secret.MiraiApiHttpAuthKey}&qq=${secret.targetQQ}`);
+    miraiApiHttp.client.on('open', onOpen);
+    miraiApiHttp.client.on('message', onMessage);
+    miraiApiHttp.client.on('pong', onPong);
+    miraiApiHttp.client.on('close', onClose);
+    miraiApiHttp.client.on('error', onError);
 }
 
-let client;
 // 延迟启动，默认10秒，也可以手动
 let delayTime = 10;
 if (!_.isUndefined(process.argv[2])) {
@@ -80,8 +69,8 @@ if (delayTime > 0) {
 
 // 心跳
 const heartBeat = setInterval(() => {
-    if (client && client.readyState == WebSocket.OPEN) {
-        client.ping();
+    if (miraiApiHttp.client && miraiApiHttp.client.readyState == WebSocket.OPEN) {
+        miraiApiHttp.client.ping();
     }
 }, 10000);
 
@@ -107,8 +96,10 @@ async function protocolEntry(recvObj) {
     }
 }
 
-function onOpen() {
+async function onOpen() {
     console.log('opened!');
+    // 获得版本号
+    console.log('mirai-api-http version:', (await miraiApiHttp.about()).version);
 }
 
 // ws消息送达
@@ -119,6 +110,16 @@ async function onMessage(data) {
     let recvObj;
     try {
         recvObj = JSON.parse(data);
+        if (miraiApiHttp.syncList[recvObj.syncId]) {
+            // 同步消息回调
+            miraiApiHttp.syncList[recvObj.syncId](recvObj.data);
+            return;
+        } else if (recvObj.syncId == '') {
+            // 握手信息
+            return;
+        } else {
+            recvObj = recvObj.data;
+        }
     } catch {}
     if (_.isEmpty(recvObj)) return;
 
@@ -242,7 +243,7 @@ const pendingTimer = setInterval(() => {
 
 const reconnectTimer = setInterval(() => {
     // 断线重连
-    if (client && client.readyState == WebSocket.CLOSED) {
+    if (miraiApiHttp.client && miraiApiHttp.client.readyState == WebSocket.CLOSED) {
         console.log('reconnect...');
         connect();
     }

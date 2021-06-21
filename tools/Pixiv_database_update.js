@@ -4,6 +4,7 @@ require('colors');
 const {
     EventEmitter
 } = require('events');
+const moment = require('moment');
 
 global.secret = JSON.parse(fs.readFileSync('../secret.json', 'utf8'));
 
@@ -207,7 +208,7 @@ async function getIllust(pixiv, illust, progress) {
         user_id: detail.user.id,
         rating,
         tags,
-        create_date: detail.create_date,
+        create_date: moment(detail.create_date).format("YYYY-MM-DD HH:mm:ss"),
         page_count: detail.page_count,
         width: detail.width,
         height: detail.height,

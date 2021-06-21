@@ -3,116 +3,52 @@ const recvType = require('./receiveType');
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const e = require('express');
+const uuid = require('uuid').v4;
 
-function requestAsync(method, _path, json) {
-    return new Promise((resolve, reject) => {
-        request(`http://${secret.MiraiApiHttpHost}:${secret.MiraiApiHttpPort}${_path}`, {
-            method,
-            json: json || true
-        }, (err, res, body) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            resolve(body);
-        });
-    });
-}
+let client;
+const syncList = {}
 
-function postFormAsync(_path, formData) {
-    return new Promise((resolve, reject) => {
-        request.post(`http://${secret.MiraiApiHttpHost}:${secret.MiraiApiHttpPort}${_path}`, {
-            formData,
-            json: true
-        }, (err, res, body) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            resolve(body);
-        });
-    });
+async function _send(syncId, command, content = {}) {
+    if (!client) return;
+    client.send(JSON.stringify({
+        syncId,
+        command,
+        subCommand: null,
+        content
+    }));
+    const res = await Promise.race([
+        new Promise(resolve => {
+            syncList[syncId] = resolve;
+        }),
+        new Promise(resolve => {
+            setTimeout(resolve, 30000, null);
+        })
+    ]);
+    delete syncList[syncId];
+    return res;
 }
 
 module.exports = {
+    get client() {
+        return client;
+    },
+    set client(value) {
+        client = value;
+    },
+    get syncList() {
+        return syncList;
+    },
     async about() {
-        const res = await requestAsync('GET', '/about');
+        const res = await _send(uuid(), 'about');
         return res.data;
     },
-    async auth() {
-        const res = await requestAsync('POST', '/auth', {
-            authKey: secret.MiraiApiHttpAuthKey
-        });
-        if (res.code != 0) throw res;
-        return res.session;
-    },
-    async verify(sessionKey) {
-        const res = await requestAsync('POST', '/verify', {
-            sessionKey,
-            qq: secret.targetQQ
-        });
-        if (res.code != 0) throw res;
-    },
-    async release(sessionKey) {
-        await requestAsync('POST', '/release', {
-            sessionKey,
-            qq: secret.targetQQ
-        });
-    },
-    async uploadImage(sessionKey, type, filePath) {
-        let res;
-        switch (type) {
-            case recvType.FriendMessage:
-                res = await postFormAsync('/uploadImage', {
-                    sessionKey,
-                    type: 'friend',
-                    img: fs.createReadStream(filePath)
-                });
-                break;
-            case recvType.GroupMessage:
-                res = await postFormAsync('/uploadImage', {
-                    sessionKey,
-                    type: 'group',
-                    img: fs.createReadStream(filePath)
-                });
-                break;
-            case recvType.TempMessage:
-                res = await postFormAsync('/uploadImage', {
-                    sessionKey,
-                    type: 'temp',
-                    img: fs.createReadStream(filePath)
-                });
-                break;
-        }
-        return res;
-    },
-    async uploadVoice(sessionKey, type, filePath) {
-        // https://github.com/project-mirai/mirai-api-http/blob/master/docs/API.md#%E8%AF%AD%E9%9F%B3%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0
-        // 当前仅支持 "group"
-        let res;
-        switch (type) {
-            case recvType.FriendMessage:
-                break;
-            case recvType.GroupMessage:
-                res = await postFormAsync('/uploadVoice', {
-                    sessionKey,
-                    type: 'group',
-                    voice: fs.createReadStream(filePath)
-                });
-                break;
-            case recvType.TempMessage:
-                break;
-        }
-        return res;
-    },
-    async send(sessionKey, recvObj, message) {
+    async send(recvObj, message) {
         // 处理At，上传图片与语音
         for (let i = message.length - 1; i >= 0; i--) {
             switch (message[i].type) {
                 case 'Image':
+                    // 如果是网络图片先下载
                     if (message[i].url) {
-                        // 如果是网络图片先下载
                         const savedImagePath = await new Promise(resolve => {
                             request.get(message[i].url, {
                                 encoding: null
@@ -126,39 +62,16 @@ module.exports = {
                             });
                         });
                         if (savedImagePath) {
-                            const res = await this.uploadImage(sessionKey, recvObj.type, savedImagePath);
-                            if (res) {
-                                delete message[i].url
-                                message[i].imageId = res.imageId;
-                            } else {
-                                message.splice(i, 1);
-                            }
-                        } else {
-                            message.splice(i, 1);
-                        }
-                    } else if (message[i].path) {
-                        const res = await this.uploadImage(sessionKey, recvObj.type, message[i].path);
-                        if (res) {
-                            delete message[i].path
-                            message[i].imageId = res.imageId;
+                            delete message[i].url
+                            message[i].path = savedImagePath;
                         } else {
                             message.splice(i, 1);
                         }
                     }
                     break;
                 case 'Voice':
-                    if (message[i].url) {
-                        // 未实现
-                        message.splice(i, 1);
-                    } else if (message[i].path) {
-                        const res = await this.uploadVoice(sessionKey, recvObj.type, message[i].path);
-                        if (res) {
-                            delete message[i].path
-                            message[i].voiceId = res.voiceId;
-                        } else {
-                            message.splice(i, 1);
-                        }
-                    }
+                    // 未实现
+                    message.splice(i, 1);
                     break;
                 case 'At':
                     if (recvObj.type != recvType.GroupMessage) {
@@ -169,22 +82,19 @@ module.exports = {
         }
         switch (recvObj.type) {
             case recvType.FriendMessage:
-                requestAsync('POST', '/sendFriendMessage', {
-                    sessionKey,
+                _send(uuid(), 'sendFriendMessage', {
                     target: recvObj.qq,
                     messageChain: message
                 });
                 break;
             case recvType.GroupMessage:
-                requestAsync('POST', '/sendGroupMessage', {
-                    sessionKey,
+                _send(uuid(), 'sendGroupMessage', {
                     target: recvObj.group,
                     messageChain: message
                 });
                 break;
             case recvType.TempMessage:
-                requestAsync('POST', '/sendTempMessage', {
-                    sessionKey,
+                _send(uuid(), 'sendTempMessage', {
                     qq: recvObj.qq,
                     group: recvObj.group,
                     messageChain: message

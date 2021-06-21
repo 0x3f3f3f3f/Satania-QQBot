@@ -4,21 +4,21 @@
   "description": "QQ机器人",
   "main": "app.js",
   "dependencies": {
-    "baidu-aip-sdk": "^2.4.6",
+    "baidu-aip-sdk": "^4.15.4",
     "colors": "^1.4.0",
     "express": "^4.17.1",
     "gif-frames": "^1.0.1",
-    "iconv-lite": "^0.6.2",
-    "knex": "^0.21.16",
-    "lodash": "^4.17.20",
+    "iconv-lite": "^0.6.3",
+    "knex": "^0.95.6",
+    "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "mysql2": "^2.2.5",
     "nzh": "^1.0.4",
-    "puppeteer": "^5.5.0",
+    "puppeteer": "^10.0.0",
     "request": "^2.88.2",
-    "sharp": "^0.27.0",
+    "sharp": "^0.28.3",
     "uuid": "^8.3.2",
-    "ws": "^7.4.2"
+    "ws": "^7.5.0"
   },
   "devDependencies": {},
   "repository": {

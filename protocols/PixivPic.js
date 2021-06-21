@@ -403,7 +403,7 @@ async function searchIllust(recvObj, tags, opt, seenList) {
     return illust;
 }
 
-async function downloadIllust(illust, recvObj, opt) {
+async function downloadIllust(illust) {
     let result;
     try {
         result = await new Promise((resolve, reject) => {
@@ -423,14 +423,6 @@ async function downloadIllust(illust, recvObj, opt) {
 
         if (result.err) {
             return null;
-        }
-
-        if (!opt.resend && recvObj.type == recvType.GroupMessage && recvObj.group != '') {
-            await knex('seen_list').insert({
-                group: recvObj.group,
-                illust_id: illust.id,
-                date: moment().format()
-            });
         }
 
         return result.url;
@@ -641,6 +633,13 @@ async function PixivPic(recvObj, tags, opt) {
             // 群聊才减充能
             if (recvObj.type == recvType.GroupMessage) {
                 groupList[recvObj.group].count--;
+                if (!opt.resend && recvObj.type == recvType.GroupMessage && recvObj.group != '') {
+                    await knex('seen_list').insert({
+                        group: recvObj.group,
+                        illust_id: illust.id,
+                        date: moment().format("YYYY-MM-DD HH:mm:ss")
+                    });
+                }
             } else {
                 userList[recvObj.qq].seenList.push({
                     id: illust.id

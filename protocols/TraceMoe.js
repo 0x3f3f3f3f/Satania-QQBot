@@ -76,22 +76,29 @@ async function TraceMoe(imgInfo, recvObj) {
             text: ' 欧尼酱是不是你想要的内个~'
         }
     ];
-    if (result.tracemoeObj.title_native) {
+    if (result.tracemoeObj.anilist.title.native) {
         message.push({
             type: 'Plain',
-            text: `\n原名：${result.tracemoeObj.title_native}`
+            text: `\n原名：${result.tracemoeObj.anilist.title.native}`
         });
     }
-    if (result.tracemoeObj.title_chinese) {
+    let title_cn;
+    for (let i = result.tracemoeObj.anilist.synonyms.length - 1; i >= 0; i--) {
+        if (/\p{Script=Han}/u.test(result.tracemoeObj.anilist.synonyms[i])) {
+            title_cn = result.tracemoeObj.anilist.synonyms[i];
+            break;
+        }
+    }
+    if (title_cn) {
         message.push({
             type: 'Plain',
-            text: `\n中文名：${result.tracemoeObj.title_chinese}`
+            text: `\n中文名：${title_cn}`
         });
     }
-    if (result.tracemoeObj.title_english) {
+    if (result.tracemoeObj.anilist.title.romaji) {
         message.push({
             type: 'Plain',
-            text: `\n英文名：${result.tracemoeObj.title_english}`
+            text: `\n罗马音：${result.tracemoeObj.anilist.title.romaji}`
         });
     }
     message.push({
@@ -100,9 +107,9 @@ async function TraceMoe(imgInfo, recvObj) {
     }, {
         type: 'Plain',
         text: `\n匹配${result.tracemoeObj.episode||'?'}话 ` +
-            (parseInt(result.tracemoeObj.at / 3600) == 0 ? '' : (parseInt(result.tracemoeObj.at / 3600) + '时')) +
-            (parseInt(result.tracemoeObj.at % 3600 / 60) == 0 ? '' : (parseInt(result.tracemoeObj.at % 3600 / 60) + '分')) +
-            (parseInt(result.tracemoeObj.at % 60) == 0 ? '' : (parseInt(result.tracemoeObj.at % 60) + '秒'))
+            (parseInt(result.tracemoeObj.from / 3600) == 0 ? '' : (parseInt(result.tracemoeObj.from / 3600) + '时')) +
+            (parseInt(result.tracemoeObj.from % 3600 / 60) == 0 ? '' : (parseInt(result.tracemoeObj.from % 3600 / 60) + '分')) +
+            (parseInt(result.tracemoeObj.from % 60) == 0 ? '' : (parseInt(result.tracemoeObj.from % 60) + '秒'))
     });
     if (result.imageUrl) {
         message.push({

@@ -17,32 +17,29 @@ module.exports = async function (req, res) {
             frames: 0
         }))[0].getImage();
 
-        const imgBase64 = await new Promise((resolve, reject) => {
-            let buffer = [];
-            gifStream.on('error', reject);
-            gifStream.on('data', data => buffer.push(data))
-            gifStream.on('end', () => resolve(Buffer.concat(buffer).toString('base64')));
-        });
-
         tracemoeObj = await new Promise((resolve, reject) => {
-            request.post('https://trace.moe/api/search', {
-                json: {
-                    image: 'data:image/jpeg;base64,' + imgBase64
-                }
+            request.post('https://api.trace.moe/search?anilistInfo', {
+                formData: {
+                    value: gifStream,
+                    options: {
+                        filename: "image.jpg"
+                    }
+                },
+                json: true
             }, (err, res, body) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-                if (body.docs)
-                    console.log('TraceMoe API:', body.docs[0].title);
+                if (body.result && !_.isEmpty(body.result))
+                    console.log('TraceMoe API:', body.result[0].anilist.title.native);
                 resolve(body);
             });
         });
     } catch {
         try {
             tracemoeObj = await new Promise((resolve, reject) => {
-                request.get('https://trace.moe/api/search', {
+                request.get('https://api.trace.moe/search?anilistInfo', {
                     qs: {
                         url
                     },
@@ -52,8 +49,8 @@ module.exports = async function (req, res) {
                         reject(err);
                         return;
                     }
-                    if (body.docs)
-                        console.log('TraceMoe API:', body.docs[0].title);
+                    if (body.result && !_.isEmpty(body.result))
+                        console.log('TraceMoe API:', body.result[0].anilist.title.native);
                     resolve(body);
                 });
             });
@@ -65,7 +62,7 @@ module.exports = async function (req, res) {
         }
     }
 
-    if (!tracemoeObj.docs) {
+    if (!tracemoeObj.result || _.isEmpty(tracemoeObj.result)) {
         res.json({
             err: 'nofind'
         });
@@ -73,13 +70,7 @@ module.exports = async function (req, res) {
     }
 
     const imagePath = await new Promise(resolve => {
-        request.get('https://trace.moe/thumbnail.php', {
-            qs: {
-                anilist_id: tracemoeObj.docs[0].anilist_id,
-                file: tracemoeObj.docs[0].filename,
-                t: tracemoeObj.docs[0].at,
-                token: tracemoeObj.docs[0].tokenthumb
-            },
+        request.get(tracemoeObj.result[0].image, {
             encoding: null
         }, async (err, res, body) => {
             let imagePath = null;
@@ -118,12 +109,12 @@ module.exports = async function (req, res) {
 
     if (imagePath) {
         res.json({
-            tracemoeObj: tracemoeObj.docs[0],
+            tracemoeObj: tracemoeObj.result[0],
             imageUrl: `${secret.imageRootUrl + (secret.imageRootUrl.startsWith('http') ? '/' : path.sep) + path.basename(imagePath)}`
         });
     } else {
         res.json({
-            tracemoeObj: tracemoeObj.docs[0]
+            tracemoeObj: tracemoeObj.result[0]
         });
     }
 }

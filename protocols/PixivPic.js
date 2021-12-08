@@ -95,8 +95,11 @@ if (!fs.existsSync(secret.tempPath)) {
 }
 
 const tagList = {};
+let tagIds = [];
 let illusts = [];
-let illustsIndex = {};
+let illustsIds = {};
+let illustsTags = [];
+let illustsTagsIds = {};
 
 let isInitialized = false;
 
@@ -192,14 +195,65 @@ async function getInsideTags() {
     }
 }
 
+const rating = {
+    safe: 0,
+    r18: 1,
+    r18g: 2
+};
+
 async function getIllusts() {
-    illusts = await knex('illusts').select('id', 'title as ti', 'image_url as url', 'rating as r', 'tags as t', 'create_date as d', 'total_bookmarks as b').orderBy('id', 'asc');
-    for (const illust of illusts) {
-        illust.t = illust.t.toLowerCase();
+    if (secret.PixivLoadLimit > 0) {
+        illusts = await knex('illusts').select('id', 'rating as r', 'tags as t', 'total_bookmarks as b').orderBy('id', 'desc').limit(secret.PixivLoadLimit);
+        illusts.reverse();
+    } else {
+        illusts = await knex('illusts').select('id', 'rating as r', 'tags as t', 'total_bookmarks as b').orderBy('id', 'asc');
     }
-    illustsIndex = {};
+
+    illustsTags = [];
+    illustsTagsIds = {};
     for (let i = 0; i < illusts.length; i++) {
-        illustsIndex[illusts[i].id] = i;
+        const illust = illusts[i];
+
+        switch (illust.r) {
+            case 'safe':
+                illust.r = rating.safe;
+                break;
+            case 'r18':
+                illust.r = rating.r18;
+                break;
+            case 'r18g':
+                illust.r = rating.r18g;
+                break;
+        }
+
+        const tags = illust.t.toLowerCase().split(',');
+        illust.t = [];
+        for (const tag of tags) {
+            if (!illustsTagsIds[tag]) {
+                illustsTags.push(tag);
+                illustsTagsIds[tag] = illustsTags.length - 1;
+            }
+            illust.t.push(illustsTagsIds[tag]);
+        }
+
+        illusts[i] = { ...illust };
+    }
+
+    tagIds = [];
+    for (let i = 0; i < tagList.sex.length; i++) {
+        const tag = tagList.sex[i].toLowerCase();
+        for (let j = 0; j < illustsTags.length; j++) {
+            const illustsTag = illustsTags[j];
+            if (illustsTag.indexOf(tag) != -1) {
+                tagIds.push(illustsTagsIds[illustsTag]);
+                break;
+            }
+        }
+    }
+
+    illustsIds = {};
+    for (let i = 0; i < illusts.length; i++) {
+        illustsIds[illusts[i].id] = i;
     }
 }
 
@@ -252,7 +306,7 @@ async function updateIllusts() {
 
 async function searchIllust(recvObj, tags, opt, seenList) {
     const selected = [];
-    const selectedIndex = {};
+    const selectedIds = {};
     let startTime = Date.now();
 
     let bookmarks = 1000;
@@ -267,7 +321,6 @@ async function searchIllust(recvObj, tags, opt, seenList) {
     const isSafe = recvObj.type != recvType.FriendMessage;
     let opAnd = [];
     const opOr = [];
-    let regExp;
 
     function selectTags() {
         if (_.isEmpty(opOr)) {
@@ -281,7 +334,13 @@ async function searchIllust(recvObj, tags, opt, seenList) {
                     case '&':
                         break;
                     default:
-                        opAnd.push(tag);
+                        for (let j = 0; j < illustsTags.length; j++) {
+                            const illustsTag = illustsTags[j];
+                            if (illustsTag.indexOf(tag) != -1) {
+                                opAnd.push(illustsTagsIds[illustsTag]);
+                                break;
+                            }
+                        }
                         break;
                 }
             }
@@ -289,7 +348,7 @@ async function searchIllust(recvObj, tags, opt, seenList) {
         }
         for (const illust of illusts) {
             if (illust.b < bookmarks) continue;
-            if (isSafe && illust.r != 'safe') continue;
+            if (isSafe && illust.r != rating.safe) continue;
             for (const inAnd of opOr) {
                 let lastBool = true;
                 for (let i = 0; i < inAnd.length; i++) {
@@ -301,14 +360,21 @@ async function searchIllust(recvObj, tags, opt, seenList) {
                 }
                 if (lastBool) {
                     if (opt.rule && opt.rule.rule == 'safe') {
-                        if (!regExp) regExp = new RegExp(replaceRegexpChar(tagList.sex).join('|'), 'i');
-                        if (!regExp.test(illust.t)) {
-                            selected.push(illustsIndex[illust.id]);
-                            selectedIndex[illust.id] = selected.length - 1;
+                        let found = false;
+                        for (let i = 0; i < tagIds.length; i++) {
+                            const tagId = tagIds[i];
+                            if (illust.t.indexOf(tagId) != -1) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            selected.push(illustsIds[illust.id]);
+                            selectedIds[illust.id] = selected.length - 1;
                         }
                     } else {
-                        selected.push(illustsIndex[illust.id]);
-                        selectedIndex[illust.id] = selected.length - 1;
+                        selected.push(illustsIds[illust.id]);
+                        selectedIds[illust.id] = selected.length - 1;
                     }
                     break;
                 }
@@ -317,19 +383,26 @@ async function searchIllust(recvObj, tags, opt, seenList) {
     }
 
     function selectAll() {
-        if (!regExp) regExp = new RegExp(replaceRegexpChar(tagList.sex).join('|'), 'i');
         for (const illust of illusts) {
             if (illust.b < bookmarks) continue;
-            if (isSafe && illust.r != 'safe') continue;
+            if (isSafe && illust.r != rating.safe) continue;
+            let found = false;
+            for (let i = 0; i < tagIds.length; i++) {
+                const tagId = tagIds[i];
+                if (illust.t.indexOf(tagId) != -1) {
+                    found = true;
+                    break;
+                }
+            }
             if (opt.rule && opt.rule.rule == 'safe') {
-                if (!regExp.test(illust.t)) {
-                    selected.push(illustsIndex[illust.id]);
-                    selectedIndex[illust.id] = selected.length - 1;
+                if (!found) {
+                    selected.push(illustsIds[illust.id]);
+                    selectedIds[illust.id] = selected.length - 1;
                 }
             } else {
-                if (regExp.test(illust.t)) {
-                    selected.push(illustsIndex[illust.id]);
-                    selectedIndex[illust.id] = selected.length - 1;
+                if (found) {
+                    selected.push(illustsIds[illust.id]);
+                    selectedIds[illust.id] = selected.length - 1;
                 }
             }
         }
@@ -339,17 +412,17 @@ async function searchIllust(recvObj, tags, opt, seenList) {
         if (recvObj.type == recvType.GroupMessage && recvObj.group != 0) {
             const seenList = await knex('seen_list').where('group', recvObj.group).select('illust_id as id').orderBy('id', 'desc');
             for (const seen of seenList) {
-                if (!_.isUndefined(selectedIndex[seen.id])) {
-                    selected.splice(selectedIndex[seen.id], 1);
-                    delete selectedIndex[seen.id];
+                if (!_.isUndefined(selectedIds[seen.id])) {
+                    selected.splice(selectedIds[seen.id], 1);
+                    delete selectedIds[seen.id];
                 }
             }
         } else {
             seenList.sort((a, b) => b.id - a.id);
             for (const seen of seenList) {
-                if (!_.isUndefined(selectedIndex[seen.id])) {
-                    selected.splice(selectedIndex[seen.id], 1);
-                    delete selectedIndex[seen.id];
+                if (!_.isUndefined(selectedIds[seen.id])) {
+                    selected.splice(selectedIds[seen.id], 1);
+                    delete selectedIds[seen.id];
                 }
             }
         }
@@ -359,7 +432,7 @@ async function searchIllust(recvObj, tags, opt, seenList) {
         if (recvObj.type == recvType.GroupMessage && recvObj.group != 0) {
             const seen = (await knex('seen_list').where('group', recvObj.group).select('id', 'illust_id').orderBy('id', 'desc').limit(1).offset(opt.num - 1))[0];
             if (!_.isEmpty(seen)) {
-                return illusts[illustsIndex[seen.illust_id]];
+                return illusts[illustsIds[seen.illust_id]];
             } else {
                 return null;
             }
@@ -391,14 +464,23 @@ async function searchIllust(recvObj, tags, opt, seenList) {
     if (!_.isEmpty(selected)) {
         const count = selected.length;
         const rand = (1 - Math.pow(1 - Math.random(), 2)) * count;
-        illust = illusts[selected[parseInt(rand)]];
+        illust = { ...illusts[selected[parseInt(rand)]] };
+    }
+
+    if (illust) {
+        const illustDetail = (await knex('illusts').where('id', illust.id).select('title', 'image_url as url', 'create_date as date'))[0];
+        illust.title = illustDetail.title;
+        illust.url = illustDetail.url;
+        illust.date = illustDetail.date;
     }
 
     console.log('Query time:', (Date.now() - startTime) + 'ms');
 
-    if (!illust) return null;
+    if (!illust) {
+        return null;
+    }
 
-    console.log('PixivPic:', illust.id, illust.ti, `bookmarks: ${illust.b}>${parseInt(bookmarks)}`, moment(illust.d).format('YYYY-MM-DD, H:mm:ss'));
+    console.log('PixivPic:', illust.id, illust.title, `bookmarks: ${illust.b}>${parseInt(bookmarks)}`, moment(illust.date).format('YYYY-MM-DD, H:mm:ss'));
 
     return illust;
 }
@@ -473,7 +555,8 @@ module.exports = async function (recvObj) {
                 text: '请登录：' + encodeURI(`${secret.publicDomainName}/user-tags/login.html?key=${key}`)
             }]);
         } else {
-            sendMsg(recvObj, [{
+            sendMsg(recvObj, [
+                {
                     type: 'Plain',
                     text: '欧尼酱~请按下图方法与我私聊获得链接~\n'
                 },
@@ -626,7 +709,7 @@ async function PixivPic(recvObj, tags, opt) {
         illust = await searchIllust(recvObj, tags, opt, userList[recvObj.qq].seenList);
         if (!illust) throw 'illust is null';
         illustPath = await downloadIllust(illust, recvObj, opt);
-    } catch {}
+    } catch { }
 
     if (illustPath) {
         if (!opt.resend) {

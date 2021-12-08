@@ -204,11 +204,7 @@ async function initDatabase() {
             }
 
             for (; date > 0; date--) {
-                if (moment({
-                        year,
-                        month: month - 1,
-                        date
-                    }) - targetDate < 0) {
+                if (moment({ year, month: month - 1, date }) - targetDate < 0) {
                     outOfRange = true;
                     break;
                 }
@@ -366,9 +362,24 @@ function testIllust(illust) {
 
     // 不要黑车
     if (/男/.test(illust.tags)) {
-        if (!(/男の娘|ちんちんの付いた美少女/.test(illust.tags))) return;
+        if (!(/男の娘|ちんちんの付いた美少女/.test(illust.tags))) {
+            return;
+        }
     }
-    if (/[^a-z]bl[^a-z]|(^|,)ゲイ/i.test(illust.tags)) return;
+    if (/[^a-z]bl[^a-z]|(^|,)ゲイ/i.test(illust.tags)) {
+        return;
+    }
+    if (/幼女戦記/.test(illust.tags)) {
+        const tempList = [];
+        for (const tag of tagList) {
+            if (!/ロリ|幼女/.test(tag)) {
+                tempList.push(tag);
+            }
+        }
+        if (!(new RegExp(tempList.join('|'), 'i').test(illust.tags))) {
+            return;
+        }
+    }
 
     // 不要小于1000收藏
     if (illust.total_bookmarks < 1000) return;

@@ -6,7 +6,7 @@ module.exports = function (url) {
         request.get(url, {
             encoding: null,
             headers: {
-                'Referer': 'http://www.pixiv.net/'
+                'referer': 'https://www.pixiv.net/'
             }
         }, (err, res, body) => {
             if (!err && _.isBuffer(body)) {

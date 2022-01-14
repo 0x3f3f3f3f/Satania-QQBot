@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const messageHelper = require('../libs/messageHelper');
 const encryption = require('../libs/encryption');
+const crypto = require('crypto');
 
 // 连接数据库
 const knex = require('knex')({
@@ -129,7 +130,7 @@ const timer = setInterval(() => {
     const curMoment = moment();
     if (curHours != curMoment.hours()) {
         curHours = curMoment.hours();
-        //清理色图缓存
+        // 清理色图缓存
         cleanUp();
         // 每天12点更新色图库
         if (curHours == 12) {
@@ -139,6 +140,8 @@ const timer = setInterval(() => {
                 delete userList[qq];
             }
         }
+        // 企业微信推送
+        WechatWebhook();
     }
     // 充能（区分每个群）
     for (const groupId in groupList) {
@@ -708,8 +711,10 @@ async function PixivPic(recvObj, tags, opt) {
     try {
         illust = await searchIllust(recvObj, tags, opt, userList[recvObj.qq].seenList);
         if (!illust) throw 'illust is null';
-        illustPath = await downloadIllust(illust, recvObj, opt);
-    } catch { }
+        illustPath = await downloadIllust(illust);
+    } catch (e) {
+        console.log(e);
+    }
 
     if (illustPath) {
         if (!opt.resend) {
@@ -720,7 +725,7 @@ async function PixivPic(recvObj, tags, opt) {
                     await knex('seen_list').insert({
                         group: recvObj.group,
                         illust_id: illust.id,
-                        date: moment().format("YYYY-MM-DD HH:mm:ss")
+                        date: moment().format('YYYY-MM-DD HH:mm:ss')
                     });
                 }
             } else {
@@ -733,5 +738,39 @@ async function PixivPic(recvObj, tags, opt) {
         sendImageUrl(recvObj, illustPath);
     } else {
         sendImage(recvObj, `${secret.emoticonsPath}${path.sep}satania_cry.gif`);
+    }
+}
+
+async function WechatWebhook() {
+    let illust;
+    let illustPath;
+    const recvObj = {
+        type: recvType.GroupMessage,
+        group: -255
+    }
+    try {
+        illust = await searchIllust(recvObj, [], {}, []);
+        if (!illust) throw 'illust is null';
+        illustPath = await downloadIllust(illust);
+    } catch (e) {
+        console.log(e);
+    }
+    if (illustPath) {
+        await knex('seen_list').insert({
+            group: recvObj.group,
+            illust_id: illust.id,
+            date: moment().format('YYYY-MM-DD HH:mm:ss')
+        });
+        const imagePath = illustPath.replace(secret.imageRootUrl, secret.imagePath);
+        const imageBuffer = fs.readFileSync(imagePath);
+        request.post(secret.WechatWebhookUrl, {
+            json: {
+                msgtype: 'image',
+                image: {
+                    base64: imageBuffer.toString('base64'),
+                    md5: crypto.createHash('md5').update(imageBuffer).digest("hex")
+                }
+            }
+        });
     }
 }
